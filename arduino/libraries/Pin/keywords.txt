@@ -1,0 +1,12 @@
+ANALOG	LITERAL1	Constants
+DIGITAL	LITERAL1	Constants
+NULL	LITERAL1	Constants
+
+
+
+Pin	KEYWORD1	Class
+
+get	KEYWORD2	Method
+set	KEYWORD2	Method
+update	KEYWORD2	Method
+

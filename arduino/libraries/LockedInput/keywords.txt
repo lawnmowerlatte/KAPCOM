@@ -1,0 +1,4 @@
+LockedInput	KEYWORD1	Class
+
+update	KEYWORD2	Method
+print	KEYWORD2	Method

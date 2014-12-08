@@ -1,0 +1,4 @@
+Joy	KEYWORD1	Class
+
+read	KEYWORD2	Method
+print	KEYWORD2	Method

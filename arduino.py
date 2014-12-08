@@ -1,3 +1,5 @@
+#! /usr/bin/python
+
 # This module allows programs to interface with Kerbal Space Program
 # This module interfaces with a connected Arduino via serial connection
 # and an API library for communication with Kerbal Space Program. This
@@ -10,178 +12,151 @@ import serial
 import os
 import linecache
 import math
-import telemachus as API
+import pyksp
 
 class arduino:
     """Creates an interface between the Arduino serial connection and Telemachus library."""
-    self.port
-    self.serial
-    self.baud
+    #port
+    #serial
+    #baud
+    #vessel
     
-    def __init__(self, API, port="/dev/usbmodem*", baud=9600):
+    subscriptions = {
+        "vessel_altitude",
+        "vessel_apoapsis",
+        "vessel_periapsis",
+        "vessel_velocity",
+        "vessel_inclination",
+        "vessel_asl_height",
+        
+        "resource_ox_max",
+        "resource_ox_current",
+        "resource_lf_max",
+        "resource_lf_current",
+        "resource_mp_max",
+        "resource_mp_current",
+        "resource_ec_max",
+        "resource_ec_current",
+        
+        "sas_status",
+        "rcs_status",
+        "action_group_light",
+        "action_group_gear",
+        "action_group_brake"
+    }
+    
+    def __init__(self, port="/dev/tty.usbmodem1411", baud=9600):
         """Takes an API object, serial port and baudrate and creates a new Arduino object."""
         self.port = port
         self.baud = baud
+        
+        self.vessel = pyksp.ActiveVessel()
+        for subscription in self.subscriptions:
+            self.vessel.subscribe(subscription)
+            
+        self.vessel.start()
+        time.sleep(1)
         
         self.serial = serial.Serial(
             port=self.port,
             baudrate=self.baud)
 
-def clamp(num, minn, maxn):
-    if num < minn:
-        return minn
-    elif num > maxn:
-        return maxn
-    else:
-        return num
+    def hex2float(self, hex):
+        max = 16**len(hex)
+        mid = (max+1)/2
+        val = int(hex, 16)
+        val = (val - mid)*1.0/mid*1.0
+        return val
+
+    def parse_input(self, input):
+        """Read the byte string from Arduino and send commands appropriately"""
+        pitch   = self.hex2float(input[0:2])
+        yaw     = self.hex2float(input[2:4])
+        roll    = self.hex2float(input[4:6])
+        x       = self.hex2float(input[6:8])
+        y       = self.hex2float(input[8:10])
+        z       = self.hex2float(input[10:12])
+        
+        self.vessel.set_6dof(pitch, yaw, roll, x, y, z)
+        pass
+    
+    def api2hex(self, string, length):
+        return hex(int(self.vessel.get(string)))[2:].zfill(length)
+    
+    def compile_output(self):
+        """Return byte string of the output"""
+        
+        output = "O: "
+        output += self.api2hex("vessel_altitude", 10)
+        output += self.api2hex("vessel_apoapsis", 10)
+        output += self.api2hex("vessel_periapsis", 10)
+        output += self.api2hex("vessel_velocity", 10)
+        output += self.api2hex("vessel_inclination", 4)
+        
+        # Handle cases where radar altimeter is unavailable
+        alt = self.vessel.get("vessel_asl_height")
+        if int(alt) is -1:
+            alt = 0
+        output += hex(int(alt))[2:].zfill(4)
+        
+        output += hex(int(self.vessel.get("resource_ox_current")/self.vessel.get("resource_ox_max")))[2:].zfill(2)
+        output += hex(int(self.vessel.get("resource_mp_current")/self.vessel.get("resource_mp_max")))[2:].zfill(2)
+        output += hex(int(self.vessel.get("resource_ox_current")/self.vessel.get("resource_ox_max")))[2:].zfill(2)
+        output += hex(int(self.vessel.get("resource_ec_current")/self.vessel.get("resource_ec_max")))[2:].zfill(2)
+        
+        output += hex(self.vessel.get("sas_status"))[2:].zfill(1)
+        output += hex(self.vessel.get("rcs_status"))[2:].zfill(1)
+        output += hex(self.vessel.get("action_group_light"))[2:].zfill(1)
+        output += hex(self.vessel.get("action_group_gear"))[2:].zfill(1)
+        output += hex(self.vessel.get("action_group_brake"))[2:].zfill(1)
+        
+        return output
+        
+    def send_output(self, inputline):
+        if inputline:
+            self.serial.write(inputline + '\n')
+        else:
+            print "No input..."
 
 
-#Arduino Utilities
-def arduinoformat(inList):
- # Takes a list of numbers, rounds them as ints, and returns them as a string
- # Ideally this should be called only immedietely before transmission
-    midlist = []
-    for x in inList:
-        midlist.append(int(round(float(x))))
-    #midlist.append("\n")
-    outstr = str(midlist)[1:-1]
-    return outstr
-
-
-def push_to_arduino(inputline):
-    #ser.flushOutput()
-    # Send data to the Arduino and end w/ a newline
-    ser.write(inputline + '\n')
-    #ser.write("255, 255, 255 \n")
-    #time.sleep(.2)
-
-def buttonHandler():
-    global gearStatus
-    global brakeStatus
-    global memB
-    global memBOLD
-    if memB[1] == '1' and memB[1] != memBOLD[1]:
-        if (memB[7] == '1'):  # Check the safety
-            tele.stage()
-
-    if memB[0] == '1' and memB[0] != memBOLD[0]:
-        if memB[7] == '1':  # Check the safety
-            tele.abort()
-
-    if int(memB[2]) == 1 and memB[2] != memBOLD[2]:
-        # Toggle gear based on what we did last time
-        if gearStatus == 1:  # Telemachus does not yet read gear status
-            tele.gear(0)
-            gearStatus = 0
-        elif gearStatus == 0:
-            tele.gear(1)
-            gearStatus = 1
-
-    if int(memB[3]) == 1 and memB[3] != memBOLD[3]:
-        # Toggle Light based on the Telemachus reading
-        if tele.light(2) == 1:
-            tele.light(0)
-        elif tele.light(2) == 0:
-            tele.light(1)
-
-    if int(memB[4]) == 1 and memB[4] != memBOLD[4]:
-        # Toggle brake based on what we did last time
-        if brakeStatus == 1:  # Telemachus does not yet read brake status
-            tele.brake(0)
-            brakeStatus = 0
-        elif brakeStatus == 0:
-            tele.brake(1)
-            brakeStatus = 1
-
-    if int(memB[5]) == 1 and memB[5] != memBOLD[5]:
-        # Toggle RCS based on the Telemachus reading
-        if tele.rcs(2) == 1:
-            tele.rcs(0)
-        elif tele.rcs(2) == 0:
-            tele.rcs(1)
-
-    if int(memB[6]) == 1 and memB[6] != memBOLD[6]:
-        # Toggle SAS based on the Telemachus reading
-        if tele.sas(2) == 1:
-            tele.sas(0)
-        elif tele.sas(2) == 0:
-            tele.sas(1)
-
-#########################################################################
-#Time to get started...
-print 'Now starting program.'
+print 'Starting Python listener...'
 print 'Warming up the Arduino...'
-    # It took me hours to figure out I had to do this...
 time.sleep(2)
-print 'Starting main loop'
+print 'Listening:'
 
-program_runtime = time.time()
-arduino_sleep_marker = 0
-button_sleep_marker = 0
-memB = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-memBOLD = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-n = 0
-
+a = arduino()
+a.vessel.run_command("toggle_fbw", "1")
+buffer = ""
+inputs = ""
 
 while 1:
-    loop_start_time = time.time()
-
-    climbgauge = tele.read_verticalspeed()
-    if climbgauge > 0:
-        climbgauge = clamp((int(4 * math.sqrt(climbgauge)) + 127), 0, 2255)
-    elif climbgauge < 0:
-        climbgauge = clamp((0 - int(4 * math.sqrt(
-            abs(climbgauge))) + 127), 0, 255)
-    else:
-        climbgauge = 127  # Neutral
-
-    memA = (str(int(round(tele.read_missiontime()))).zfill(8)
-        + str(int(round(tele.read_asl()))).zfill(8)
-        + str(int(round(tele.read_apoapsis()) / 100)).zfill(8)
-        + str(int(round((tele.read_periapsis() / 100)))).zfill(8)
-        + str(int(round(tele.read_verticalspeed()))).zfill(8)
-        + chr(climbgauge) + 'BCDEFGH'
-        )
-
-    #arduinostring = [255, 255, 255]
-
-    if arduino_sleep_marker > 0.2:
-        try:
-            print '.............'
-            push_to_arduino(memA)
-            print memA
-        finally:
-            arduino_sleep_marker = 0
-
-    if ser.inWaiting > 9:
-        serCharIn = str(ser.read(1))
-        if serCharIn == '[':
-            while n < 10:
-                serCharIn = str(ser.read(1))
-                if serCharIn == ']':
-                    n = 0
-                    ser.flushInput()
-                    break
+    input = ""
+    
+    time.sleep(1)
+    buffer = buffer + a.serial.read(a.serial.inWaiting())
+    #print buffer
+    
+    if '\n' in buffer:
+        lines = buffer.split('\n')
+        
+        if len(lines) > 0:
+            for line in lines[:-1]:
+                if "I: " in line:
+                    input = line[3:]
                 else:
-                    memB[n] = serCharIn
-                n += 1
-                if n == 11:
-                    ser.flushInput()
-
-    if button_sleep_marker > 0.1:
-        buttonHandler()  # Reads memB for which buttons are pressed, then sends
-                         # calls to telemachus as needed.
-        button_sleep_marker = 0
-
-        print memB
-        print memBOLD
-        memBOLD = list(memB)
-
-    time.sleep(0.05)
-    # This is used mostly to save CPU cycles and battery life of my laptop
-
-    loop_end_time = time.time()
-    loop_time = loop_end_time - loop_start_time
-    arduino_sleep_marker += loop_time
-    button_sleep_marker += loop_time
+                    print line
+            buffer = lines[-1]
+    
+    if len(input) is 13:
+        print "Sending input: " + input
+        a.parse_input(input)
+        #a.send_output(a.compile_output())
+    #else:
+        #print "Bad input: " + input
+    
+    
+    
+        
+    
+    
 

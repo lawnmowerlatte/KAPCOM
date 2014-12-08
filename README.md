@@ -4,8 +4,7 @@ About
 ---------
 This set of Python scripts and Arduino sketch can be used to send and receive information via the Telemachus plugin for Kerbal Space Program. The idea is to:
 
-* Create a flexible Python library for interfacing with the Telemachus WebSocket API
-* Create a Python library which acts as a middleman between the Python library and the serial interface for interacting with the Arduino
+* Create a Python library which acts as a middleman between the PyKSP Python library and the serial interface for interacting with the Arduino
 * Provide a sample sketch and schematic for Arduino which uses the serial interface for sending and retrieving data. The sample will show:
 	*  Examples of how to connect digital (buttons and switches) input for system states.
 	* Examples of how to connect analog (joysticks and faders) input to control the vehicle.

@@ -18,10 +18,14 @@ LockedInput abandon("Abort", 7, 8, 9, 10);
 void setup() {
   Serial.begin(9600);
   
+  Serial.println("Calibrating")
+  
   while (stage.button.get() == LOW) {
    J0.calibrate();
    J1.calibrate(); 
   }
+  
+  Serial.println("Ready")
 }
 
 void loop() {

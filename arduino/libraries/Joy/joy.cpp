@@ -21,6 +21,10 @@ Joy::Joy(String _name, int _x, int _y, int _z) : x(_name + "x", _x, ANALOG, INPU
 	min			= 225;
 	max 		= 505;
 	scale		= 255;
+	
+	xMin		= min;
+	yMin		= min;
+	zMin		= min;
 }
 
 Joy::Joy(String _name, int _x, int _y, int _z, int _min, int _max) : x(_name + "x", _x, ANALOG, INPUT, 0), y(_name + "y", _y, ANALOG, INPUT, 0), z(_name + "z", _z, ANALOG, INPUT, 0) {
@@ -29,20 +33,39 @@ Joy::Joy(String _name, int _x, int _y, int _z, int _min, int _max) : x(_name + "
 	min 		= _min;
 	max 		= _max;
 	scale		= 255;
+	
+	xMin		= min;
+	yMin		= min;
+	zMin		= min;
 }
 
 // ===================
 //	Public Methods
 // ===================
 
+void Joy::calibrate() {
+	x.update();
+	y.update();
+	z.update();
+	
+	if (x < xMin) { xMin = min(xMin, x); }
+	if (y < yMin) { yMin = min(yMin, y); }
+	if (z < zMin) { zMin = min(zMin, z); }
+	
+	if (x > xMax) { xMax = max(xMax, x); }
+	if (y > yMax) { yMax = max(yMax, y); }
+	if (z > zMax) { zMax = max(zMax, z); }
+}
+
+
 void Joy::update() {
 	x.update();
 	y.update();
 	z.update();
 	
-	X = (x.get()-min)*1.0/(max-min)*100; 
-	Y = (y.get()-min)*1.0/(max-min)*100; 
-	Z = (z.get()-min)*1.0/(max-min)*100;
+	X = (x.get()-xMin)*1.0/(xMax-xMin)*100; 
+	Y = (y.get()-yMin)*1.0/(yMax-yMin)*100; 
+	Z = (z.get()-zMin)*1.0/(zMax-zMin)*100;
 
 	// If it's within 5% of the center, center the input
 	//return;
@@ -68,7 +91,7 @@ void Joy::update() {
 
 void Joy::print() {
 	Serial.println(name + ":");
-	Serial.println("X: Pin: " + String(x.pin) + ", Raw: " + String(x.get()) + ", Adjusted " + String(X));
-	Serial.println("Y: Pin: " + String(y.pin) + ", Raw: " + String(y.get()) + ", Adjusted " + String(Y));
-	Serial.println("Z: Pin: " + String(z.pin) + ", Raw: " + String(z.get()) + ", Adjusted " + String(Z));
+	Serial.println("X: Pin: " + String(x.pin) + ", Raw: " + String(x.get()) + " (" + xMin + "-" + xMax + "), Adjusted " + String(X));
+	Serial.println("Y: Pin: " + String(y.pin) + ", Raw: " + String(y.get()) + " (" + yMin + "-" + yMax + "), Adjusted " + String(Y));
+	Serial.println("Z: Pin: " + String(z.pin) + ", Raw: " + String(z.get()) + " (" + zMin + "-" + zMax + "), Adjusted " + String(Z));
 }

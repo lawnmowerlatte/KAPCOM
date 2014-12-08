@@ -1,4 +1,5 @@
 Joy	KEYWORD1	Class
 
-read	KEYWORD2	Method
+calibrate	KEYWORD2	Method
+update	KEYWORD2	Method
 print	KEYWORD2	Method

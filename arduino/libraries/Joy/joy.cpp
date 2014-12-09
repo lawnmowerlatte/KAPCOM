@@ -25,6 +25,10 @@ Joy::Joy(String _name, int _x, int _y, int _z) : x(_name + "x", _x, ANALOG, INPU
 	xMin		= min;
 	yMin		= min;
 	zMin		= min;
+	
+	xMax		= max;
+	yMax		= max;
+	zMax		= max;
 }
 
 Joy::Joy(String _name, int _x, int _y, int _z, int _min, int _max) : x(_name + "x", _x, ANALOG, INPUT, 0), y(_name + "y", _y, ANALOG, INPUT, 0), z(_name + "z", _z, ANALOG, INPUT, 0) {
@@ -37,6 +41,10 @@ Joy::Joy(String _name, int _x, int _y, int _z, int _min, int _max) : x(_name + "
 	xMin		= min;
 	yMin		= min;
 	zMin		= min;
+	
+	xMax		= max;
+	yMax		= max;
+	zMax		= max;
 }
 
 // ===================
@@ -48,13 +56,13 @@ void Joy::calibrate() {
 	y.update();
 	z.update();
 	
-	if (x < xMin) { xMin = min(xMin, x); }
-	if (y < yMin) { yMin = min(yMin, y); }
-	if (z < zMin) { zMin = min(zMin, z); }
+	xMin = min(xMin, x);
+	yMin = min(yMin, y);
+	zMin = min(zMin, z);
 	
-	if (x > xMax) { xMax = max(xMax, x); }
-	if (y > yMax) { yMax = max(yMax, y); }
-	if (z > zMax) { zMax = max(zMax, z); }
+	xMax = max(xMax, x);
+	yMax = max(yMax, y);
+	zMax = max(zMax, z);
 }
 
 

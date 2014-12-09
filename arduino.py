@@ -62,9 +62,6 @@ class arduino:
         for subscription in self.subscriptions:
             self.vessel.subscribe(subscription)
             
-        self.vessel.start()
-        time.sleep(1)
-        
         if not self.interactive:
             self.serial = serial.Serial(
                 port=self.port,
@@ -73,21 +70,26 @@ class arduino:
             debug("Using shell input", 1)
     
     def init(self):
-        if self.ready():
-            debug("Waiting for Arduino.", 1)
-            while self.readSerial() != "ONLINE":
-                time.sleep(1)
-            debug("Waiting for calibration.", 1)
-            while self.readSerial() != "CALIBRATING":
-                time.sleep(1)
-            debug("Waiting for ready state.", 1)
-            while self.readSerial() != "READY":
-                time.sleep(1)
+        debug("Starting telemetry.", 1)
+        self.vessel.start()
+        time.sleep(1)
         
         if self.ready():
-            debug("All stations are go.", 1)
+            debug("Waiting for Arduino.", 1)
+            while not self.interactive and self.readSerial() != "ONLINE":
+                time.sleep(1)
+            debug("Waiting for calibration.", 1)
+            while not self.interactive and self.readSerial() != "CALIBRATING":
+                time.sleep(1)
+            debug("Waiting for ready state.", 1)
+            while not self.interactive and self.readSerial() != "READY":
+                time.sleep(1)
+        
+            debug("All stations are go.", 1) 
+            return True           
         else:
             debug("We have a hold for launch.", 1)
+            return False
             
         
     def readSerial(self):
@@ -114,7 +116,7 @@ class arduino:
     
     def writeSerial(self, line):
         """Write a line to serial"""
-        if interactive:
+        if self.interactive:
             print "< " + line
         else:
             self.serial.write(line)
@@ -163,7 +165,7 @@ class arduino:
         if json:
             self.writeSerial(json + '\n')
         else:
-            debug("No JSON data to send", 1)
+            debug("< No JSON data to send", 1)
     
     def readInput(self):
         """Poll Arduino for line of input containing JSON data"""
@@ -252,7 +254,10 @@ class arduino:
 
 def main():
     a = arduino()
-    a.init()
+    
+    while a.init() == False:
+        time.sleep(10)
+        debug("Restarting countdown.", 1)
     
     while 1:
         a.runStatus()

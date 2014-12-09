@@ -132,7 +132,7 @@ class arduino:
         """Return JSON string of the output"""
         debug("Generate JSON", 4)
         
-        json.dumps(
+        jdata=json.dumps(
             {
                 "vessel_altitude": self.vessel.get("vessel_altitude"),
                 "vessel_apoapsis": self.vessel.get("vessel_apoapsis"),
@@ -157,13 +157,15 @@ class arduino:
                 
             }
         )
+        
+        return jdata
     
     def sendOutput(self, json):
         """Send JSON data to Arduino"""
         debug("Send output", 4)
         
         if json:
-            self.writeSerial(json + '\n')
+            self.writeSerial(json)
         else:
             debug("< No JSON data to send", 1)
     
@@ -191,14 +193,20 @@ class arduino:
         debug("Send fly-by-wire", 4)
         
         self.vessel.run_command("toggle_fbw", "1")
-        ## Needs work...
+        
+        for key, value in data.items():
+            print key + ": " + str(value)
+            self.vessel.run_command(key, value)
+        
      
     # State based methods
     def online(self):
         json = self.readOutput()
         self.sendOutput(json)
         data = self.readInput()
-        self.sendInput(data)
+        
+        if data:
+            self.sendInput(data)
 
     def unpowered(self):
         print "Antenna is unpowered"

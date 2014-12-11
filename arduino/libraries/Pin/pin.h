@@ -10,18 +10,17 @@
 class Pin {
   public :
     String name;
+	String api;
     int pin;
     boolean type;
     boolean mode;
-    int state;
     int value;
   
-    Pin(String _name, int _pin, boolean _type, boolean _mode);
-    Pin(String _name, int _pin, boolean _type, boolean _mode, int _cooldown);
+    Pin(String _name, String _api, int _pin, boolean _type, boolean _mode);
+    Pin(String _name, String _api, int _pin, boolean _type, boolean _mode, int _cooldown);
     
     int get();
-    void set(boolean _state);
-    void set(int _state);
+    void set(int _value);
     void update();
     void print();
   

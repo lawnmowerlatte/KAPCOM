@@ -15,8 +15,9 @@
 //	Constructors and Destructors
 // =================================
 
-PinIO::PinIO(String _name, int _in, int _out) : in(_name + " In", _in, DIGITAL, INPUT, 0), out(_name + " Out", _out, DIGITAL, OUTPUT, 0) {
+PinIO::PinIO(String _name, String _api, int _in, int _out) : in(_name + " In", "", _in, DIGITAL, INPUT, 0), out(_name + " Out", "", _out, DIGITAL, OUTPUT, 0) {
 	name		= _name;
+	api			= _api;
 }
 
 // ===================

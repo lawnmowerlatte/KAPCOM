@@ -34,7 +34,7 @@ class Joy {
     int max;
 	int xMax;
 	int yMax;
-	int zMax
+	int zMax;
     int scale;
 };
 

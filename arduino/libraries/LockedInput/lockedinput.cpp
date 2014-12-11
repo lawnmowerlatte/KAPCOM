@@ -16,8 +16,9 @@
 //	Constructors and Destructors
 // =================================
 
-LockedInput::LockedInput(String _name, int _lock_in, int _lock_out, int _button_in, int _button_out) : lock(_name + " Locked", _lock_in, _lock_out), button(_name + " Button", _button_in, _button_out) {
+LockedInput::LockedInput(String _name, String _api, int _lock_in, int _lock_out, int _button_in, int _button_out) : lock(_name + " Locked", "", _lock_in, _lock_out), button(_name + " Button", "", _button_in, _button_out) {
 	name		= _name;
+	api			= _api;
 }
 
 // ===================

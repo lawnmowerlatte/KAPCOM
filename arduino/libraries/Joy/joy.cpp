@@ -15,7 +15,7 @@
 //	Constructors and Destructors
 // =================================
 
-Joy::Joy(String _name, int _x, int _y, int _z) : x(_name + "x", _x, ANALOG, INPUT, 0), y(_name + "y", _y, ANALOG, INPUT, 0), z(_name + "z", _z, ANALOG, INPUT, 0) {
+Joy::Joy(String _name, int _x, int _y, int _z) : x(_name + "x", "", _x, ANALOG, INPUT, 0), y(_name + "y", "", _y, ANALOG, INPUT, 0), z(_name + "z", "", _z, ANALOG, INPUT, 0) {
 	name		= _name;
 	
 	min			= 225;
@@ -31,7 +31,7 @@ Joy::Joy(String _name, int _x, int _y, int _z) : x(_name + "x", _x, ANALOG, INPU
 	zMax		= max;
 }
 
-Joy::Joy(String _name, int _x, int _y, int _z, int _min, int _max) : x(_name + "x", _x, ANALOG, INPUT, 0), y(_name + "y", _y, ANALOG, INPUT, 0), z(_name + "z", _z, ANALOG, INPUT, 0) {
+Joy::Joy(String _name, int _x, int _y, int _z, int _min, int _max) : x(_name + "x", "", _x, ANALOG, INPUT, 0), y(_name + "y", "", _y, ANALOG, INPUT, 0), z(_name + "z", "", _z, ANALOG, INPUT, 0) {
 	name		= _name;
 	
 	min 		= _min;
@@ -56,13 +56,13 @@ void Joy::calibrate() {
 	y.update();
 	z.update();
 	
-	xMin = min(xMin, x);
-	yMin = min(yMin, y);
-	zMin = min(zMin, z);
+	xMin = min(xMin, X);
+	yMin = min(yMin, Y);
+	zMin = min(zMin, Z);
 	
-	xMax = max(xMax, x);
-	yMax = max(yMax, y);
-	zMax = max(zMax, z);
+	xMax = max(xMax, X);
+	yMax = max(yMax, Y);
+	zMax = max(zMax, Z);
 }
 
 

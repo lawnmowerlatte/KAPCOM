@@ -13,10 +13,11 @@
 class LockedInput {
   public :
     String name;
+	String api;
     PinIO lock;
     PinIO button;
     
-    LockedInput(String _name, int _lock_in, int _lock_out, int _button_in, int _button_out);
+    LockedInput(String _name, String _api, int _lock_in, int _lock_out, int _button_in, int _button_out);
     
     void update();
     void print();

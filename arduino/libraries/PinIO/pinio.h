@@ -12,10 +12,11 @@
 class PinIO {
   public :
     String name;
+	String api;
     Pin in;
     Pin out;
     
-    PinIO(String _name, int _in, int _out);
+    PinIO(String _name, String _api, int _in, int _out);
     
     void update();
     void print();

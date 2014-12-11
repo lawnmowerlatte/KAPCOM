@@ -14,24 +14,29 @@
 //	Constructors and Destructors
 // =================================
 
-Pin::Pin(String _name, int _pin, boolean _type, boolean _mode) {
+Pin::Pin(String _name, String _api, int _pin, boolean _type, boolean _mode) {
 	name		= _name;
-	pin		= _pin;
+	api			= _api;
+	pin			= _pin;
 	type		= _type;
 	mode		= _mode;
 	
 	updated 	= millis();
 	cooldown 	= 500;
+	
+	pinMode(pin, mode);
 }
 
-Pin::Pin(String _name, int _pin, boolean _type, boolean _mode, int _cooldown) {
+Pin::Pin(String _name, String _api, int _pin, boolean _type, boolean _mode, int _cooldown) {
 	name		= _name;
-	pin		= _pin;
+	api			= _api;
+	pin			= _pin;
 	type		= _type;
 	mode		= _mode;
 	cooldown 	= _cooldown;
 		
 	updated 	= millis();
+	pinMode(pin, mode);
 }
 
 // ===================
@@ -43,26 +48,18 @@ int Pin::get() {
 		Serial.println("Error: Trying to get an output pin.");
 		return 0;
 	}
-  
-	if (type == ANALOG) {
-		return value;
-	} else {
-		return state;
-	}
+  	
+	read();
+  	return value;
 }
 
-void Pin::set(boolean _state) {
+void Pin::set(int _value) {
 	if (mode == INPUT) {
 		Serial.println("Error: Trying to set an input pin.");
 		return;
 	}
 	
-	state = _state;
-	write();
-}
-
-void Pin::set(int _state) {
-	value = _state;
+	value = _value;
 	write();
 }
 
@@ -96,7 +93,7 @@ void Pin::read() {
 	if (type == ANALOG) {
 		value = analogRead(pin);
 	} else {
-		state = digitalRead(pin);
+		value = digitalRead(pin);
 	}
 }
 
@@ -109,7 +106,7 @@ void Pin::write() {
 	if (type == ANALOG) {
 		analogWrite(pin, value);
 	} else {
-		digitalWrite(pin, state);
+		digitalWrite(pin, value);
 	}
   
 	updated = millis();

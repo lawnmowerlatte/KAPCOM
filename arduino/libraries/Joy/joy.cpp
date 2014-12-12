@@ -15,7 +15,7 @@
 //	Constructors and Destructors
 // =================================
 
-Joy::Joy(String _name, int _x, int _y, int _z) : x(_name + "x", "", _x, ANALOG, INPUT, 0), y(_name + "y", "", _y, ANALOG, INPUT, 0), z(_name + "z", "", _z, ANALOG, INPUT, 0) {
+Joy::Joy(String _name, int _x, int _y, int _z) : x(_name + "x", "", _x, ANALOG, INPUT_PULLUP, 0), y(_name + "y", "", _y, ANALOG, INPUT_PULLUP, 0), z(_name + "z", "", _z, ANALOG, INPUT_PULLUP, 0) {
 	name		= _name;
 	
 	min			= 225;
@@ -31,7 +31,7 @@ Joy::Joy(String _name, int _x, int _y, int _z) : x(_name + "x", "", _x, ANALOG, 
 	zMax		= max;
 }
 
-Joy::Joy(String _name, int _x, int _y, int _z, int _min, int _max) : x(_name + "x", "", _x, ANALOG, INPUT, 0), y(_name + "y", "", _y, ANALOG, INPUT, 0), z(_name + "z", "", _z, ANALOG, INPUT, 0) {
+Joy::Joy(String _name, int _x, int _y, int _z, int _min, int _max) : x(_name + "x", "", _x, ANALOG, INPUT_PULLUP, 0), y(_name + "y", "", _y, ANALOG, INPUT_PULLUP, 0), z(_name + "z", "", _z, ANALOG, INPUT_PULLUP, 0) {
 	name		= _name;
 	
 	min 		= _min;

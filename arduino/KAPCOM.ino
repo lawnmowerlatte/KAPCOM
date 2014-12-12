@@ -17,9 +17,9 @@ Joy J0("J0", A0, A1, A2);
 Joy J1("J1", A4, A5, A6);
 
 // Create button objects
-Pin soft("Soft", "?", 54+4, DIGITAL, INPUT);
+Pin soft("Soft", "?", 54+4, DIGITAL, INPUT_PULLUP);
 PinIO rcs("RCS", "rcs", 1, 2);
-LockedInput stage("Stage", "stage", 1, 2, 3, 4);
+LockedInput stage("Stage", "stage", 1, 2, A8, A9);
 LockedInput abandon("Abort", "abort", 7, 8, 9, 10);
 
 void setup() {
@@ -30,19 +30,16 @@ void setup() {
   // Receive configuration
   // configure();
   
-  
   // Report calibration status
   Serial.println("CALIBRATING");
   
   stage.button.out.set(HIGH);
-  
   // Calibrate until the staging button is pressed
-  while (1) {
-   //Serial.println(stage.button.in.get());
-   Serial.println(digitalRead(3));
-   //J0.calibrate();
-   //J1.calibrate();
+  while (stage.button.in.get() == LOW) {
+   J0.calibrate();
+   J1.calibrate();
   }
+    stage.button.out.set(LOW);
   
   // Report ready status
   Serial.println("READY");

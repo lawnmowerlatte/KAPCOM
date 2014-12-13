@@ -16,24 +16,38 @@
 //	Constructors and Destructors
 // =================================
 
-LockedInput::LockedInput(String _name, String _api, int _lock_in, int _lock_out, int _button_in, int _button_out) : lock(_name + " Locked", "", _lock_in, _lock_out), button(_name + " Button", "", _button_in, _button_out) {
+LockedInput::LockedInput(String _name, String _api, int _lock, int _button, int _indicator) : lock(_name + " Locked", "", _lock, DIGITAL, INPUT_PULLUP), button(_name + " Button", "", _button, DIGITAL, INPUT_PULLUP), indicator(_name + " Indicator", "", _indicator, DIGITAL, OUTPUT) {
 	name		= _name;
 	api			= _api;
+	value		= 0;
 }
 
 // ===================
 //	Public Methods
 // ===================
 
+int LockedInput::get() {
+	update();
+	return value;
+}
+
 void LockedInput::update() {
-	lock.update();
-	button.update();
+	int isLocked = lock.get();
+	indicator.set(isLocked);
+	
+	if (isLocked == LOW) {
+		Serial.println("Lock engaged");
+		value = 0;
+		button.update();
+	} else {
+		Serial.println("Lock disengaged");
+		value = button.get();
+	}
 }
 
 void LockedInput::print() {
-	Serial.println(name + ":");
-	Serial.println("Lock:");
+	Serial.println(name + ": " + (String)value);
 	lock.print();
-	Serial.println("Button:");
 	button.print();
+	indicator.print();
 }

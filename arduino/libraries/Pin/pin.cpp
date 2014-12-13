@@ -35,7 +35,7 @@ Pin::Pin(String _name, String _api, int _pin, boolean _type, boolean _mode, int 
 	mode		= _mode;
 	cooldown 	= _cooldown;
 		
-	updated 	= millis();
+	updated 	= 0;
 	pinMode(pin, mode);
 }
 
@@ -72,7 +72,7 @@ void Pin::update() {
 }
 
 void Pin::print() {
-	Serial.println(name + ": " + get());
+	Serial.println(name + ": " + value);
 }
 
 // ====================

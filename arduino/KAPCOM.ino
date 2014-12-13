@@ -17,10 +17,10 @@ Joy J0("J0", A0, A1, A2);
 Joy J1("J1", A4, A5, A6);
 
 // Create button objects
-Pin soft("Soft", "?", 54+4, DIGITAL, INPUT_PULLUP);
-PinIO rcs("RCS", "rcs", 1, 2);
-LockedInput stage("Stage", "stage", 1, 2, A8, A9);
-LockedInput abandon("Abort", "abort", 7, 8, 9, 10);
+//Pin soft("Soft", "?", 54+4, DIGITAL, INPUT_PULLUP);
+//PinIO rcs("RCS", "rcs", 1, 2);
+LockedInput stage("Stage", "stage", A15, A8, A9);
+LockedInput abandon("Abort", "abort", 7, 8, 9);
 
 void setup() {
   // Start the serial connection
@@ -33,13 +33,14 @@ void setup() {
   // Report calibration status
   Serial.println("CALIBRATING");
   
-  stage.button.out.set(HIGH);
+  
   // Calibrate until the staging button is pressed
-  while (stage.button.in.get() == LOW) {
+  stage.indicator.set(HIGH);
+  while (stage.button.get() == LOW) {
    J0.calibrate();
    J1.calibrate();
   }
-    stage.button.out.set(LOW);
+  stage.indicator.set(LOW);
   
   // Report ready status
   Serial.println("READY");
@@ -78,8 +79,8 @@ void configure() {
 
 void poll() {
   // Poll all hardware inputs for latest values
-  soft.update();
-  rcs.update();
+  //soft.update();
+  //rcs.update();
   J0.update();
   J1.update();
 }
@@ -115,16 +116,18 @@ void processOutput() {
 
 
 void loop() {
-  Serial.println("loop()");
-  delay(100000000);
+  //Serial.println("loop()");
+  stage.update();
+  stage.print();
+  delay(1000);
   
   
   
   
   // Wait for telemetry data
-  processOutput();
+  //processOutput();
   // Poll hardware for inputs
-  poll();
+  //poll();
   // Send fly-by-wire data
-  processInput();
+  //processInput();
 }

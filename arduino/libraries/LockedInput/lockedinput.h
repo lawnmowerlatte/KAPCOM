@@ -14,11 +14,14 @@ class LockedInput {
   public :
     String name;
 	String api;
-    PinIO lock;
-    PinIO button;
+    Pin lock;
+    Pin button;
+	Pin indicator;
+	int value;
     
-    LockedInput(String _name, String _api, int _lock_in, int _lock_out, int _button_in, int _button_out);
+    LockedInput(String _name, String _api, int _lock, int _button, int _indicator);
     
+	int get();
     void update();
     void print();
 };

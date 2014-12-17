@@ -18,11 +18,13 @@ class LockedInput {
     Pin button;
 	Pin indicator;
 	int value;
+	int last;
     
     LockedInput(String _name, String _api, int _lock, int _button, int _indicator);
     
 	int get();
     void update();
+	void updated();
     void print();
 };
 

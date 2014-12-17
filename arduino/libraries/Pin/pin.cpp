@@ -15,28 +15,45 @@
 // =================================
 
 Pin::Pin(String _name, String _api, int _pin, boolean _type, boolean _mode) {
+	// Set variables
 	name		= _name;
 	api			= _api;
 	pin			= _pin;
 	type		= _type;
 	mode		= _mode;
 	
+	// Set the cooldown counters
 	updated 	= millis();
 	cooldown 	= 500;
 	
+	// Initialize the pin
 	pinMode(pin, mode);
+	
+	// Set default value, update from hardware, set initial value of previous
+	value = 0;
+	update();
+	last = value;
 }
 
 Pin::Pin(String _name, String _api, int _pin, boolean _type, boolean _mode, int _cooldown) {
+	// Set variables
 	name		= _name;
 	api			= _api;
 	pin			= _pin;
 	type		= _type;
 	mode		= _mode;
+	
+	// Set the cooldown counters
+	updated 	= millis();
 	cooldown 	= _cooldown;
-		
-	updated 	= 0;
+	
+	// Initialize the pin
 	pinMode(pin, mode);
+	
+	// Set default value, update from hardware, set initial value of previous
+	value = 0;
+	update();
+	last = value;
 }
 
 // ===================
@@ -44,6 +61,8 @@ Pin::Pin(String _name, String _api, int _pin, boolean _type, boolean _mode, int 
 // ===================
 
 int Pin::get() {
+	// Read the hardware and set the object value
+	
 	if (mode == OUTPUT) {
 		Serial.println("Error: Trying to get an output pin.");
 		return 0;
@@ -54,6 +73,8 @@ int Pin::get() {
 }
 
 void Pin::set(int _value) {
+	// Set the object value and write it to the hardware
+	
 	if (mode == INPUT) {
 		Serial.println("Error: Trying to set an input pin.");
 		return;
@@ -63,7 +84,17 @@ void Pin::set(int _value) {
 	write();
 }
 
+bool Pin::updated() {
+	// Return true if the value has changed since last updated()
+	bool is_updated = (last != value);
+	last = value;
+	return is_updated;
+}
+
 void Pin::update() {
+	// Force a refresh of the values.
+	// Can be safely called on both INPUT and OUTPUT pins
+	
 	if (mode == OUTPUT) {
 		write();
 	} else {
@@ -72,6 +103,9 @@ void Pin::update() {
 }
 
 void Pin::print() {
+	// Print the name of the pin and the value.
+	// Does not force a hardware refresh.
+	
 	Serial.println(name + ": " + value);
 }
 
@@ -80,11 +114,14 @@ void Pin::print() {
 // ====================
 
 void Pin::read() {
+	// Poll the hardware and set the object value
+	
 	if (mode == OUTPUT) {
 		Serial.println("Error: Trying to read an output pin '" + name + ".'");
 		return;
 	}
   
+  	// Skip a hardware poll if the button was recently pushed
 	if (millis() - updated < cooldown) {
 		Serial.println("Skipping read due to cooldown for pin '" + name + ".'");
 		return;
@@ -98,6 +135,8 @@ void Pin::read() {
 }
 
 void Pin::write() {
+	// Update the hardware with the latest object value
+	
 	if (mode == INPUT) {
 		Serial.println("Error: Trying to write an input  pin '" + name + ".'");
 		return;

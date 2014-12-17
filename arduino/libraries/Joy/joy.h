@@ -22,6 +22,7 @@ class Joy {
     Joy(String _name, int _x, int _y, int _z);
     Joy(String _name, int _x, int _y, int _z, int _min, int _max);
     
+	void recalibrate();
 	void calibrate();
     void update();
     void print();

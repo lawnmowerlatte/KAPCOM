@@ -51,18 +51,28 @@ Joy::Joy(String _name, int _x, int _y, int _z, int _min, int _max) : x(_name + "
 //	Public Methods
 // ===================
 
+void Joy::recalibrate() {
+	xMin = x.get();
+	yMin = y.get();
+	zMin = z.get();
+	
+	xMax = x.get();
+	yMax = y.get();
+	zMax = z.get();
+}
+
 void Joy::calibrate() {
-	x.update();
-	y.update();
-	z.update();
+	int _x = x.get();
+	int _y = y.get();
+	int _z = z.get();
 	
-	xMin = min(xMin, X);
-	yMin = min(yMin, Y);
-	zMin = min(zMin, Z);
+	xMin = min(xMin, _x);
+	yMin = min(yMin, _y);
+	zMin = min(zMin, _z);
 	
-	xMax = max(xMax, X);
-	yMax = max(yMax, Y);
-	zMax = max(zMax, Z);
+	xMax = max(xMax, _x);
+	yMax = max(yMax, _y);
+	zMax = max(zMax, _z);
 }
 
 

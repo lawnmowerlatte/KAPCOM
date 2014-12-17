@@ -19,7 +19,9 @@
 LockedInput::LockedInput(String _name, String _api, int _lock, int _button, int _indicator) : lock(_name + " Locked", "", _lock, DIGITAL, INPUT_PULLUP), button(_name + " Button", "", _button, DIGITAL, INPUT_PULLUP), indicator(_name + " Indicator", "", _indicator, DIGITAL, OUTPUT) {
 	name		= _name;
 	api			= _api;
-	value		= 0;
+	
+	update();
+	last = value;
 }
 
 // ===================
@@ -27,25 +29,37 @@ LockedInput::LockedInput(String _name, String _api, int _lock, int _button, int 
 // ===================
 
 int LockedInput::get() {
+	// Update the hardware and return the object value
+	
 	update();
 	return value;
 }
 
 void LockedInput::update() {
+	// Update the object value based on the hardware Pins
+	
 	int isLocked = lock.get();
 	indicator.set(isLocked);
 	
 	if (isLocked == LOW) {
-		Serial.println("Lock engaged");
 		value = 0;
 		button.update();
 	} else {
-		Serial.println("Lock disengaged");
 		value = button.get();
 	}
 }
 
+bool updated() {
+	// Return true if the value has changed since last updated()
+	bool is_updated = (last != value);
+	last = value;
+	return is_updated;
+}
+
 void LockedInput::print() {
+	// Print the name of the pin and the value.
+	// Does not force a hardware refresh.
+	
 	Serial.println(name + ": " + (String)value);
 	lock.print();
 	button.print();

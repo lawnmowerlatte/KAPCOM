@@ -19,8 +19,8 @@ Joy J1("J1", A4, A5, A6);
 // Create button objects
 //Pin soft("Soft", "?", 54+4, DIGITAL, INPUT_PULLUP);
 //PinIO rcs("RCS", "rcs", 1, 2);
-LockedInput stage("Stage", "stage", A15, A8, A9);
-LockedInput abandon("Abort", "abort", 7, 8, 9);
+LockedInput stage("Stage", "stage", A10, A11, A13);
+LockedInput abandon("Abort", "abort", A8, A9, A12);
 
 void setup() {
   // Start the serial connection
@@ -35,11 +35,17 @@ void setup() {
   
   
   // Calibrate until the staging button is pressed
+  abandon.indicator.set(HIGH);
   stage.indicator.set(HIGH);
-  while (stage.button.get() == LOW) {
-   J0.calibrate();
-   J1.calibrate();
+  J0.recalibrate();
+  J1.recalibrate();
+  J0.print();
+  J1.print();
+  while (abandon.button.get() == LOW) {
+    J0.calibrate();
+    J1.calibrate();
   }
+  abandon.indicator.set(LOW);
   stage.indicator.set(LOW);
   
   // Report ready status
@@ -118,7 +124,15 @@ void processOutput() {
 void loop() {
   //Serial.println("loop()");
   stage.update();
+  abandon.update();
+  J0.update();
+  J1.update();
+  
   stage.print();
+  abandon.print();
+  //J0.print();
+  //J1.print();
+  
   delay(1000);
   
   

@@ -6,11 +6,11 @@ This set of Python scripts and Arduino sketch can be used to send and receive in
 
 * Create a Python library which acts as a middleman between the PyKSP Python library and the serial interface for interacting with the Arduino
 * Provide a sample sketch and schematic for Arduino which uses the serial interface for sending and retrieving data. The sample will show:
-	*  Examples of how to connect digital (buttons and switches) input for system states.
+	* Examples of how to connect digital (buttons and switches) input for system states.
 	* Examples of how to connect analog (joysticks and faders) input to control the vehicle.
 	* Examples of how to display data either as seven segment displays or as analog gauges.
 
-There is NO visible component to this script other than logging. It is purely an interface between other points. The idea is that this should be a flexible stepping off point for other DIYers to easily jump into making your own hardware console.
+There is NO visible component to the Python script other than logging. It is purely an interface between other points. The idea is that this should be a flexible stepping off point for other DIYers to easily jump into making your own hardware console.
 
 I have tried to keep data and roles strictly segmented and to keep hardware specifics in specific places. In an ideal world, you should only have to customize the Arduino sketch to suit your desires (and current budget!)
 
@@ -25,5 +25,9 @@ GNU GPL 3.0
 Credits
 ----------
 Thanks to [RichardBunt](https://github.com/richardbunt) for the wonderful Telemachus plugin. Many thanks for your hard work on the project.
+
+Thanks to [Benoît Blanchon](https://github.com/bblanchon) for the ArduinoJson library.
+
+Thanks to [Louis Goessling](https://github.com/602p) for the PyKSP API.
 
 Thanks to [KK4TEE](https://github.com/KK4TEE) for the foundation of this script. Although I rewrote enough of it to make forking unrealistic, the idea and core are based on their [Control Panel](https://github.com/KK4TEE/Control-Panel) project.

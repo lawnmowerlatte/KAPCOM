@@ -17,10 +17,10 @@ Joy J0("J0", A0, A1, A2);
 Joy J1("J1", A4, A5, A6);
 
 // Create button objects
-//Pin soft("Soft", "?", 54+4, DIGITAL, INPUT_PULLUP);
-//PinIO rcs("RCS", "rcs", 1, 2);
-LockedInput stage("Stage", "stage", A10, A11, A13);
-LockedInput abandon("Abort", "abort", A8, A9, A12);
+Pin soft("Soft", "?", A3, DIGITAL, INPUT_PULLUP);
+Pin hard("Hard", "?", A7, DIGITAL, INPUT_PULLUP);
+LockedInput stage("Stage", "stage", A11, A12, A13);
+LockedInput abandon("Abort", "abort", A8, A9, A10);
 
 void setup() {
   // Start the serial connection
@@ -35,17 +35,15 @@ void setup() {
   
   
   // Calibrate until the staging button is pressed
-  abandon.indicator.set(HIGH);
   stage.indicator.set(HIGH);
   J0.recalibrate();
   J1.recalibrate();
   J0.print();
   J1.print();
-  while (abandon.button.get() == LOW) {
+  while (stage.button.get() == LOW) {
     J0.calibrate();
     J1.calibrate();
   }
-  abandon.indicator.set(LOW);
   stage.indicator.set(LOW);
   
   // Report ready status
@@ -89,6 +87,8 @@ void poll() {
   //rcs.update();
   J0.update();
   J1.update();
+  
+  //if (stage.updated()) { Serial.println(stage.toJSON()); }
 }
 
 void processInput() {
@@ -127,13 +127,17 @@ void loop() {
   abandon.update();
   J0.update();
   J1.update();
+  hard.update();
+  soft.update();
   
-  stage.print();
-  abandon.print();
+  //if (stage.updated()) { stage.print(); }
+  //if (abandon.update()) { abandon.print(); }
   //J0.print();
   //J1.print();
   
   delay(1000);
+  hard.print();
+  soft.print();
   
   
   

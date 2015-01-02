@@ -21,7 +21,7 @@ LockedInput::LockedInput(String _name, String _api, int _lock, int _button, int 
 	api			= _api;
 	
 	update();
-	last = value;
+	last_value = value;
 }
 
 // ===================
@@ -49,10 +49,10 @@ void LockedInput::update() {
 	}
 }
 
-bool updated() {
+bool LockedInput::updated() {
 	// Return true if the value has changed since last updated()
-	bool is_updated = (last != value);
-	last = value;
+	bool is_updated = (last_value != value);
+	last_value = value;
 	return is_updated;
 }
 

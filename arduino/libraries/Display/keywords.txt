@@ -1,0 +1,8 @@
+Joy	KEYWORD1	Class
+
+set	KEYWORD2	Method
+update	KEYWORD2	Method
+print	KEYWORD2	Method
+
+format	KEYWORD2	Method
+write	KEYWORD2	Method

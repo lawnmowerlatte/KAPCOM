@@ -17,9 +17,11 @@
 // =================================
 
 LockedInput::LockedInput(String _name, String _api, int _lock, int _button, int _indicator) : lock(_name + " Locked", "", _lock, DIGITAL, INPUT_PULLUP), button(_name + " Button", "", _button, DIGITAL, INPUT_PULLUP), indicator(_name + " Indicator", "", _indicator, DIGITAL, OUTPUT) {
+	// Set variables
 	name		= _name;
 	api			= _api;
 	
+	// Set default value, update from hardware, set initial value of previous
 	update();
 	last_value = value;
 }
@@ -57,8 +59,8 @@ bool LockedInput::updated() {
 }
 
 void LockedInput::print() {
-	// Print the name of the pin and the value.
-	// Does not force a hardware refresh.
+	// Print the name of the pin and the value
+	// Does not force a hardware refresh
 	
 	Serial.println(name + ": " + (String)value);
 	lock.print();

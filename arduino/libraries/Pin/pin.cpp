@@ -86,13 +86,14 @@ void Pin::set(int _value) {
 
 bool Pin::updated() {
 	// Return true if the value has changed since last updated()
+	
 	bool is_updated = (last_value != value);
 	last_value = value;
 	return is_updated;
 }
 
 void Pin::update() {
-	// Force a refresh of the values.
+	// Force a refresh of the values
 	// Can be safely called on both INPUT and OUTPUT pins
 	
 	if (mode == OUTPUT) {

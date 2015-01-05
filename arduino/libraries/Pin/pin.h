@@ -11,11 +11,7 @@ class Pin {
   public :
     String name;
 	String api;
-    int pin;
-    boolean type;
-    boolean mode;
     int value;
-	int last_value;
   
     Pin(String _name, String _api, int _pin, boolean _type, boolean _mode);
     Pin(String _name, String _api, int _pin, boolean _type, boolean _mode, int _cooldown);
@@ -27,7 +23,11 @@ class Pin {
     void print();
   
   private :
+    int pin;
+    boolean type;
+    boolean mode;
     int last_update;
+	int last_value;
     int cooldown;
     
     void read();

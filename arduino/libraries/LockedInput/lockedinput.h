@@ -14,11 +14,10 @@ class LockedInput {
   public :
     String name;
 	String api;
-    Pin lock;
-    Pin button;
-	Pin indicator;
 	int value;
-	int last_value;
+  	Pin lock;
+	Pin button;
+	Pin indicator;
     
     LockedInput(String _name, String _api, int _lock, int _button, int _indicator);
     
@@ -26,6 +25,9 @@ class LockedInput {
     void update();
 	bool updated();
     void print();
+	
+  private :
+	int last_value;
 };
 
 #endif

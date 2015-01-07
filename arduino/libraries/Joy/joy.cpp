@@ -110,10 +110,20 @@ void Joy::update() {
 	if (Y > 95) { Y = 100; }
 	if (Z > 95) { Z = 100; }
 	
+	if (X >= 45 && X <= 55 && Y >= 45 && Y <= 55 && Z >= 45 && Z <= 55) {
+		centered = true;
+	} else {
+		centered = false;
+	}
+	
 	// Adjust to scale
 	X = X / 100.0 * scale;
 	Y = Y / 100.0 * scale;
 	Z = Z / 100.0 * scale;
+}
+
+bool Joy::centered() {
+	return centered;
 }
 
 void Joy::print() {

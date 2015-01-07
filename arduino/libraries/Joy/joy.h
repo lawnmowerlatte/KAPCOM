@@ -25,9 +25,11 @@ class Joy {
 	void recalibrate();
 	void calibrate();
     void update();
+	bool centered();
     void print();
   
   private :
+	bool centered;
     int min;
 	int xMin;
 	int yMin;

@@ -29,7 +29,7 @@ class Joy {
     void print();
   
   private :
-	bool centered;
+	bool center;
     int min;
 	int xMin;
 	int yMin;

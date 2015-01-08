@@ -14,17 +14,22 @@ class Display {
     String name;
 	String api;
 	
-	void set(long _value);
+	Display(String _name, String _api, LedControl _l, int _length, int _device);
+	Display(String _name, String _api, LedControl _l, int _length, int _device, int _offset, int _decimals, String _pad);
+	
+	void set(String _value);
 	void update();
     void print();
   
   private :
  	 LedControl l;
-	 long value;
+	 String value;
 	 String formatted;
+	 String pad;
 	 int device;
 	 int length;
 	 int offset;
+	 int decimals;
 	 
 	 void format();
 	 void write();

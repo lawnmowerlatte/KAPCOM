@@ -1,4 +1,4 @@
-Joy	KEYWORD1	Class
+Display	KEYWORD1	Class
 
 set	KEYWORD2	Method
 update	KEYWORD2	Method

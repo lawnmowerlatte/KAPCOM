@@ -33,7 +33,7 @@ class arduino:
     # This overrides the serial port with input from the interactive shell
     interactive = False
     ## This overrides the Telemachus port with static simulated input
-    headless = True
+    headless = False
     
     buffer = ""
     
@@ -145,7 +145,8 @@ class arduino:
         
         debug("Arduino...", 2, False)
         self.timer(5)
-        while not self.interactive and self.readSerial() != "ONLINE":
+        self.writeSerial("RESTART")
+        while not self.interactive and "ONLINE" not in self.readSerial():
             i = self.tick()
             if i is False:
                 self.hold("Timeout while waiting for Arduino.")
@@ -156,7 +157,7 @@ class arduino:
         
         debug("Calibration...", 2, False)
         self.timer(10)
-        while not self.interactive and self.readSerial() != "CALIBRATING":
+        while not self.interactive and "CALIBRATING" not in self.readSerial():
             i = self.tick()
             if i is False:
                 self.hold("Timeout while calibrating.")
@@ -167,7 +168,7 @@ class arduino:
         
         debug("Fly by wire...", 2, False)
         self.timer(5)
-        while not self.interactive and self.readSerial() != "READY":
+        while not self.interactive and "READY" not in self.readSerial():
             i = self.tick()
             if i is False:
                 self.hold("Timeout while connecting to inputs.")
@@ -323,7 +324,8 @@ class arduino:
         debug("Send output", 4)
         
         if json:
-            self.writeSerial(json)
+            debug(json, 5)
+            self.writeSerial(json + "\r\n")
         else:
             debug("< No JSON data to send", 1)
     
@@ -332,6 +334,7 @@ class arduino:
         debug("Read input", 4)
         
         json = self.readSerial()
+        debug(json, 5)
         data = self.fromJSON(json)
         return data
     
@@ -352,8 +355,6 @@ class arduino:
         
         if self.headless:
             return
-        
-        self.vessel.run_command("toggle_fbw", "1")
         
         for key, value in data.items():
             print key + ": " + str(value)

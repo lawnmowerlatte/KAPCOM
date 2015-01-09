@@ -53,10 +53,8 @@ void serialEvent() {
   while (Serial.available()) {
     char c = (char)Serial.read();
     
-    nextLine += c;
-    
     if (c == '\n' || c == 10 || c == 13) {
-      readLine = nextLine.substring(0, nextLine.length() -1);
+      readLine = nextLine;
       nextLine = "";
       
       if (readLine == "RESTART") {
@@ -64,6 +62,8 @@ void serialEvent() {
         delay(1000); 
         reset();
       }
+    } else {
+      nextLine += c;
     }
   }
 }

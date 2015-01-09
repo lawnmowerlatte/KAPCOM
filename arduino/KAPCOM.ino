@@ -47,6 +47,27 @@ vector<Display> displays;
 vector<Display>::const_iterator display;
 */
 
+void(* reset) (void) = 0;
+
+void serialEvent() {
+  while (Serial.available()) {
+    char c = (char)Serial.read();
+    
+    nextLine += c;
+    
+    if (c == '\n' || c == 10 || c == 13) {
+      readLine = nextLine.substring(0, nextLine.length() -1);
+      nextLine = "";
+      
+      if (readLine == "RESTART") {
+        Serial.println("Resetting...");
+        delay(1000); 
+        reset();
+      }
+    }
+  }
+}
+
 void setup() {
   // Initialize displays
   for(int i=0; i<display_count; i++) {
@@ -111,27 +132,6 @@ void setup() {
 
   // Report ready status
   Serial.println("READY");
-}
-
-void(* reset) (void) = 0;
-
-void serialEvent() {
-  while (Serial.available()) {
-    char c = (char)Serial.read();
-    
-    nextLine += c;
-    
-    if (c == '\n' || c == 10 || c == 13) {
-      readLine = nextLine.substring(0, nextLine.length() -1);
-      nextLine = "";
-      
-      if (readLine == "RESTART") {
-        Serial.println("Resetting...");
-        delay(1000); 
-        reset();
-      }
-    }
-  }
 }
 
 void configure() {

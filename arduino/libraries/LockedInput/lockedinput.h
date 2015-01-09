@@ -20,14 +20,17 @@ class LockedInput {
 	Pin indicator;
     
     LockedInput(String _name, String _api, int _lock, int _button, int _indicator);
-    
-	int get();
+    LockedInput(String _name, String _api, int _lock, int _button, int _indicator, bool _strings);
+	
+	String get();
+	String toString();
     void update();
 	bool updated();
     void print();
 	
   private :
 	int last_value;
+	bool strings;
 };
 
 #endif

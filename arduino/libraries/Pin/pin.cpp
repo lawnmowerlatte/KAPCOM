@@ -21,9 +21,32 @@ Pin::Pin(String _name, String _api, int _pin, boolean _type, boolean _mode) {
 	pin			= _pin;
 	type		= _type;
 	mode		= _mode;
+	strings		= false;
 	
 	// Set the cooldown counters
-	last_update 	= millis();
+	last_update = millis();
+	cooldown 	= 500;
+	
+	// Initialize the pin
+	pinMode(pin, mode);
+	
+	// Set default value, update from hardware, set initial value of previous
+	value = 0;
+	update();
+	last_value = value;
+}
+
+Pin::Pin(String _name, String _api, int _pin, boolean _type, boolean _mode, bool _strings) {
+	// Set variables
+	name		= _name;
+	api			= _api;
+	pin			= _pin;
+	type		= _type;
+	mode		= _mode;
+	strings		= _strings;
+	
+	// Set the cooldown counters
+	last_update = millis();
 	cooldown 	= 500;
 	
 	// Initialize the pin
@@ -42,9 +65,32 @@ Pin::Pin(String _name, String _api, int _pin, boolean _type, boolean _mode, int 
 	pin			= _pin;
 	type		= _type;
 	mode		= _mode;
+	strings		= false;
 	
 	// Set the cooldown counters
-	last_update 	= millis();
+	last_update = millis();
+	cooldown 	= _cooldown;
+	
+	// Initialize the pin
+	pinMode(pin, mode);
+	
+	// Set default value, update from hardware, set initial value of previous
+	value = 0;
+	update();
+	last_value = value;
+}
+
+Pin::Pin(String _name, String _api, int _pin, boolean _type, boolean _mode, int _cooldown, bool _strings) {
+	// Set variables
+	name		= _name;
+	api			= _api;
+	pin			= _pin;
+	type		= _type;
+	mode		= _mode;
+	strings		= _strings;
+	
+	// Set the cooldown counters
+	last_update = millis();
 	cooldown 	= _cooldown;
 	
 	// Initialize the pin
@@ -66,10 +112,28 @@ int Pin::get() {
 	if (mode == OUTPUT) {
 		// Serial.println("Error: Trying to get an output pin.");
 		return 0;
+	} else {
+		return value;
 	}
-  	
-	read();
-  	return value;
+}
+
+String Pin::toString() {
+	if (mode == OUTPUT) {
+		// Serial.println("Error: Trying to get an output pin.");
+		return "";
+	} else {
+		if (strings) {
+			if (value == 1) {
+				return "True";
+			} else {
+				return "False";
+			}
+		} else if (value == 0) {
+			return "False";
+		} else {
+			return String(value);
+		}		
+	}
 }
 
 void Pin::set(int _value) {

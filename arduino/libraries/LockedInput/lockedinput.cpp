@@ -20,6 +20,18 @@ LockedInput::LockedInput(String _name, String _api, int _lock, int _button, int 
 	// Set variables
 	name		= _name;
 	api			= _api;
+	strings		= false;
+	
+	// Set default value, update from hardware, set initial value of previous
+	update();
+	last_value = value;
+}
+
+LockedInput::LockedInput(String _name, String _api, int _lock, int _button, int _indicator, bool _strings) : lock(_name + " Locked", "", _lock, DIGITAL, INPUT_PULLUP), button(_name + " Button", "", _button, DIGITAL, INPUT_PULLUP), indicator(_name + " Indicator", "", _indicator, DIGITAL, OUTPUT) {
+	// Set variables
+	name		= _name;
+	api			= _api;
+	strings		= _strings;
 	
 	// Set default value, update from hardware, set initial value of previous
 	update();
@@ -35,6 +47,20 @@ int LockedInput::get() {
 	
 	update();
 	return value;
+}
+
+String LockedInput::toString() {
+	if (strings) {
+		if (value == 1) {
+			return "True";
+		} else if (value == 0) {
+			return "False";
+		} else {
+			return String(value);
+		}
+	} else {
+		return String(value);
+	}
 }
 
 void LockedInput::update() {

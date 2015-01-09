@@ -226,6 +226,8 @@ class arduino:
             self.off()
         elif state is 4:
             self.missing()
+        elif state is None:
+            self.menu()
         else:
             debug("Unhandled game state: " + str(state), 1)
     
@@ -258,6 +260,14 @@ class arduino:
             currentState = self.vessel.get("pause_state")
         print "Unpaused"
 
+    def menu(self):
+        print "Waiting for vessel"
+        currentState = self.vessel.get("pause_state")
+        while currentState == None:
+            time.sleep(5)
+            currentState = self.vessel.get("pause_state")
+        print "Vessel ready for connection"
+        
     # Data processing methods
     def readOutput(self):
         """Read Telemachus telemetry"""

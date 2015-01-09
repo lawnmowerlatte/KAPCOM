@@ -191,7 +191,7 @@ void processInput() {
       z = String(joy->Z);
     }
   }
-  sixdof=yaw + ", " + pitch + ", " + roll + ", " + x + ", " + y + ", " + z;
+  sixdof=yaw + "," + pitch + "," + roll + "," + x + "," + y + "," + z;
   input["toggle_fbw"] = "1";
   input["six_dof"] = sixdof.c_str();
   

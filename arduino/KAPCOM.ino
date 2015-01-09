@@ -94,8 +94,8 @@ void setup() {
   buttons.push_back(Pin("Trim", "?", A7, DIGITAL, INPUT_PULLUP));
    
   // Load locked inputs into vector
-  locks.push_back(LockedInput("Stage", "stage", A11, A12, A13));
-  locks.push_back(LockedInput("Abort", "abort", A8, A9, A10));
+  locks.push_back(LockedInput("Stage", "stage", A11, A12, A13, true));
+  locks.push_back(LockedInput("Abort", "abort", A8, A9, A10, true));
   /*
   displays.push_back(Display("Ap", "vessel_apoapsis", lc, 8, 1));
   displays.push_back(Display("Pe", "vessel_periapsis", lc, 8, 2));
@@ -197,7 +197,7 @@ void processInput() {
   
   for (button=buttons.begin(); button!=buttons.end(); button++) {
    if (button->updated()) {
-     input.add(button->api.c_str(), button->get());
+     input.add(button->api.c_str(), button->toString());
    }
   }
   

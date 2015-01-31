@@ -21,7 +21,7 @@ Pin::Pin(String _name, String _api, int _pin, boolean _type, boolean _mode) {
 	pin			= _pin;
 	type		= _type;
 	mode		= _mode;
-	strings		= false;
+	format		= "Value";
 	
 	// Set the cooldown counters
 	last_update = millis();
@@ -36,14 +36,14 @@ Pin::Pin(String _name, String _api, int _pin, boolean _type, boolean _mode) {
 	last_value = value;
 }
 
-Pin::Pin(String _name, String _api, int _pin, boolean _type, boolean _mode, bool _strings) {
+Pin::Pin(String _name, String _api, int _pin, boolean _type, boolean _mode, String _format) {
 	// Set variables
 	name		= _name;
 	api			= _api;
 	pin			= _pin;
 	type		= _type;
 	mode		= _mode;
-	strings		= _strings;
+	format		= _format;
 	
 	// Set the cooldown counters
 	last_update = millis();
@@ -65,7 +65,7 @@ Pin::Pin(String _name, String _api, int _pin, boolean _type, boolean _mode, int 
 	pin			= _pin;
 	type		= _type;
 	mode		= _mode;
-	strings		= false;
+	format		= "Value";
 	
 	// Set the cooldown counters
 	last_update = millis();
@@ -80,14 +80,14 @@ Pin::Pin(String _name, String _api, int _pin, boolean _type, boolean _mode, int 
 	last_value = value;
 }
 
-Pin::Pin(String _name, String _api, int _pin, boolean _type, boolean _mode, int _cooldown, bool _strings) {
+Pin::Pin(String _name, String _api, int _pin, boolean _type, boolean _mode, int _cooldown, String _format) {
 	// Set variables
 	name		= _name;
 	api			= _api;
 	pin			= _pin;
 	type		= _type;
 	mode		= _mode;
-	strings		= _strings;
+	format		= _format;
 	
 	// Set the cooldown counters
 	last_update = millis();
@@ -119,20 +119,34 @@ int Pin::get() {
 
 String Pin::toString() {
 	if (mode == OUTPUT) {
-		// Serial.println("Error: Trying to get an output pin.");
+		Serial.println("Error: Trying to get an output pin.");
 		return "";
 	} else {
-		if (strings) {
+		Serial.println("Formatting using: " + format);
+		if (format == "TrueFalse") {
 			if (value == 1) {
 				return "True";
 			} else {
 				return "False";
 			}
-		} else if (value == 0) {
-			return "False";
-		} else {
+		} else if (format == "True") {
+			if (value == 1) {
+				return "True";
+			} else {
+				return "";
+			}
+		} else if (format == "False") {
+			if (value == 0) {
+				return "False";
+			} else {
+				return "";
+			}
+		} else if (format == "Value") {
 			return String(value);
-		}		
+		} else {
+			Serial.println("Name: " + name + ", Value: " + value + ", String: " + String(value));
+			return "None";
+		}
 	}
 }
 

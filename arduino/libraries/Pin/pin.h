@@ -14,9 +14,9 @@ class Pin {
     int value;
   
     Pin(String _name, String _api, int _pin, boolean _type, boolean _mode);
-    Pin(String _name, String _api, int _pin, boolean _type, boolean _mode, bool _strings);
+    Pin(String _name, String _api, int _pin, boolean _type, boolean _mode, String _format);
 	Pin(String _name, String _api, int _pin, boolean _type, boolean _mode, int _cooldown);
-    Pin(String _name, String _api, int _pin, boolean _type, boolean _mode, int _cooldown, bool _strings);
+    Pin(String _name, String _api, int _pin, boolean _type, boolean _mode, int _cooldown, String _format);
     
     int get();
 	String toString();
@@ -32,7 +32,7 @@ class Pin {
     int last_update;
 	int last_value;
     int cooldown;
-	bool strings;
+	String format;
     
     void read();
     void write();

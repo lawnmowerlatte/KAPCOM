@@ -15,18 +15,20 @@ class Joy {
     Pin x;
     Pin y;
     Pin z;
-    int X;
-    int Y;
-    int Z;
+	Pin button;
+    float X;
+    float Y;
+    float Z;
     
-    Joy(String _name, int _x, int _y, int _z);
-    Joy(String _name, int _x, int _y, int _z, int _min, int _max);
+    Joy(String _name, int _x, int _y, int _z, int _button);
+    Joy(String _name, int _x, int _y, int _z, int _button, int _min, int _max);
     
 	void recalibrate();
 	void calibrate();
     void update();
 	bool centered();
     void print();
+	String toString();
   
   private :
 	bool center;

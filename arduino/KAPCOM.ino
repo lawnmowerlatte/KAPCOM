@@ -12,6 +12,7 @@
 #include <lockedinput.h>
 #include <joy.h>
 #include <display.h>
+//#include <bargraph.h>
 #include <ArduinoJson.h>
 
 using namespace std;
@@ -86,16 +87,44 @@ void setup() {
   */
   
   // Load joysticks into vector
-  joys.push_back(Joy("J0", A0, A1, A2));
-  joys.push_back(Joy("J1", A4, A5, A6));
+  joys.push_back(Joy("J0", A0, A1, A2, A3));
+  joys.push_back(Joy("J1", A4, A5, A6, A7));
   
-  // Load buttons into vector.*
-  buttons.push_back(Pin("Soft", "?", A3, DIGITAL, INPUT_PULLUP));
-  buttons.push_back(Pin("Trim", "?", A7, DIGITAL, INPUT_PULLUP));
-   
+  // Load buttons into vectors
+  /*
+  buttons.push_back(Pin("Action 1", "action_group_1", 22, DIGITAL, INPUT_PULLUP));
+  buttons.push_back(Pin("Action 2", "action_group_2", 24, DIGITAL, INPUT_PULLUP));
+  buttons.push_back(Pin("Action 3", "action_group_3", 26, DIGITAL, INPUT_PULLUP));
+  buttons.push_back(Pin("Action 4", "action_group_4", 28, DIGITAL, INPUT_PULLUP));
+  buttons.push_back(Pin("Action 5", "action_group_5", 30, DIGITAL, INPUT_PULLUP));
+  buttons.push_back(Pin("Action 6", "action_group_6", 32, DIGITAL, INPUT_PULLUP));
+  buttons.push_back(Pin("Action 7", "action_group_7", 34, DIGITAL, INPUT_PULLUP));
+  buttons.push_back(Pin("Action 8", "action_group_8", 36, DIGITAL, INPUT_PULLUP));
+  buttons.push_back(Pin("Action 9", "action_group_9", 38, DIGITAL, INPUT_PULLUP));
+  buttons.push_back(Pin("Action 10", "action_group_10", 40, DIGITAL, INPUT_PULLUP));
+  
+  buttons.push_back(Pin("Gear", "gear", 14, DIGITAL, INPUT_PULLUP));
+  indicators.push_back(Pin("Gear Status", "action_group_light", 0, DIGITAL, OUTPUT));
+  
+  buttons.push_back(Pin("Brakes", "brake", 15, DIGITAL, INPUT_PULLUP));
+  indicators.push_back(Pin("Brakes Status", "action_group_brake", 1, DIGITAL, OUTPUT));
+  
+  buttons.push_back(Pin("Lights", "light", 16, DIGITAL, INPUT_PULLUP));
+  indicators.push_back(Pin("Lights Status", "action_group_light", 2, DIGITAL, OUTPUT));
+  
+  buttons.push_back(Pin("RCS", "rcs", 17, DIGITAL, INPUT_PULLUP));
+  indicators.push_back(Pin("RCS Status", "rcs_status", 3, DIGITAL, OUTPUT));
+  
+  buttons.push_back(Pin("SAS", "sas", 18, DIGITAL, INPUT_PULLUP));
+  indicators.push_back(Pin("SAS Status", "sas_status", 4, DIGITAL, OUTPUT));
+  
+  buttons.push_back(Pin("Map", "toggle_map", 19, DIGITAL, INPUT_PULLUP));
+  */
+  
   // Load locked inputs into vector
-  locks.push_back(LockedInput("Stage", "stage", A11, A12, A13, true));
-  locks.push_back(LockedInput("Abort", "abort", A8, A9, A10, true));
+  locks.push_back(LockedInput("Stage", "stage", A11, A12, A13, "Value"));
+  locks.push_back(LockedInput("Abort", "abort", A8, A9, A10, "True"));
+  
   /*
   displays.push_back(Display("Ap", "vessel_apoapsis", lc, 8, 1));
   displays.push_back(Display("Pe", "vessel_periapsis", lc, 8, 2));
@@ -119,17 +148,17 @@ void setup() {
   
   for (joy=joys.begin(); joy!=joys.end(); joy++) {
     joy->recalibrate();
-    //joy->print();
   }
-
+  /*
   while (calibrate.button.get() == LOW) {
     for(joy=joys.begin(); joy!=joys.end(); joy++) {
       joy->calibrate();
+      Serial.println(joy->toString());
     }
   }
-
   calibrate.indicator.set(LOW);
-
+  */
+  
   // Report ready status
   Serial.println("READY");
 }
@@ -139,17 +168,19 @@ void configure() {
   char* json; // = readLine.c_str();
 
   // Parse JSON
-JsonObject& configuration = jsonBuffer.parseObject(json);
+  JsonObject& configuration = jsonBuffer.parseObject(json);
   if (!configuration.success()) {
     Serial.println("JSON Parsing failed.");
     reset();
   }
-
 }
 
-void poll() {
-  // Poll all configured hardware 
+String processInput() {
+  StaticJsonBuffer<512> jsonBuffer;
+  JsonObject& input = jsonBuffer.createObject();
+  String yaw, pitch, roll, x, y, z, sixdof;
   
+  // Poll all configured hardware 
   for (joy=joys.begin(); joy!=joys.end(); joy++) {
     joy->update();
   }
@@ -161,25 +192,8 @@ void poll() {
   for (lock=locks.begin(); lock!=locks.end(); lock++) {
     lock->update();
   }
-   
-  /*
-  for (bargraph=bargraphs.begin(); bargraph!=bargraphs.end(); bargraph++) {
-    bargraph.update();
-  }
-  
-  for (display=displays.begin(); display!=displays.end(); display++) {
-    display->update();
-  }
-  */
-}
-
-void processInput() {
-  StaticJsonBuffer<512> jsonBuffer;
-  JsonObject& input = jsonBuffer.createObject();
-  String yaw, pitch, roll, x, y, z, sixdof;
   
   // Aggregate fly-by-wire data
-  
   for (joy=joys.begin(); joy!=joys.end(); joy++) {
     if (joy->name == "J0") {
       yaw = String(joy->X);
@@ -192,37 +206,48 @@ void processInput() {
     }
   }
   sixdof=yaw + "," + pitch + "," + roll + "," + x + "," + y + "," + z;
-  input["toggle_fbw"] = "1";
-  input["six_dof"] = sixdof.c_str();
+  //input["toggle_fbw"] = "1";
+  //input["six_dof"] = sixdof.c_str();
   
-  for (button=buttons.begin(); button!=buttons.end(); button++) {
+  for (button=buttons.begin(); button!=buttons.end(); button++) { 
    if (button->updated()) {
      input.add(button->api.c_str(), button->toString());
    }
   }
   
   for (lock=locks.begin(); lock!=locks.end(); lock++) {
-   if (lock->updated()) {
-     input.add(lock->api.c_str(), lock->get());
-   }
+    lock->print();
+    if (lock->updated()) {
+      input.add(lock->api.c_str(), lock->toString());
+    }
   }
   
+  // Strip unwanted variable
   input.remove("?");
   
   // Send fly-by-wire data
   input.printTo(Serial);
   Serial.println("");
+  
+  char buffer[256];
+  input.printTo(buffer, sizeof(buffer));
+  return buffer;
 }
 
-void processOutput() {
+void processOutput(String _output) {
   StaticJsonBuffer<512> jsonBuffer;
-  char* json; // = readLine;
+  char* json = new char[_output.length() + 1];
+  strcpy(json, _output.c_str());
 
   // Parse received telemetry
   JsonObject& output = jsonBuffer.parseObject(json);
   if (!output.success()) {
     Serial.println("JSON Parsing failed.");
     reset();
+  }
+  
+  for (indicator=indicators.begin(); indicator!=indicators.end(); indicator++) {
+    indicator->update();
   }
 
   // Update instrumentation panels
@@ -237,27 +262,30 @@ void processOutput() {
   */
 }
 
-
+String sync(String output) {
+  String input = "";
+  if (output != "") {
+    // Wait for telemetry data
+    processOutput(output);
+    // Send fly-by-wire data
+    input = processInput();
+  }
+  return input; 
+}
 
 void loop() {
   delay(1000);
+  String input;
   
+  /*
   //Serial.println(readLine);
   if (readLine != "") {
-    // Wait for telemetry data
-    //processOutput();
+    input = sync(readLine);
+    Serial.println(input);
   }
+  */
   
-  // Poll hardware for inputs
-  poll();
-  processInput();
+  processInput();            // Remove this once we have a successful read
   
-  if (readLine != "") { 
-    // Send fly-by-wire data
-    processInput();
-    
-    readLine = "";
-  }
- 
 }
 

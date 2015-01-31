@@ -20,18 +20,18 @@ LockedInput::LockedInput(String _name, String _api, int _lock, int _button, int 
 	// Set variables
 	name		= _name;
 	api			= _api;
-	strings		= false;
+	format		= "Value";
 	
 	// Set default value, update from hardware, set initial value of previous
 	update();
 	last_value = value;
 }
 
-LockedInput::LockedInput(String _name, String _api, int _lock, int _button, int _indicator, bool _strings) : lock(_name + " Locked", "", _lock, DIGITAL, INPUT_PULLUP), button(_name + " Button", "", _button, DIGITAL, INPUT_PULLUP), indicator(_name + " Indicator", "", _indicator, DIGITAL, OUTPUT) {
+LockedInput::LockedInput(String _name, String _api, int _lock, int _button, int _indicator, String _format) : lock(_name + " Locked", "", _lock, DIGITAL, INPUT_PULLUP), button(_name + " Button", "", _button, DIGITAL, INPUT_PULLUP), indicator(_name + " Indicator", "", _indicator, DIGITAL, OUTPUT) {
 	// Set variables
 	name		= _name;
 	api			= _api;
-	strings		= _strings;
+	format		= _format;
 	
 	// Set default value, update from hardware, set initial value of previous
 	update();
@@ -50,16 +50,30 @@ int LockedInput::get() {
 }
 
 String LockedInput::toString() {
-	if (strings) {
+	//Serial.println("Formatting using: " + format);
+	if (format == "TrueFalse") {
 		if (value == 1) {
 			return "True";
-		} else if (value == 0) {
+		} else {
+			return "False";
+		}
+	} else if (format == "True") {
+		if (value == 1) {
+			return "True";
+		} else {
+			return "";
+		}
+	} else if (format == "False") {
+		if (value == 0) {
 			return "False";
 		} else {
-			return String(value);
+			return "";
 		}
-	} else {
+	} else if (format == "Value") {
 		return String(value);
+	} else {
+		Serial.println("Name: " + name + ", Value: " + value + ", String: " + String(value));
+		return "None";
 	}
 }
 

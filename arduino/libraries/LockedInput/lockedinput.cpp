@@ -50,42 +50,48 @@ int LockedInput::get() {
 }
 
 String LockedInput::toString() {
-	//Serial.println("Formatting using: " + format);
+	if (format == "Value") {
+		return String(value);
+	}
+	
 	if (format == "TrueFalse") {
-		if (value == 1) {
-			return "True";
-		} else {
+		if (value == 0) {
 			return "False";
+		} else {
+			return "True";
 		}
-	} else if (format == "True") {
+	}
+	
+	if (format == "True") {
 		if (value == 1) {
 			return "True";
 		} else {
 			return "";
 		}
-	} else if (format == "False") {
+	}
+	
+	if (format == "False") {
 		if (value == 0) {
 			return "False";
 		} else {
 			return "";
 		}
-	} else if (format == "Value") {
-		return String(value);
-	} else {
-		Serial.println("Name: " + name + ", Value: " + value + ", String: " + String(value));
-		return "None";
 	}
+	
+	Serial.println("Unexpected format \"" + format + "\" in object \"" + name + "\"");
+	return "None";
 }
 
 void LockedInput::update() {
 	// Update the object value based on the hardware Pins
+	lock.update();
+	button.update();
 	
 	int isLocked = lock.get();
 	indicator.set(isLocked);
-	
+
 	if (isLocked == LOW) {
 		value = 0;
-		button.update();
 	} else {
 		value = button.get();
 	}

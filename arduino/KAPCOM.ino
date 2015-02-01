@@ -22,7 +22,7 @@ String readLine = "";
 String nextLine = "";
 
 // Create calibration inputs
-LockedInput calibrate("Calibrate", "calibrate", A11, A12, A13);
+LockedInput calibrate("Calibrate", "calibrate", 2, 3, 4);
 
 // Create global LedControl
 int display_count = 5;
@@ -122,8 +122,8 @@ void setup() {
   */
   
   // Load locked inputs into vector
-  locks.push_back(LockedInput("Stage", "stage", A11, A12, A13, "Value"));
-  locks.push_back(LockedInput("Abort", "abort", A8, A9, A10, "True"));
+  locks.push_back(LockedInput("Stage", "stage", 2, 3, 4, "True"));
+  locks.push_back(LockedInput("Abort", "abort", 14, 15, 16, "True"));
   
   /*
   displays.push_back(Display("Ap", "vessel_apoapsis", lc, 8, 1));
@@ -149,15 +149,18 @@ void setup() {
   for (joy=joys.begin(); joy!=joys.end(); joy++) {
     joy->recalibrate();
   }
-  /*
+
   while (calibrate.button.get() == LOW) {
+    calibrate.button.update();
+      
     for(joy=joys.begin(); joy!=joys.end(); joy++) {
       joy->calibrate();
       Serial.println(joy->toString());
     }
+    delay(1000);
   }
   calibrate.indicator.set(LOW);
-  */
+  
   
   // Report ready status
   Serial.println("READY");
@@ -178,7 +181,7 @@ void configure() {
 String processInput() {
   StaticJsonBuffer<512> jsonBuffer;
   JsonObject& input = jsonBuffer.createObject();
-  String yaw, pitch, roll, x, y, z, sixdof;
+  String yaw, pitch, roll, x, y, z, sixdof, tmp;
   
   // Poll all configured hardware 
   for (joy=joys.begin(); joy!=joys.end(); joy++) {
@@ -205,20 +208,25 @@ String processInput() {
       z = String(joy->Z);
     }
   }
-  sixdof=yaw + "," + pitch + "," + roll + "," + x + "," + y + "," + z;
-  //input["toggle_fbw"] = "1";
-  //input["six_dof"] = sixdof.c_str();
-  
+//  sixdof=yaw + "," + pitch + "," + roll + "," + x + "," + y + "," + z;
+//  input["toggle_fbw"] = "1";
+//  input["six_dof"] = sixdof.c_str();
+
   for (button=buttons.begin(); button!=buttons.end(); button++) { 
-   if (button->updated()) {
-     input.add(button->api.c_str(), button->toString());
-   }
+    if (button->updated()) {
+      tmp = button->toString();
+      if (tmp != "") {
+        input[button->api.c_str()] = tmp.c_str();
+      }
+    }
   }
   
   for (lock=locks.begin(); lock!=locks.end(); lock++) {
-    lock->print();
     if (lock->updated()) {
-      input.add(lock->api.c_str(), lock->toString());
+      tmp = lock->toString();
+      if (tmp != "") {
+        input[lock->api.c_str()] = tmp.c_str();
+      }
     }
   }
   

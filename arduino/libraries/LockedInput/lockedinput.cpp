@@ -54,6 +54,14 @@ String LockedInput::toString() {
 		return String(value);
 	}
 	
+	if (format == "Toggle") {
+		if (value == 1) {
+			return "None";
+		} else {
+			return "";
+		}
+	}
+	
 	if (format == "TrueFalse") {
 		if (value == 0) {
 			return "False";
@@ -79,7 +87,7 @@ String LockedInput::toString() {
 	}
 	
 	Serial.println("Unexpected format \"" + format + "\" in object \"" + name + "\"");
-	return "None";
+	return "Error";
 }
 
 void LockedInput::update() {

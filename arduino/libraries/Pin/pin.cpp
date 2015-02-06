@@ -121,33 +121,62 @@ String Pin::toString() {
 	if (mode == OUTPUT) {
 		Serial.println("Error: Trying to get an output pin.");
 		return "";
-	} else {
-		Serial.println("Formatting using: " + format);
-		if (format == "TrueFalse") {
-			if (value == 1) {
-				return "True";
-			} else {
-				return "False";
-			}
-		} else if (format == "True") {
-			if (value == 1) {
-				return "True";
-			} else {
-				return "";
-			}
-		} else if (format == "False") {
-			if (value == 0) {
-				return "False";
-			} else {
-				return "";
-			}
-		} else if (format == "Value") {
-			return String(value);
-		} else {
-			Serial.println("Name: " + name + ", Value: " + value + ", String: " + String(value));
+	}
+	
+	if (format == "Value") {
+		return String(value);
+	}
+	
+	if (format == "Toggle") {
+		if (value == 1) {
 			return "None";
+		} else {
+			return "";
 		}
 	}
+	
+	if (format == "TrueFalse") {
+		if (value == 0) {
+			return "False";
+		} else {
+			return "True";
+		}
+	}
+	
+	if (format == "True") {
+		if (value == 1) {
+			return "True";
+		} else {
+			return "";
+		}
+	}
+	
+	if (format == "False") {
+		if (value == 0) {
+			return "False";
+		} else {
+			return "";
+		}
+	}
+	
+	if (format == "Zero") {
+		if (value == 0) {
+			return "0";
+		} else {
+			return "";
+		}
+	}
+	
+	if (format == "One") {
+		if (value == 1) {
+			return "1";
+		} else {
+			return "";
+		}
+	}
+	
+	Serial.println("Unexpected format \"" + format + "\" in object \"" + name + "\"");
+	return "Error";
 }
 
 void Pin::set(int _value) {

@@ -7,7 +7,7 @@
 # Telemachus WebSocket API, but is designed to be modular enough that it
 # could be replaced in the future without needing to rewrite this library.
 
-debug = 5
+debugger = 2
 
 import sys
 import socket
@@ -18,9 +18,15 @@ import linecache
 import math
 import pyksp
 import json
+import atexit
 
-def debug(message, level=debug, newline=True):
-    if level <= debug:
+sequence=0
+retransmits=0
+time_count=0
+time_sum=0
+
+def debug(message, level=debugger, newline=True):
+    if level <= debugger:
         if newline:
             print(message) 
         else:
@@ -33,7 +39,7 @@ class arduino:
     # This overrides the serial port with input from the interactive shell
     interactive = False
     ## This overrides the Telemachus port with static simulated input
-    headless = False
+    headless = True
     
     buffer = ""
     
@@ -62,7 +68,7 @@ class arduino:
         "action_group_brake"
     }
     
-    def __init__(self, port="/dev/tty.usbmodem1411", baud=9600):
+    def __init__(self, port="/dev/tty.usbmodem1421", baud=250000):
         """Takes an API object, serial port and baudrate and creates a new Arduino object."""
         self.port = port
         self.baud = baud
@@ -72,46 +78,39 @@ class arduino:
             for subscription in self.subscriptions:
                 self.vessel.subscribe(subscription)
         else:
-            debug("Using dummy telemetry", 4)
+            debug("Using dummy telemetry", 3)
             
         if not self.interactive:
             try:
                 self.serial = serial.Serial(
                     port=self.port,
-                    baudrate=self.baud)
+                    baudrate=self.baud,
+                    timeout=.1)
             except:
                 debug("No serial port found.")
                 raw_input("Press [Enter] to retry.")
                 main()
         else:
-            debug("Using shell input", 4)
+            debug("Using shell input", 3)
     
     # Serial manipulation methods
-    def readSerial(self):
+    def readSerial(self, retry=False):
         """Read a line from serial"""
         if self.interactive:
             line = raw_input("> ")
         else:
-            line = self.serial.readline()
+            line = ""
             
-            #while '\n' not in self.buffer:
-            #    self.buffer = self.buffer + self.serial.read(self.serial.inWaiting())
-            #    if '\r' in self.buffer:
-            #        print "x"
-            
-            #lines = self.buffer.split('\n')
+            if retry:
+                while not line:
+                    line = self.serial.readline()
         
-            #if len(lines) > 0:
-            #    for line in lines[:-1]:
-            #        if line is "READY":
-            #            debug("Arduino has reset. Restarting.", 1)
-            #            main()
-            #        else:
-            #            # print line
-            #            debug("-", 1, False)
-                   
-            #        self.buffer = lines[-1]
-            
+                    if line is "":
+                        self.serial.write("{}\n")
+                        print "Poking..."
+            else:
+                line = self.serial.readline()
+                
         return line
     
     def writeSerial(self, line):
@@ -119,7 +118,7 @@ class arduino:
         if self.interactive:
             print "< " + line
         else:
-            self.serial.write(line)
+            self.serial.write(line + "\n")
     
     # Init and Readiness methods
     def init(self):
@@ -146,7 +145,7 @@ class arduino:
         debug("Arduino...", 2, False)
         self.timer(5)
         self.writeSerial("RESTART")
-        while not self.interactive and "ONLINE" not in self.readSerial():
+        while not self.interactive and "ONLINE" not in self.readSerial(False):
             i = self.tick()
             if i is False:
                 self.hold("Timeout while waiting for Arduino.")
@@ -157,18 +156,18 @@ class arduino:
         
         debug("Calibration...", 2, False)
         self.timer(10)
-        while not self.interactive and "CALIBRATING" not in self.readSerial():
+        while not self.interactive and "CALIBRATING" not in self.readSerial(False):
             i = self.tick()
             if i is False:
                 self.hold("Timeout while calibrating.")
                 return False
             else:
                 debug(".", 3, False)
-        debug("Go", 1)
+        debug("Go", 2)
         
         debug("Fly by wire...", 2, False)
         self.timer(5)
-        while not self.interactive and "READY" not in self.readSerial():
+        while not self.interactive and "READY" not in self.readSerial(False):
             i = self.tick()
             if i is False:
                 self.hold("Timeout while connecting to inputs.")
@@ -233,12 +232,32 @@ class arduino:
     
     # Game state methods
     def online(self):
+        global sequence
+        global retransmits
+        global time_count
+        global time_sum
+        
+        sequence+=1
+        
+        t0 = time.time()
+        
         json = self.readOutput()
         self.sendOutput(json)
-        data = self.readInput()
         
-        if data:
-            self.sendInput(data)
+        data = ""
+        while data is "":
+            data = self.readInput()
+            
+            if data is "":
+                self.sendOutput("{}")
+                retransmits+=1
+
+        self.sendInput(data)
+        
+        t = time.time() - t0
+        time_count+=1
+        time_sum+=t
+        debug("%-2f" % t, 5)
 
     def unpowered(self):
         print "Antenna is unpowered"
@@ -256,7 +275,7 @@ class arduino:
         print "Paused"
         currentState = self.vessel.get("pause_state")
         while currentState == 1:
-            time.sleep(5)
+            time.sleep(1)
             currentState = self.vessel.get("pause_state")
         print "Unpaused"
 
@@ -264,7 +283,7 @@ class arduino:
         print "Waiting for vessel"
         currentState = self.vessel.get("pause_state")
         while currentState == None:
-            time.sleep(5)
+            time.sleep(1)
             currentState = self.vessel.get("pause_state")
         print "Vessel ready for connection"
         
@@ -335,18 +354,16 @@ class arduino:
         
         if json:
             debug(json, 5)
-            self.writeSerial(json + "\r\n")
+            self.writeSerial(json)
         else:
             debug("< No JSON data to send", 1)
     
     def readInput(self):
         """Poll Arduino for line of input containing JSON data"""
         debug("Read input", 4)
-        
         json = self.readSerial()
         debug(json, 5)
-        data = self.fromJSON(json)
-        return data
+        return json
     
     def fromJSON(self, jdata):
         """Parse JSON input from Arduino"""
@@ -359,15 +376,23 @@ class arduino:
             debug("No JSON data found in string: " + str(jdata))
         
     
-    def sendInput(self, data):
+    def sendInput(self, json):
         """Send Telemachus commands based on input"""
-        debug("Send fly-by-wire", 4)
+        debug("Parse JSON", 4)
+        data = self.fromJSON(json)
         
+        if data:
+            debug(data, 2)
+        
+        debug("Send fly-by-wire", 4)
         if self.headless:
             return
         
         for key, value in data.items():
             print key + ": " + str(value)
+            if value == "None":
+                value = None;
+            
             self.vessel.run_command(key, value)
 
 def main():
@@ -377,8 +402,28 @@ def main():
         time.sleep(10)
         debug("Restarting countdown.", 1)
     
+    debug("\nWaiting for input:", 2)
     while 1:
         a.do()
-        
-        
-main()
+
+@atexit.register
+def stats():
+    global sequence
+    global retransmits
+    
+    print ""
+    print ""
+    print "=======[ Stats ]======="
+    print "Updates:       %s" % sequence
+    print "Retransmits:   %s" % retransmits
+    print "Percentage:    %.2f%%" % (float(retransmits)*100/sequence)
+    print ""
+    print "Rate:          %.2fms" % (float(time_sum)*1000/time_count)
+    print "Frequency:     %.2fHz" % (1/(float(time_sum)/time_count))
+    
+try:
+    main()
+except KeyboardInterrupt:
+    sys.exit(0)
+
+

@@ -51,13 +51,14 @@ vector<Display>::const_iterator display;
 void(* reset) (void) = 0;
 
 void serialEvent() {
+  String input;
+  
   while (Serial.available()) {
     char c = (char)Serial.read();
     
     if (c == '\n' || c == 10 || c == 13) {
       readLine = nextLine;
       nextLine = "";
-      
       if (readLine == "RESTART") {
         Serial.println("Resetting...");
         delay(1000); 
@@ -67,6 +68,19 @@ void serialEvent() {
       nextLine += c;
     }
   }
+  
+  if (readLine != "") {
+    if (readLine == "{}") {
+      // Retransmission request
+      input = processInput();
+    } else {
+      // Full sync
+      input = sync(readLine);
+    }
+    Serial.println(input);
+  }
+  
+  readLine = "";
 }
 
 void setup() {
@@ -91,6 +105,10 @@ void setup() {
   joys.push_back(Joy("J1", A4, A5, A6, A7));
   
   // Load buttons into vectors
+  buttons.push_back(Pin("Action 1", "action_group_1", 15, DIGITAL, INPUT_PULLUP, "Toggle"));
+  buttons.push_back(Pin("RCS", "rcs", 3, DIGITAL, INPUT_PULLUP, "Toggle"));
+  indicators.push_back(Pin("RCS Status", "rcs_status", 4, DIGITAL, OUTPUT));
+  
   /*
   buttons.push_back(Pin("Action 1", "action_group_1", 22, DIGITAL, INPUT_PULLUP));
   buttons.push_back(Pin("Action 2", "action_group_2", 24, DIGITAL, INPUT_PULLUP));
@@ -122,8 +140,8 @@ void setup() {
   */
   
   // Load locked inputs into vector
-  locks.push_back(LockedInput("Stage", "stage", 2, 3, 4, "True"));
-  locks.push_back(LockedInput("Abort", "abort", 14, 15, 16, "True"));
+//  locks.push_back(LockedInput("Stage", "stage", 2, 3, 4, "True"));
+//  locks.push_back(LockedInput("Abort", "abort", 14, 15, 16, "True"));
   
   /*
   displays.push_back(Display("Ap", "vessel_apoapsis", lc, 8, 1));
@@ -134,7 +152,7 @@ void setup() {
   displays.push_back(Display("Inc", "vessel_inclination", lc, 4, 5, 4, 3, " "));
   */
   // Start the serial connection
-  Serial.begin(9600);
+  Serial.begin(250000);
   // Report online status
   Serial.println("ONLINE");
   // Receive configuration
@@ -150,12 +168,12 @@ void setup() {
     joy->recalibrate();
   }
 
-  while (calibrate.button.get() == LOW) {
+  while (calibrate.button.get() == LOW && false) {
     calibrate.button.update();
       
     for(joy=joys.begin(); joy!=joys.end(); joy++) {
       joy->calibrate();
-      Serial.println(joy->toString());
+      //Serial.println(joy->toString());
     }
     delay(1000);
   }
@@ -182,7 +200,7 @@ String processInput() {
   StaticJsonBuffer<512> jsonBuffer;
   JsonObject& input = jsonBuffer.createObject();
   String yaw, pitch, roll, x, y, z, sixdof, tmp;
-  
+
   // Poll all configured hardware 
   for (joy=joys.begin(); joy!=joys.end(); joy++) {
     joy->update();
@@ -195,7 +213,7 @@ String processInput() {
   for (lock=locks.begin(); lock!=locks.end(); lock++) {
     lock->update();
   }
-  
+
   // Aggregate fly-by-wire data
   for (joy=joys.begin(); joy!=joys.end(); joy++) {
     if (joy->name == "J0") {
@@ -208,9 +226,9 @@ String processInput() {
       z = String(joy->Z);
     }
   }
-//  sixdof=yaw + "," + pitch + "," + roll + "," + x + "," + y + "," + z;
-//  input["toggle_fbw"] = "1";
-//  input["six_dof"] = sixdof.c_str();
+  sixdof=yaw + "," + pitch + "," + roll + "," + x + "," + y + "," + z;
+  //input["toggle_fbw"] = "1";
+  //input["six_dof"] = sixdof.c_str();
 
   for (button=buttons.begin(); button!=buttons.end(); button++) { 
     if (button->updated()) {
@@ -233,10 +251,7 @@ String processInput() {
   // Strip unwanted variable
   input.remove("?");
   
-  // Send fly-by-wire data
-  input.printTo(Serial);
-  Serial.println("");
-  
+  // Prepare fly-by-wire data
   char buffer[256];
   input.printTo(buffer, sizeof(buffer));
   return buffer;
@@ -271,29 +286,14 @@ void processOutput(String _output) {
 }
 
 String sync(String output) {
-  String input = "";
+  String input;
   if (output != "") {
     // Wait for telemetry data
-    processOutput(output);
+    //processOutput(output);
     // Send fly-by-wire data
     input = processInput();
   }
   return input; 
 }
 
-void loop() {
-  delay(1000);
-  String input;
-  
-  /*
-  //Serial.println(readLine);
-  if (readLine != "") {
-    input = sync(readLine);
-    Serial.println(input);
-  }
-  */
-  
-  processInput();            // Remove this once we have a successful read
-  
-}
-
+void loop() { }

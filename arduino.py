@@ -19,6 +19,8 @@ import math
 import pyksp
 import json
 import atexit
+import platform
+import glob
 
 sequence=0
 retransmits=0
@@ -42,6 +44,14 @@ class arduino:
     headless = True
     
     buffer = ""
+    
+    # Specify either a specific port or list of ports to prefer to connect to
+    # If neither are set, the script will try to detect your serial port
+    
+    # port = "/dev/tty.usbmodem1411"
+    port = None
+    ports = [ "/dev/tty.usbmodem1411", "/dev/tty.usbmodem1421" ]
+    #ports  = None
     
     subscriptions = {
         "pause_state",
@@ -68,9 +78,10 @@ class arduino:
         "action_group_brake"
     }
     
-    def __init__(self, port="/dev/tty.usbmodem1421", baud=250000):
+    def __init__(self, port=None, baud=250000):
         """Takes an API object, serial port and baudrate and creates a new Arduino object."""
-        self.port = port
+        if port is not None:
+            self.port = port
         self.baud = baud
         
         if not self.headless:
@@ -81,19 +92,84 @@ class arduino:
             debug("Using dummy telemetry", 3)
             
         if not self.interactive:
+            if self.port is None:
+                if self.ports is None:
+                    self.ports = self.listSerial()
+                
+                self.ports = self.trySerial(self.ports)
+                
+                if len(self.ports) is 0:
+                    debug("No serial ports found.")
+                    raw_input("Press [Enter] to retry.\n")
+                    main()
+                
+                if len(self.ports) is 1:
+                    self.port = self.ports[0]
+                else:
+                    for index, port in enumerate(self.ports):
+                        debug(str(index) + ": " + port)
+                    index = raw_input("Press [#] to connect: ")
+                    self.port = self.ports[int(index)]
+
             try:
-                self.serial = serial.Serial(
-                    port=self.port,
-                    baudrate=self.baud,
-                    timeout=.1)
+                self.serial.close()
             except:
-                debug("No serial port found.")
-                raw_input("Press [Enter] to retry.")
+                pass
+                
+            if not self.openSerial(self.port, self.baud):
+                debug("Unable to connect to specified port.")
+                raw_input("Press [Enter] to retry.\n")
                 main()
+            
         else:
             debug("Using shell input", 3)
     
     # Serial manipulation methods
+    def openSerial(self, port, baud):
+        try:
+            self.serial = serial.Serial(
+                port,
+                baud,
+                timeout=.1)
+            return True
+        except serial.SerialException:
+            debug("Port " + port + " in use.")
+            raw_input("Press [Enter] to retry.\n")
+            return openSerial(port, baud)
+        except:
+            return False
+    
+    def listSerial(self):
+        sys = platform.system()
+        available = []
+        
+        if sys == "Windows":
+            # Scan for available ports.
+            
+            for i in range(256):
+                try:
+                    s = serial.Serial(i)
+                    available.append(i)
+                    s.close()
+                except serial.SerialException:
+                    pass
+        elif sys == "Darwin":
+            # Mac
+            available = glob.glob('/dev/tty.*') + glob.glob('/dev/cu.*')
+        else:
+            # Assume Linux or something else
+            available = glob.glob('/dev/ttyS*') + glob.glob('/dev/ttyUSB*')
+        
+        return available
+    
+    def trySerial(self, available):
+        for port in available:
+            if not self.openSerial(port, self.baud):
+                available.remove(port)
+        
+        return available
+        
+    
     def readSerial(self, retry=False):
         """Read a line from serial"""
         if self.interactive:
@@ -109,7 +185,11 @@ class arduino:
                         self.serial.write("{}\n")
                         print "Poking..."
             else:
-                line = self.serial.readline()
+                try:
+                    line = self.serial.readline()
+                except serial.SerialException:
+                    debug("Lost connection to device.")
+                    exit(1)
                 
         return line
     
@@ -118,7 +198,11 @@ class arduino:
         if self.interactive:
             print "< " + line
         else:
-            self.serial.write(line + "\n")
+            try:
+                self.serial.write(line + "\n")
+            except serial.SerialException:
+                debug("Lost connection to device.")
+                exit(1)
     
     # Init and Readiness methods
     def init(self):
@@ -416,14 +500,17 @@ def stats():
     print "=======[ Stats ]======="
     print "Updates:       %s" % sequence
     print "Retransmits:   %s" % retransmits
-    print "Percentage:    %.2f%%" % (float(retransmits)*100/sequence)
-    print ""
-    print "Rate:          %.2fms" % (float(time_sum)*1000/time_count)
-    print "Frequency:     %.2fHz" % (1/(float(time_sum)/time_count))
-    
-try:
-    main()
-except KeyboardInterrupt:
-    sys.exit(0)
+    if sequence > 0:
+        print "Percentage:    %.2f%%" % (float(retransmits)*100/sequence)
+    if time_count > 0 and time_sum > 0:
+        print ""
+        print "Rate:          %.2fms" % (float(time_sum)*1000/time_count)
+        print "Frequency:     %.2fHz" % (1/(float(time_sum)/time_count))
+
+if __name__ == "__main__":    
+    try:
+        main()
+    except KeyboardInterrupt:
+        sys.exit(0)
 
 

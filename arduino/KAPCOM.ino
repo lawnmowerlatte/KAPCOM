@@ -102,7 +102,7 @@ void setup() {
   
   // Load joysticks into vector
   joys.push_back(Joy("J0", A0, A1, A2, A3));
-  joys.push_back(Joy("J1", A4, A5, A6, A7));
+  joys.push_back(Joy("J1", A4, A5, A6, A7, false, false, true));
   
   // Load buttons into vectors
   buttons.push_back(Pin("Action 1", "action_group_1", 15, DIGITAL, INPUT_PULLUP, "Toggle"));
@@ -160,25 +160,6 @@ void setup() {
 
   // Report calibration status
   Serial.println("CALIBRATING");
-
-  // Calibrate until the staging button is pressed
-  calibrate.indicator.set(HIGH);
-  
-  for (joy=joys.begin(); joy!=joys.end(); joy++) {
-    joy->recalibrate();
-  }
-
-  while (calibrate.button.get() == LOW && false) {
-    calibrate.button.update();
-      
-    for(joy=joys.begin(); joy!=joys.end(); joy++) {
-      joy->calibrate();
-      //Serial.println(joy->toString());
-    }
-    delay(1000);
-  }
-  calibrate.indicator.set(LOW);
-  
   
   // Report ready status
   Serial.println("READY");
@@ -227,8 +208,8 @@ String processInput() {
     }
   }
   sixdof=yaw + "," + pitch + "," + roll + "," + x + "," + y + "," + z;
-  //input["toggle_fbw"] = "1";
-  //input["six_dof"] = sixdof.c_str();
+  input["toggle_fbw"] = "1";
+  input["six_dof"] = sixdof.c_str();
 
   for (button=buttons.begin(); button!=buttons.end(); button++) { 
     if (button->updated()) {

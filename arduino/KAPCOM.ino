@@ -198,8 +198,8 @@ String processInput() {
   // Aggregate fly-by-wire data
   for (joy=joys.begin(); joy!=joys.end(); joy++) {
     if (joy->name == "J0") {
-      yaw = String(joy->X);
-      pitch = String(joy->Y);
+      pitch = String(joy->X);
+      yaw = String(joy->Y);
       roll = String(joy->Z);
     } else if (joy->name == "J1") {
       x = String(joy->X);

@@ -19,10 +19,15 @@ class Joy {
     float X;
     float Y;
     float Z;
+	bool invertX;
+	bool invertY;
+	bool invertZ;
     
     Joy(String _name, int _x, int _y, int _z, int _button);
+	Joy(String _name, int _x, int _y, int _z, int _button, bool _invertX, bool _invertY, bool _invertZ);
     Joy(String _name, int _x, int _y, int _z, int _button, int _min, int _max);
     
+	void invertAxis(String axis);
 	void recalibrate();
 	void calibrate();
     void update();

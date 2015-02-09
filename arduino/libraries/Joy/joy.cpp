@@ -19,8 +19,8 @@ Joy::Joy(String _name, int _x, int _y, int _z, int _button) : x(_name + "x", "",
 	// Set variables
 	name		= _name;
 	
-	min			= 225;
-	max 		= 505;
+	min			= 0;
+	max 		= 1023;
 	scale		= 2;
 	
 	xMin		= min;
@@ -30,9 +30,34 @@ Joy::Joy(String _name, int _x, int _y, int _z, int _button) : x(_name + "x", "",
 	xMax		= max;
 	yMax		= max;
 	zMax		= max;
+	
+	invertX		= false;
+	invertY		= false;
+	invertZ		= false;
 }
 
-Joy::Joy(String _name, int _x, int _y, int _z, int _button, int _min, int _max) : x(_name + "x", "", _x, ANALOG, INPUT_PULLUP, 0), y(_name + "y", "", _y, ANALOG, INPUT_PULLUP, 0), z(_name + "z", "", _z, ANALOG, INPUT_PULLUP, 0), button(_name + " Button", "", _button, DIGITAL, INPUT_PULLUP, 0) {
+Joy::Joy(String _name, int _x, int _y, int _z, int _button, bool _invertX, bool _invertY, bool _invertZ) : x(_name + "x", "", _x, ANALOG, INPUT, 0), y(_name + "y", "", _y, ANALOG, INPUT, 0), z(_name + "z", "", _z, ANALOG, INPUT, 0), button(_name + " Button", "", _button, DIGITAL, INPUT_PULLUP, 0) {
+	// Set variables
+	name		= _name;
+	
+	min 		= 0;
+	max 		= 1023;
+	scale		= 2;
+	
+	xMin		= min;
+	yMin		= min;
+	zMin		= min;
+	
+	xMax		= max;
+	yMax		= max;
+	zMax		= max;
+	
+	invertX		= _invertX;
+	invertY		= _invertY;
+	invertZ		= _invertZ;
+}
+
+Joy::Joy(String _name, int _x, int _y, int _z, int _button, int _min, int _max) : x(_name + "x", "", _x, ANALOG, INPUT, 0), y(_name + "y", "", _y, ANALOG, INPUT, 0), z(_name + "z", "", _z, ANALOG, INPUT, 0), button(_name + " Button", "", _button, DIGITAL, INPUT_PULLUP, 0) {
 	// Set variables
 	name		= _name;
 	
@@ -47,53 +72,29 @@ Joy::Joy(String _name, int _x, int _y, int _z, int _button, int _min, int _max) 
 	xMax		= max;
 	yMax		= max;
 	zMax		= max;
+
+	invertX		= false;
+	invertY		= false;
+	invertZ		= false;
 }
 
 // ===================
 //	Public Methods
 // ===================
 
-void Joy::recalibrate() {
-	// Poll each pin and overwrite minimum and maximum values ALWAYS, this clears any previous calibration
-	
-	xMin = x.get() - 1;
-	yMin = y.get() - 1;
-	zMin = z.get() - 1;
-	
-	xMax = x.get() + 1;
-	yMax = y.get() + 1;
-	zMax = z.get() + 1;
-}
-
-void Joy::calibrate() {
-	// Poll each pin and overwrite minimum and/or maximum values if detected
-	
-	int _x = x.get();
-	int _y = y.get();
-	int _z = z.get();
-	
-	xMin = min(xMin, _x);
-	yMin = min(yMin, _y);
-	zMin = min(zMin, _z);
-	
-	xMax = max(xMax, _x);
-	yMax = max(yMax, _y);
-	zMax = max(zMax, _z);
-	
-	if (xMin = xMax) {
-		xMin--;
-		xMax++;
+void Joy::invertAxis(String axis) {
+	if (axis == "X") {
+		invertX = !invertX;
 	}
-	if (yMin = yMax) {
-		yMin--;
-		yMax++;
+	
+	if (axis == "Y") {
+		invertY = !invertY;
 	}
-	if (zMin = zMax) {
-		zMin--;
-		zMax++;
+	
+	if (axis == "Z") {
+		invertZ = !invertZ;
 	}
 }
-
 
 void Joy::update() {
 	// Refresh the hardware, get the values and scale appropriately
@@ -102,6 +103,7 @@ void Joy::update() {
 	x.update();
 	y.update();
 	z.update();
+	button.update();
 	
 	// Set each axis to a value out of 100
 	X = (x.get()-xMin)*1.0/(xMax-xMin)*10000; 
@@ -135,10 +137,28 @@ void Joy::update() {
 	Z = (Z / 5000.0) - 1;
 	
 	// If the button is pressed, reduce range
-	if (button.get() == 1) {
+	if (button.get() == 0) {
 		X = X / scale;
 		Y = Y / scale;
 		Z = Z / scale;
+	}
+	
+	if (invertX) {
+		if (X != 0) {
+			X = -1 * X;
+		}
+	}
+	
+	if (invertY) {
+		if (Y != 0) {
+			Y = -1 * Y;
+		}
+	}
+	
+	if (invertZ) {
+		if (Z != 0) {
+			Z = -1 * Z;
+		}
 	}
 }
 

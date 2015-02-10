@@ -37,7 +37,7 @@ vector<Pin>::iterator button;
 
 vector<Pin> indicators;
 vector<Pin>::iterator indicator;
-   
+
 vector<LockedInput> locks;
 vector<LockedInput>::iterator lock;
 /*
@@ -84,6 +84,16 @@ void serialEvent() {
 }
 
 void setup() {
+  // Start the serial connection
+  Serial.begin(250000);
+  // Report online status
+  Serial.println("ONLINE");
+  // Receive configuration
+  // configure();
+  
+  // Report calibration status
+  Serial.println("CALIBRATING");
+  
   // Initialize displays
   for(int i=0; i<display_count; i++) {
     lc.shutdown(i,false); // Enable display
@@ -101,13 +111,13 @@ void setup() {
   */
   
   // Load joysticks into vector
-  joys.push_back(Joy("J0", A0, A1, A2, A3));
+  joys.push_back(Joy("J0", A0, A1, A2, A3, false, true, false));
   joys.push_back(Joy("J1", A4, A5, A6, A7, false, false, true));
   
   // Load buttons into vectors
-  buttons.push_back(Pin("Action 1", "action_group_1", 15, DIGITAL, INPUT_PULLUP, "Toggle"));
-  buttons.push_back(Pin("RCS", "rcs", 3, DIGITAL, INPUT_PULLUP, "Toggle"));
-  indicators.push_back(Pin("RCS Status", "rcs_status", 4, DIGITAL, OUTPUT));
+  buttons.push_back(Pin("Key X", "X", 3, DIGITAL, INPUT_PULLUP, "Key"));
+  buttons.push_back(Pin("SAS", "sas", 15, DIGITAL, INPUT_PULLUP, "Toggle"));
+  indicators.push_back(Pin("SAS Status", "sas_status", 4, DIGITAL, OUTPUT));
   
   /*
   buttons.push_back(Pin("Action 1", "action_group_1", 22, DIGITAL, INPUT_PULLUP));
@@ -151,15 +161,6 @@ void setup() {
   displays.push_back(Display("Rad", "vessel_asl_height", lc, 4, 5, 0, 3, " "));
   displays.push_back(Display("Inc", "vessel_inclination", lc, 4, 5, 4, 3, " "));
   */
-  // Start the serial connection
-  Serial.begin(250000);
-  // Report online status
-  Serial.println("ONLINE");
-  // Receive configuration
-  // configure();
-
-  // Report calibration status
-  Serial.println("CALIBRATING");
   
   // Report ready status
   Serial.println("READY");
@@ -217,6 +218,14 @@ String processInput() {
       if (tmp != "") {
         input[button->api.c_str()] = tmp.c_str();
       }
+    }
+  }
+  
+  for (indicator=indicators.begin(); indicator!=indicators.end(); indicator++) {
+    // If SAS is enabled, remove joystick inputs
+    if (indicator->name == "SAS Status" && indicator->value == 1) {
+      input.remove("toggle_fbw");
+      input.remove("six_dof");
     }
   }
   

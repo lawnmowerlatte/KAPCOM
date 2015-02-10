@@ -56,6 +56,11 @@ Pin::Pin(String _name, String _api, int _pin, boolean _type, boolean _mode, Stri
 	value = 0;
 	update();
 	last_value = value;
+	
+	if (format=="Key") {
+		key = api;
+		api = "KEY" + key;
+	}
 }
 
 Pin::Pin(String _name, String _api, int _pin, boolean _type, boolean _mode, int _cooldown) {
@@ -100,6 +105,11 @@ Pin::Pin(String _name, String _api, int _pin, boolean _type, boolean _mode, int 
 	value = 0;
 	update();
 	last_value = value;
+	
+	if (format=="Key") {
+		key = api;
+		api = "KEY" + key;
+	}
 }
 
 // ===================
@@ -170,6 +180,14 @@ String Pin::toString() {
 	if (format == "One") {
 		if (value == 1) {
 			return "1";
+		} else {
+			return "";
+		}
+	}
+	
+	if (format == "Key") {
+		if (value == 1) {
+			return key;
 		} else {
 			return "";
 		}

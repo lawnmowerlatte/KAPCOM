@@ -33,6 +33,7 @@ class Pin {
 	int last_value;
     int cooldown;
 	String format;
+	String key;
     
     void read();
     void write();

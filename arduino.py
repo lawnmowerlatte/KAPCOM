@@ -39,7 +39,7 @@ class arduino:
     
     # Use these for simulation and debugging
     # This overrides the serial port with input from the interactive shell
-    interactive = False
+    interactive = True
     ## This overrides the Telemachus port with static simulated input
     headless = True
     
@@ -204,6 +204,11 @@ class arduino:
                 debug("Lost connection to device.")
                 exit(1)
     
+    def pressKey(self, key):
+        """Press a key"""
+        keyCommand = "osascript -e 'tell application \"Kerbal Space Program\" to keystroke \""+key+"\"'"
+        os.system(keyCommand)
+    
     # Init and Readiness methods
     def init(self):
         debug("Telemetry...", 2, False)
@@ -345,30 +350,29 @@ class arduino:
 
     def unpowered(self):
         print "Antenna is unpowered"
-        raw_input("Press [Enter] to retry")
+        while self.vessel.get("pause_state") == 2:
+            time.sleep(1)
         
     def missing(self):
         print "No antenna found"
-        raw_input("Press [Enter] to retry")
+        while self.vessel.get("pause_state") == 4:
+            time.sleep(1)
         
     def off(self):
         print "Antenna is off"
-        raw_input("Press [Enter] to retry")
+        while self.vessel.get("pause_state") == 3:
+            time.sleep(1)
         
     def paused(self):
         print "Paused"
-        currentState = self.vessel.get("pause_state")
-        while currentState == 1:
+        while self.vessel.get("pause_state") == 1:
             time.sleep(1)
-            currentState = self.vessel.get("pause_state")
         print "Unpaused"
 
     def menu(self):
         print "Waiting for vessel"
-        currentState = self.vessel.get("pause_state")
-        while currentState == None:
+        while self.vessel.get("pause_state") == None:
             time.sleep(1)
-            currentState = self.vessel.get("pause_state")
         print "Vessel ready for connection"
         
     # Data processing methods
@@ -469,15 +473,18 @@ class arduino:
             debug(data, 2)
         
         debug("Send fly-by-wire", 4)
-        if self.headless:
-            return
-        
         for key, value in data.items():
-            print key + ": " + str(value)
             if value == "None":
                 value = None;
             
-            self.vessel.run_command(key, value)
+            if key[:3] == "KEY":
+                if not self.headless:
+                    self.pressKey(value)
+                else:
+                    print "KEY: " + value
+            else:
+                if not self.headless:
+                    self.vessel.run_command(key, value)
 
 def main():
     a = arduino()
@@ -513,6 +520,8 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         sys.exit(0)
     except EOFError:
+        sys.exit(0)
+    except:
         sys.exit(0)
 
 

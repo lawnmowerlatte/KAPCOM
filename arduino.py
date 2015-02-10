@@ -39,7 +39,7 @@ class arduino:
     
     # Use these for simulation and debugging
     # This overrides the serial port with input from the interactive shell
-    interactive = True
+    interactive = False
     ## This overrides the Telemachus port with static simulated input
     headless = True
     
@@ -462,6 +462,7 @@ class arduino:
             return data
         except:
             debug("No JSON data found in string: " + str(jdata))
+            return json.loads("{}")
         
     
     def sendInput(self, json):
@@ -523,5 +524,3 @@ if __name__ == "__main__":
         sys.exit(0)
     except:
         sys.exit(0)
-
-

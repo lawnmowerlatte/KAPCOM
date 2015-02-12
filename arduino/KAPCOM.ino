@@ -7,13 +7,13 @@
 #include <vector>
 
 #include <LedControl.h>
+#include <ArduinoJson.h>
 
 #include <pin.h>
 #include <lockedinput.h>
 #include <joy.h>
-#include <display.h>
+//#include <display.h>
 //#include <bargraph.h>
-#include <ArduinoJson.h>
 
 using namespace std;
 
@@ -174,6 +174,7 @@ void configure() {
   JsonObject& configuration = jsonBuffer.parseObject(json);
   if (!configuration.success()) {
     Serial.println("JSON Parsing failed.");
+    delay(1000);
     reset();
   }
 }
@@ -211,29 +212,30 @@ String processInput() {
   sixdof=yaw + "," + pitch + "," + roll + "," + x + "," + y + "," + z;
   input["toggle_fbw"] = "1";
   input["six_dof"] = sixdof.c_str();
-
-  for (button=buttons.begin(); button!=buttons.end(); button++) { 
-    if (button->updated()) {
-      tmp = button->toString();
-      if (tmp != "") {
-        input[button->api.c_str()] = tmp.c_str();
-      }
-    }
-  }
   
+  // Check SAS: If enabled, remove joystick inputs
   for (indicator=indicators.begin(); indicator!=indicators.end(); indicator++) {
-    // If SAS is enabled, remove joystick inputs
     if (indicator->name == "SAS Status" && indicator->value == 1) {
       input.remove("toggle_fbw");
       input.remove("six_dof");
     }
   }
-  
+
+  // Aggregate button inputs
   for (lock=locks.begin(); lock!=locks.end(); lock++) {
-    if (lock->updated()) {
+    if (lock->changed()) {
       tmp = lock->toString();
       if (tmp != "") {
         input[lock->api.c_str()] = tmp.c_str();
+      }
+    }
+  }
+  
+  for (button=buttons.begin(); button!=buttons.end(); button++) { 
+    if (button->changed()) {
+      tmp = button->toString();
+      if (tmp != "") {
+        input[button->api.c_str()] = tmp.c_str();
       }
     }
   }

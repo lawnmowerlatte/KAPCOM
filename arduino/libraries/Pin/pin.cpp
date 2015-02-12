@@ -174,6 +174,10 @@ String Pin::toString() {
 		return String(fvalue);
 	}
 	
+	if (format == "Percent") {
+		return String(fvalue*100.0);
+	}
+	
 	Serial.println("Unexpected format \"" + format + "\" in object \"" + name + "\"");
 	return "Error";
 }

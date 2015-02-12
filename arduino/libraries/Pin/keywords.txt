@@ -9,4 +9,7 @@ Pin	KEYWORD1	Class
 get	KEYWORD2	Method
 set	KEYWORD2	Method
 update	KEYWORD2	Method
+changed	KEYWORD2	Method
+toString	KEYWORD2	Method
+print	KEYWORD2	Method
 

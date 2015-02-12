@@ -14,29 +14,7 @@
 //	Constructors and Destructors
 // =================================
 
-Pin::Pin(String _name, String _api, int _pin, boolean _type, boolean _mode) {
-	// Set variables
-	name		= _name;
-	api			= _api;
-	pin			= _pin;
-	type		= _type;
-	mode		= _mode;
-	format		= "Value";
-	
-	// Set the cooldown counters
-	last_update = millis();
-	cooldown 	= 500;
-	
-	// Initialize the pin
-	pinMode(pin, mode);
-	
-	// Set default value, update from hardware, set initial value of previous
-	value = 0;
-	update();
-	last_value = value;
-}
-
-Pin::Pin(String _name, String _api, int _pin, boolean _type, boolean _mode, String _format) {
+Pin::Pin(String _name, String _api, int _pin, boolean _type, boolean _mode, String _format, int _cooldown, int _min, int _max, int _invert) {
 	// Set variables
 	name		= _name;
 	api			= _api;
@@ -44,36 +22,9 @@ Pin::Pin(String _name, String _api, int _pin, boolean _type, boolean _mode, Stri
 	type		= _type;
 	mode		= _mode;
 	format		= _format;
-	
-	// Set the cooldown counters
-	last_update = millis();
-	cooldown 	= 500;
-	
-	// Initialize the pin
-	pinMode(pin, mode);
-	
-	// Set default value, update from hardware, set initial value of previous
-	value = 0;
-	update();
-	last_value = value;
-	
-	if (format=="Key") {
-		key = api;
-		api = "KEY" + key;
-	}
-}
-
-Pin::Pin(String _name, String _api, int _pin, boolean _type, boolean _mode, int _cooldown) {
-	// Set variables
-	name		= _name;
-	api			= _api;
-	pin			= _pin;
-	type		= _type;
-	mode		= _mode;
-	format		= "Value";
-	
-	// Set the cooldown counters
-	last_update = millis();
+	min			= _min;
+	max			= _max;
+	invert		= _invert;
 	cooldown 	= _cooldown;
 	
 	// Initialize the pin
@@ -81,29 +32,11 @@ Pin::Pin(String _name, String _api, int _pin, boolean _type, boolean _mode, int 
 	
 	// Set default value, update from hardware, set initial value of previous
 	value = 0;
+	fvalue = 0;
 	update();
-	last_value = value;
-}
-
-Pin::Pin(String _name, String _api, int _pin, boolean _type, boolean _mode, int _cooldown, String _format) {
-	// Set variables
-	name		= _name;
-	api			= _api;
-	pin			= _pin;
-	type		= _type;
-	mode		= _mode;
-	format		= _format;
 	
-	// Set the cooldown counters
+	// Set the previous values
 	last_update = millis();
-	cooldown 	= _cooldown;
-	
-	// Initialize the pin
-	pinMode(pin, mode);
-	
-	// Set default value, update from hardware, set initial value of previous
-	value = 0;
-	update();
 	last_value = value;
 	
 	if (format=="Key") {
@@ -117,7 +50,8 @@ Pin::Pin(String _name, String _api, int _pin, boolean _type, boolean _mode, int 
 // ===================
 
 int Pin::get() {
-	// Read the hardware and set the object value
+	// Read the hardware and return the object value
+	update();
 	
 	if (mode == OUTPUT) {
 		// Serial.println("Error: Trying to get an output pin.");
@@ -125,6 +59,49 @@ int Pin::get() {
 	} else {
 		return value;
 	}
+}
+
+float Pin::getFloat() {
+	// Read the hardware and return the object value
+	update();
+	
+	if (mode == OUTPUT) {
+		// Serial.println("Error: Trying to get an output pin.");
+		return 0;
+	} else {
+		return fvalue;
+	}
+}
+
+void Pin::set(int _value) {
+	// Set the object value and write it to the hardware
+	
+	if (mode == INPUT) {
+		// Serial.println("Error: Trying to set an input pin.");
+		return;
+	}
+	
+	value = _value;
+	update();
+}
+
+void Pin::update() {
+	// Force a refresh of the values
+	// Can be safely called on both INPUT and OUTPUT pins
+	
+	if (mode == OUTPUT) {
+		write();
+	} else {
+		read();
+	}
+}
+
+bool Pin::changed() {
+	// Return true if the value has changed since last updated()
+	
+	bool is_updated = (last_value != value);
+	last_value = value;
+	return is_updated;
 }
 
 String Pin::toString() {
@@ -193,46 +170,19 @@ String Pin::toString() {
 		}
 	}
 	
+	if (format == "Float") {
+		return String(fvalue);
+	}
+	
 	Serial.println("Unexpected format \"" + format + "\" in object \"" + name + "\"");
 	return "Error";
-}
-
-void Pin::set(int _value) {
-	// Set the object value and write it to the hardware
-	
-	if (mode == INPUT) {
-		// Serial.println("Error: Trying to set an input pin.");
-		return;
-	}
-	
-	value = _value;
-	write();
-}
-
-bool Pin::updated() {
-	// Return true if the value has changed since last updated()
-	
-	bool is_updated = (last_value != value);
-	last_value = value;
-	return is_updated;
-}
-
-void Pin::update() {
-	// Force a refresh of the values
-	// Can be safely called on both INPUT and OUTPUT pins
-	
-	if (mode == OUTPUT) {
-		write();
-	} else {
-		read();
-	}
 }
 
 void Pin::print() {
 	// Print the name of the pin and the value.
 	// Does not force a hardware refresh.
 	
-	Serial.println(name + ": " + value);
+	Serial.println(name + ": " + value + ", (" + fvalue + ")");
 }
 
 // ====================
@@ -255,6 +205,11 @@ void Pin::read() {
 	
 	if (type == ANALOG) {
 		value = analogRead(pin);
+		fvalue = (value-min)*1.0/(max-min);
+		
+		if (invert) {
+			value = 1 - value;
+		}
 	} else {
 		value = digitalRead(pin);
 	}

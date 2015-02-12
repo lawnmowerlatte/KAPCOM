@@ -12,17 +12,22 @@ class Pin {
     String name;
 	String api;
     int value;
+	float fvalue;
+	bool invert;
   
-    Pin(String _name, String _api, int _pin, boolean _type, boolean _mode);
-    Pin(String _name, String _api, int _pin, boolean _type, boolean _mode, String _format);
-	Pin(String _name, String _api, int _pin, boolean _type, boolean _mode, int _cooldown);
-    Pin(String _name, String _api, int _pin, boolean _type, boolean _mode, int _cooldown, String _format);
+    Pin(String _name, String _api, int _pin, boolean _type, boolean _mode, 
+		String _format="Value",
+		int _cooldown=500,
+		int _min=0,
+		int _max=1023,
+		int _invert=false);
     
     int get();
-	String toString();
-    void set(int _value);
-	bool updated();
+	float getFloat();
+	void set(int _value);
     void update();
+	bool changed();
+	String toString();
     void print();
   
   private :
@@ -34,10 +39,11 @@ class Pin {
     int cooldown;
 	String format;
 	String key;
+	int min;
+	int max;
     
     void read();
     void write();
-    
 };
 
 #endif

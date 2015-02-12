@@ -3,7 +3,6 @@
 #define NULL 0
 
 #include <pin.h>
-#include <pinio.h>
 #include <lockedinput.h>
 
 #if (ARDUINO >= 100)
@@ -15,17 +14,6 @@
 // =================================
 //	Constructors and Destructors
 // =================================
-
-LockedInput::LockedInput(String _name, String _api, int _lock, int _button, int _indicator) : lock(_name + " Locked", "", _lock, DIGITAL, INPUT_PULLUP), button(_name + " Button", "", _button, DIGITAL, INPUT_PULLUP), indicator(_name + " Indicator", "", _indicator, DIGITAL, OUTPUT) {
-	// Set variables
-	name		= _name;
-	api			= _api;
-	format		= "Value";
-	
-	// Set default value, update from hardware, set initial value of previous
-	update();
-	last_value = value;
-}
 
 LockedInput::LockedInput(String _name, String _api, int _lock, int _button, int _indicator, String _format) : lock(_name + " Locked", "", _lock, DIGITAL, INPUT_PULLUP), button(_name + " Button", "", _button, DIGITAL, INPUT_PULLUP), indicator(_name + " Indicator", "", _indicator, DIGITAL, OUTPUT) {
 	// Set variables
@@ -105,8 +93,8 @@ void LockedInput::update() {
 	}
 }
 
-bool LockedInput::updated() {
-	// Return true if the value has changed since last updated()
+bool LockedInput::changed() {
+	// Return true if the value has changed since last changed()
 	bool is_updated = (last_value != value);
 	last_value = value;
 	return is_updated;

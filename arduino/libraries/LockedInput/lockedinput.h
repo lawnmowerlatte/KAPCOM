@@ -2,7 +2,6 @@
 #define LockedInput_h
 
 #include <pin.h>
-#include <pinio.h>
 
 #if (ARDUINO >= 100)
 #include <Arduino.h>
@@ -19,13 +18,13 @@ class LockedInput {
 	Pin button;
 	Pin indicator;
     
-    LockedInput(String _name, String _api, int _lock, int _button, int _indicator);
-    LockedInput(String _name, String _api, int _lock, int _button, int _indicator, String _format);
+    LockedInput(String _name, String _api, int _lock, int _button, int _indicator,
+		String _format="Value");
 	
 	int get();
 	String toString();
     void update();
-	bool updated();
+	bool changed();
     void print();
 	
   private :

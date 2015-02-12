@@ -474,18 +474,21 @@ class arduino:
             debug(data, 2)
         
         debug("Send fly-by-wire", 4)
-        for key, value in data.items():
-            if value == "None":
-                value = None;
-            
-            if key[:3] == "KEY":
-                if not self.headless:
-                    self.pressKey(value)
+        try:
+            for key, value in data.items():
+                if value == "None":
+                    value = None;
+                    
+                if key[:3] == "KEY":
+                    if not self.headless:
+                        self.pressKey(value)
+                    else:
+                        print "KEY: " + value
                 else:
-                    print "KEY: " + value
-            else:
-                if not self.headless:
-                    self.vessel.run_command(key, value)
+                    if not self.headless:
+                        self.vessel.run_command(key, value)
+        except AttributeError:
+            debug("No data in string.")
 
 def main():
     a = arduino()
@@ -522,5 +525,5 @@ if __name__ == "__main__":
         sys.exit(0)
     except EOFError:
         sys.exit(0)
-    except:
-        sys.exit(0)
+    # except:
+    #     sys.exit(0)

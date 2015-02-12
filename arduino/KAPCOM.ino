@@ -119,6 +119,8 @@ void setup() {
   buttons.push_back(Pin("SAS", "sas", 15, DIGITAL, INPUT_PULLUP, "Toggle"));
   indicators.push_back(Pin("SAS Status", "sas_status", 4, DIGITAL, OUTPUT));
   
+  buttons.push_back(Pin("Throttle", "set_throttle", A0, ANALOG, INPUT_PULLUP, "Float"));
+  
   /*
   buttons.push_back(Pin("Action 1", "action_group_1", 22, DIGITAL, INPUT_PULLUP));
   buttons.push_back(Pin("Action 2", "action_group_2", 24, DIGITAL, INPUT_PULLUP));

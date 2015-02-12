@@ -1,6 +1,6 @@
 Joy	KEYWORD1	Class
 
-recalibrate	KEYWORD2	Method
-calibrate	KEYWORD2	Method
 update	KEYWORD2	Method
+centered	KEYWORD2	Method
 print	KEYWORD2	Method
+toString	KEYWORD2	Method

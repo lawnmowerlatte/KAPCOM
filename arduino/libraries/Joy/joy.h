@@ -19,32 +19,21 @@ class Joy {
     float X;
     float Y;
     float Z;
-	bool invertX;
-	bool invertY;
-	bool invertZ;
     
-    Joy(String _name, int _x, int _y, int _z, int _button);
-	Joy(String _name, int _x, int _y, int _z, int _button, bool _invertX, bool _invertY, bool _invertZ);
-    Joy(String _name, int _x, int _y, int _z, int _button, int _min, int _max);
+    Joy(String _name, int _x, int _y, int _z, int _button,
+		bool _invertX=false,
+		bool _invertY=false,
+		bool _invertZ=false,
+		int _min=0,
+		int _max=1023);
     
-	void invertAxis(String axis);
-	void recalibrate();
-	void calibrate();
-    void update();
+	void update();
 	bool centered();
     void print();
 	String toString();
   
   private :
 	bool center;
-    int min;
-	int xMin;
-	int yMin;
-	int zMin;
-    int max;
-	int xMax;
-	int yMax;
-	int zMax;
     int scale;
 };
 

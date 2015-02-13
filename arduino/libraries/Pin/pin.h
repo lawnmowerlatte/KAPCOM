@@ -25,6 +25,7 @@ class Pin {
     int get();
 	float getFloat();
 	void set(int _value);
+	void set(String _value);
     void update();
 	bool changed();
 	String toString();

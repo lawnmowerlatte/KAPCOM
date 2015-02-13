@@ -85,6 +85,15 @@ void Pin::set(int _value) {
 	update();
 }
 
+void Pin::set(String _value) {
+	// Determine value based on string input
+
+	if (_value == "1")		{ set(1); return; }
+	if (_value == "0")		{ set(0); return; }
+	if (_value == "True")	{ set(1); return; }
+	if (_value == "False")	{ set(0); return; }
+}
+
 void Pin::update() {
 	// Force a refresh of the values
 	// Can be safely called on both INPUT and OUTPUT pins

@@ -76,16 +76,15 @@ void serialEvent() {
     } else {
       // Full sync
       input = sync(readLine);
+      readLine = "";
     }
     Serial.println(input);
   }
-  
-  readLine = "";
 }
 
 void setup() {
   // Start the serial connection
-  Serial.begin(250000);
+  Serial.begin(115200);
   // Report online status
   Serial.println("ONLINE");
   // Receive configuration
@@ -115,8 +114,8 @@ void setup() {
   joys.push_back(Joy("J1", A4, A5, A6, A7, false, false, true));
   
   // Load buttons into vectors
-  buttons.push_back(Pin("Key X", "X", 3, DIGITAL, INPUT_PULLUP, "Key"));
-  buttons.push_back(Pin("SAS", "sas", 15, DIGITAL, INPUT_PULLUP, "Toggle"));
+  buttons.push_back(Pin("Key M", "M", 15, DIGITAL, INPUT_PULLUP, "Key"));
+  buttons.push_back(Pin("SAS", "sas", 3, DIGITAL, INPUT_PULLUP, "Toggle"));
   indicators.push_back(Pin("SAS Status", "sas_status", 4, DIGITAL, OUTPUT));
   
   buttons.push_back(Pin("Throttle", "set_throttle", A0, ANALOG, INPUT_PULLUP, "Percent"));
@@ -177,20 +176,21 @@ void configure() {
   if (!configuration.success()) {
     Serial.println("JSON Parsing failed.");
     delay(1000);
+    Serial.println("");
     reset();
   }
 }
 
 String processInput() {
-  StaticJsonBuffer<512> jsonBuffer;
-  JsonObject& input = jsonBuffer.createObject();
+//  StaticJsonBuffer<512> jsonBuffer;
+//  JsonObject& input = jsonBuffer.createObject();
   String yaw, pitch, roll, x, y, z, sixdof, tmp;
+  bool isSAS=false;
+  
+  String q="\"";
+  String json="{" +q+ "v" +q+":"+q+ "0.9.0" +q;
 
   // Poll all configured hardware 
-  for (joy=joys.begin(); joy!=joys.end(); joy++) {
-    joy->update();
-  }
-  
   for (button=buttons.begin(); button!=buttons.end(); button++) {
     button->update();
   }
@@ -199,28 +199,34 @@ String processInput() {
     lock->update();
   }
 
-  // Aggregate fly-by-wire data
-  for (joy=joys.begin(); joy!=joys.end(); joy++) {
-    if (joy->name == "J0") {
-      pitch = String(joy->X);
-      yaw = String(joy->Y);
-      roll = String(joy->Z);
-    } else if (joy->name == "J1") {
-      x = String(joy->X);
-      y = String(joy->Y);
-      z = String(joy->Z);
-    }
-  }
-  sixdof=yaw + "," + pitch + "," + roll + "," + x + "," + y + "," + z;
-  input["toggle_fbw"] = "1";
-  input["six_dof"] = sixdof.c_str();
-  
   // Check SAS: If enabled, remove joystick inputs
   for (indicator=indicators.begin(); indicator!=indicators.end(); indicator++) {
     if (indicator->name == "SAS Status" && indicator->value == 1) {
-      input.remove("toggle_fbw");
-      input.remove("six_dof");
+//      input.remove("toggle_fbw");
+//      input.remove("six_dof");
+        isSAS = true;
     }
+  }
+  
+  if (!isSAS) {
+    // Aggregate fly-by-wire data
+    for (joy=joys.begin(); joy!=joys.end(); joy++) {
+      joy->update();
+      if (joy->name == "J0") {
+        pitch = String(joy->X);
+        yaw = String(joy->Y);
+        roll = String(joy->Z);
+      } else if (joy->name == "J1") {
+        x = String(joy->X);
+        y = String(joy->Y);
+        z = String(joy->Z);
+      }
+    }
+    sixdof=yaw + "," + pitch + "," + roll + "," + x + "," + y + "," + z;
+    //input["toggle_fbw"] = "1";
+    //input["six_dof"] = sixdof.c_str();
+    json+=","+q+ "toggle_fbw" +q+":"+q+ "1" +q;
+    json+=","+q+ "six_dof" +q+":"+q+ sixdof +q;
   }
 
   // Aggregate button inputs
@@ -228,7 +234,9 @@ String processInput() {
     if (lock->changed()) {
       tmp = lock->toString();
       if (tmp != "") {
-        input[lock->api.c_str()] = tmp.c_str();
+        //input[lock->api.c_str()] = tmp.c_str();
+        
+        json+=","+q+ lock->api +q+":"+q+ lock->toString() +q;
       }
     }
   }
@@ -237,34 +245,48 @@ String processInput() {
     if (button->changed()) {
       tmp = button->toString();
       if (tmp != "") {
-        input[button->api.c_str()] = tmp.c_str();
+        //input[button->api.c_str()] = button->toString().c_str();
+        
+        json+=","+q+ button->api +q+":"+q+ button->toString() +q;
       }
     }
   }
   
-  // Strip unwanted variable
-  input.remove("?");
+  json += "}";
+  return json;
   
-  // Prepare fly-by-wire data
-  char buffer[256];
-  input.printTo(buffer, sizeof(buffer));
-  return buffer;
+  // Strip unwanted variable
+//  input.remove("?");
+//  
+//  // Prepare fly-by-wire data
+//  char buffer[256];
+//  input.printTo(buffer, sizeof(buffer));
+//  return buffer;
 }
 
 void processOutput(String _output) {
   StaticJsonBuffer<512> jsonBuffer;
   char* json = new char[_output.length() + 1];
   strcpy(json, _output.c_str());
-
+  
   // Parse received telemetry
   JsonObject& output = jsonBuffer.parseObject(json);
   if (!output.success()) {
     Serial.println("JSON Parsing failed.");
+    delay(1000);
+    Serial.println("");
     reset();
   }
   
+  char* api = new char[15];
+  char* value = new char[25];
+
   for (indicator=indicators.begin(); indicator!=indicators.end(); indicator++) {
-    indicator->update();
+    strcpy(api, indicator->api.c_str());
+    strcpy(value, output[api]);
+    if (value[0] > 0) {
+      indicator->set(value);
+    }
   }
 
   // Update instrumentation panels
@@ -283,7 +305,7 @@ String sync(String output) {
   String input;
   if (output != "") {
     // Wait for telemetry data
-    //processOutput(output);
+    processOutput(output);
     // Send fly-by-wire data
     input = processInput();
   }

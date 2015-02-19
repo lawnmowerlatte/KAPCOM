@@ -3,9 +3,6 @@
 #define YELLOW 2
 #define GREEN 3
 
-#include <Wire.h>
-#include "Adafruit_LEDBackpack.h"
-#include "Adafruit_GFX.h"
 #include <bargraph.h>
 
 #if (ARDUINO >= 100)
@@ -18,19 +15,17 @@
 //	Constructors and Destructors
 // =================================
 
-Bargraph::Bargraph(String _name, String _api, String _max, int _device, String _type) {
+Bargraph::Bargraph(String _name, String _api, int _device, String _type) : bar() {
 	name		= _name;
 	api			= _api;
-	max			= _max;
 	device		= _device;
 	type		= _type;
 	value		= 0;
 	
-	display		= { OFF, OFF, OFF, OFF, OFF, OFF,
-		 			OFF, OFF, OFF, OFF, OFF, OFF,
-					OFF, OFF, OFF, OFF, OFF, OFF };
+	for (int i=0; i<24; i++) {
+		display[i] = OFF;
+	}
 	
-	bar = Adafruit_24bargraph();
 	bar.begin(0x70+device);
 }
 
@@ -38,11 +33,15 @@ Bargraph::Bargraph(String _name, String _api, String _max, int _device, String _
 //	Public Methods
 // ===================
 
-void Bargraph::set(long _value) {
-	value = _value;
+void Bargraph::set(String _value) {
+	value = _value.toInt();
 	
 	format();
 	update();
+}
+
+void Bargraph::setMax(String _max) {
+	max = _max.toInt();
 }
 
 void Bargraph::update() {
@@ -51,7 +50,7 @@ void Bargraph::update() {
 
 void Bargraph::print() {
 	Serial.println(name + ":");
-	Serial.println("Value: " + String(value) + ", Formatted: " + formatted);
+	Serial.println("Value: " + String(value) + ", Type: " + type);
 }
 
 // ====================
@@ -67,9 +66,9 @@ void Bargraph::format() {
 		float percent = (value * 100.0) / max;
 		int color = 0;
 		
-		if (p > 50)				{	color = green;	}
-		if (p <= 50 && p > 20)	{	color = yellow;	}
-		if (p <= 20 && p > 0)	{	color = red;	}
+		if (percent > 50)					{	color = GREEN;	}
+		if (percent <= 50 && percent > 20)	{	color = YELLOW;	}
+		if (percent <= 20 && percent > 0)	{	color = RED;	}
 		
 		for (int i=0; i<int(percent); i++) {
 			display[i] = color;

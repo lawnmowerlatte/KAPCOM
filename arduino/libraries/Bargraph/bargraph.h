@@ -1,7 +1,9 @@
-#ifndef Display_h
-#define Display_h
+#ifndef Bargraph_h
+#define Bargraph_h
 
-#include <LedControl.h>
+#include <Wire.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_LEDBackpack.h>
 
 #if (ARDUINO >= 100)
 #include <Arduino.h>
@@ -13,15 +15,18 @@ class Bargraph {
   public :
     String name;
 	String api;
+	Adafruit_24bargraph bar;
 	
-	Bargraph(String _name, String _api, String _max, int _device, String _type="Default");
+	Bargraph(String _name, String _api, int _device,
+		String _type="Default");
 	
-	void set(long _value);
+	void set(String _value);
+	void setMax(String _max);
 	void update();
     void print();
   
   private :
-  	Adafruit_24bargraph bar;
+  	
 	int display[24];
   
 	long max;

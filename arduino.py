@@ -78,7 +78,7 @@ class arduino:
         "action_group_brake"
     }
     
-    def __init__(self, port=None, baud=250000):
+    def __init__(self, port=None, baud=115200):
         """Takes an API object, serial port and baudrate and creates a new Arduino object."""
         if port is not None:
             self.port = port
@@ -190,11 +190,14 @@ class arduino:
                 except serial.SerialException:
                     debug("Lost connection to device.")
                     exit(1)
-                
+              
+        print ">> '" + line + "'"
         return line
     
     def writeSerial(self, line):
         """Write a line to serial"""
+        print "<< '" + line + "'"
+        
         if self.interactive:
             print "< " + line
         else:

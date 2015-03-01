@@ -73,16 +73,16 @@ bool Joy::centered() {
 	return center;
 }
 
-void Joy::print() {
-	// Print the name of the pin and the value
-	// Does not force a hardware refresh
-	
-	Serial.println(name + ":");
-	Serial.println("X: Raw: " + String(x.get()) + ", Raw: " + String(x.getFloat()) + ", Corrected " + String(X));
-	Serial.println("Y: Raw: " + String(y.get()) + ", Raw: " + String(y.getFloat()) + ", Corrected " + String(Y));
-	Serial.println("Z: Raw: " + String(z.get()) + ", Raw: " + String(z.getFloat()) + ", Corrected " + String(Z));
-}
+// void Joy::print() {
+// 	// Print the name of the pin and the value
+// 	// Does not force a hardware refresh
+//
+// 	Serial.println(name + ":");
+// 	Serial.println("X: Raw: " + String(x.get()) + ", Raw: " + String(x.getFloat()) + ", Corrected " + String(X));
+// 	Serial.println("Y: Raw: " + String(y.get()) + ", Raw: " + String(y.getFloat()) + ", Corrected " + String(Y));
+// 	Serial.println("Z: Raw: " + String(z.get()) + ", Raw: " + String(z.getFloat()) + ", Corrected " + String(Z));
+// }
 
-String Joy::toString() {
-	return String(X) + "," + String(Y) + "," + String(Z);
-}
+// String Joy::toString() {
+// 	return String(X) + F(",") + String(Y) + F(",") + String(Z);
+// }

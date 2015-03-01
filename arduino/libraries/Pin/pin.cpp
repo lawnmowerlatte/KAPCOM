@@ -39,9 +39,9 @@ Pin::Pin(String _name, String _api, int _pin, boolean _type, boolean _mode, Stri
 	last_update = millis();
 	last_value = value;
 	
-	if (format=="Key") {
+	if (format==F("Key")) {
 		key = api;
-		api = "KEY" + key;
+		api = F("KEY");
 	}
 }
 
@@ -88,10 +88,10 @@ void Pin::set(int _value) {
 void Pin::set(String _value) {
 	// Determine value based on string input
 
-	if (_value == "1")		{ set(1); return; }
-	if (_value == "0")		{ set(0); return; }
-	if (_value == "True")	{ set(1); return; }
-	if (_value == "False")	{ set(0); return; }
+	if (_value == F("1"))		{ set(1); return; }
+	if (_value == F("0"))		{ set(0); return; }
+	if (_value == F("True"))	{ set(1); return; }
+	if (_value == F("False"))	{ set(0); return; }
 }
 
 void Pin::update() {
@@ -114,89 +114,96 @@ bool Pin::changed() {
 }
 
 String Pin::toString() {
+	String t=F("True");
+	String f=F("False");
+	String none=F("None");
+	String blank=F("");
+	
+	
 	if (mode == OUTPUT) {
-		Serial.println("Error: Trying to get an output pin.");
-		return "";
+		Serial.println(F("Error: Trying to get an output pin."));
+		return blank;
 	}
 	
-	if (format == "Value") {
+	if (format == F("Value")) {
 		return String(value);
 	}
 	
-	if (format == "Toggle") {
+	if (format == F("Toggle")) {
 		if (value == 1) {
-			return "None";
+			return none;
 		} else {
-			return "";
+			return blank;
 		}
 	}
 	
-	if (format == "TrueFalse") {
+	if (format == F("TrueFalse")) {
 		if (value == 0) {
-			return "False";
+			return f;
 		} else {
-			return "True";
+			return t;
 		}
 	}
 	
-	if (format == "True") {
+	if (format == F("True")) {
 		if (value == 1) {
-			return "True";
+			return t;
 		} else {
-			return "";
+			return blank;
 		}
 	}
 	
-	if (format == "False") {
+	if (format == F("False")) {
 		if (value == 0) {
-			return "False";
+			return f;
 		} else {
-			return "";
+			return blank;
 		}
 	}
 	
-	if (format == "Zero") {
+	if (format == F("Zero")) {
 		if (value == 0) {
-			return "0";
+			return F("0");
 		} else {
-			return "";
+			return blank;
 		}
 	}
 	
-	if (format == "One") {
+	if (format == F("One")) {
 		if (value == 1) {
-			return "1";
+			return F("1");
 		} else {
-			return "";
+			return blank;
 		}
 	}
 	
-	if (format == "Key") {
+	if (format == F("Key")) {
 		if (value == 1) {
 			return key;
 		} else {
-			return "";
+			return blank;
 		}
 	}
 	
-	if (format == "Float") {
+	if (format == F("Float")) {
 		return String(fvalue);
 	}
 	
-	if (format == "Percent") {
+	if (format == F("Percent")) {
 		return String(fvalue*100.0);
 	}
 	
-	Serial.println("Unexpected format \"" + format + "\" in object \"" + name + "\"");
-	return "Error";
+	// Serial.println("Unexpected format \"" + format + "\" in object \"" + name + "\"");
+	Serial.println(F("Unexpected format"));
+	return F("Error");
 }
 
-void Pin::print() {
-	// Print the name of the pin and the value.
-	// Does not force a hardware refresh.
-	
-	Serial.println(name + ": " + value + ", (" + fvalue + ")");
-}
+// void Pin::print() {
+// 	// Print the name of the pin and the value.
+// 	// Does not force a hardware refresh.
+//
+// 	Serial.println(name + ": " + value + ", (" + fvalue + ")");
+// }
 
 // ====================
 //	Private Methods

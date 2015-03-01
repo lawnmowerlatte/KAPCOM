@@ -339,50 +339,133 @@ String processInput() {
 
 void processOutput(char* json) {
   Serial.println("processOutput: 1: " + String(freeMemory()));
-  StaticJsonBuffer<1024> jsonBuffer;
+//  StaticJsonBuffer<1024> jsonBuffer;
 //  char* json = new char[_output.length() + 1];
 //  strcpy(json, _output.c_str());
-  Serial.println("processOutput: 2: " + String(freeMemory()));
+  
+  char* mode  = new char[21];
+  char* api   = new char[21];
+  char* value = new char[21];
+  int context = 0; // 0 is initial, 1 is mode, 2 is api, 3 is value
+  
+  for(int i = 0; json[i] != '\0'; i++) {
+    Serial.println("context: " + String(context) + ", json[i]: " + String(json[i]));
+    switch (context) {
+      case 0:
+        if (json[i] == ' ')           { i++; }            // Skip spaces
+        if (json[i] == '{')           { context=2;  }     // Open bracket moves us into next context
+        else                          { Serial.print("Skipping character: " + json[i]); } 
+        break;
+      case 1:
+        if (json[i] == ' ')           { i++; }            // Skip spaces
+        if (json[i] == '"')           { i++; }            // Skip quotes
+        for(int j = 0; j<=20; j++)    {
+          if (json[i+j] != '"' || json[i+j] != ' ' || json[i+j] != ':') {  
+                                                          // If not quotes, space or colon...
+            mode[j]=json[i+j];                            // Append to mode
+          } else {                                        // Otherwise...
+            i=i+j;                                        // Move the pointer to the current position
+            for(int k = i; json[k] != '{'; k++) {         // Move pointer forward until we find an open bracket
+              Serial.print("Skipping character: " + json[k]);
+              i=k;                                        // Set pointer to open bracket
+            }
+            context++;                                    // Change the context to read API values
+          }
+        }
+        break;
+      case 2:
+        if (json[i] == ' ')           { i++; }            // Skip spaces
+        if (json[i] == '"')           { i++; }            // Skip quotes
+        for(int j = 0; j<=20; j++)  {
+          if (json[i+j] != '"' || json[i+j] != ' ' || json[i+j] != ':') {  
+                                                          // If not quotes, space or colon...
+            api[j]=json[i+j];                             // Append to API
+          } else {                                        // Otherwise...
+            Serial.println("api = " + String(api));
+            i=i+j;                                        // Move the pointer to the current position
+            for(int k = i; json[k] != ':'; k++) {         // Move pointer forward until we find a colon
+              Serial.print("Skipping character: " + json[k]);
+              i=k;                                        // Set pointer to colon
+            }
+            context++;                                    // Change the context to read values
+          }
+        }
+        break;
+      case 3:
+        if (json[i] == ' ')           { i++; }            // Skip spaces
+        if (json[i] == '"')           { i++; }            // Skip quotes
+        for(int j = 0; j<=20; j++)  {
+          if (json[i+j] != '"' || json[i+j] != ' ') {  
+                                                          // If not quotes or space...
+            value[j]=json[i+j];                           // Append to value
+          } else {                                        // Otherwise...
+            i=i+j;                                        // Move the pointer to the current position
+            for(int k = i; json[k] != '\0'; k++) {        // Move pointer forward until we find a colon
+              Serial.print("Skipping character: " + json[k]);
+              if (json[k] == ',') {
+                context--;
+                break;
+              } else if (json[k] == '}') {
+                context=1;
+                break;
+              }
+              i=k;                                        // Set pointer to colon       
+            }
+            Serial.print(String(mode) + ": " + String(api) + ": " + String(value));
+          }
+        }
+        break;
+      default:
+        Serial.print("Unexpected value for context: " + String(context));
+        break;
+    }
+  }  
+  
+    
+          
+        
+      
+//  Serial.println("processOutput: 2: " + String(freeMemory()));
   // Parse received telemetry
-  JsonObject& output = jsonBuffer.parseObject(json);
-  if (!output.success()) {
-    Serial.print(F("JSON Parsing failed: "));
+//  JsonObject& output = jsonBuffer.parseObject(json);
+//  if (!output.success()) {
+//    Serial.print(F("JSON Parsing failed: "));
 //    Serial.println(_output);
-    delay(1000);
-    Serial.println("");
-    reset();
-  }
-  Serial.println("processOutput: 3: " + String(freeMemory()));
-  char* api = new char[20];
-  char* value = new char[20];
-  Serial.println("processOutput: 4: " + String(freeMemory()));
-
-  for (indicator=indicators.begin(); indicator!=indicators.end(); indicator++) {
-    strcpy(api, indicator->api.c_str());
-    strcpy(value, output[api]);
-    if (value[0] > 0) {
-      indicator->set(value);
-    }
-  }
-
-  // Update instrumentation panels
-  for (bargraph=bargraphs.begin(); bargraph!=bargraphs.end(); bargraph++) {
-    strcpy(api, indicator->api.c_str());
-    strcpy(value, output[api]);
-    if (value[0] > 0) {
-      bargraph->set(value);
-    }
-  }
+//    delay(1000);
+//    Serial.println("");
+//    reset();
+//  }
+//  Serial.println("processOutput: 3: " + String(freeMemory()));
+//  char* api = new char[20];
+//  char* value = new char[20];
+//  Serial.println("processOutput: 4: " + String(freeMemory()));
+//
+//  for (indicator=indicators.begin(); indicator!=indicators.end(); indicator++) {
+//    strcpy(api, indicator->api.c_str());
+//    strcpy(value, output[api]);
+//    if (value[0] > 0) {
+//      indicator->set(value);
+//    }
+//  }
+//
+//  // Update instrumentation panels
+//  for (bargraph=bargraphs.begin(); bargraph!=bargraphs.end(); bargraph++) {
+//    strcpy(api, indicator->api.c_str());
+//    strcpy(value, output[api]);
+//    if (value[0] > 0) {
+//      bargraph->set(value);
+//    }
+//  }
+//  
+//  for (display=displays.begin(); display!=displays.end(); display++) {
+//    strcpy(api, indicator->api.c_str());
+//    strcpy(value, output[api]);
+//    if (value[0] > 0) {
+//      display->set(value);
+//    }
+//  }
   
-  for (display=displays.begin(); display!=displays.end(); display++) {
-    strcpy(api, indicator->api.c_str());
-    strcpy(value, output[api]);
-    if (value[0] > 0) {
-      display->set(value);
-    }
-  }
-  
-  free(json);
+  free(mode);
   free(api);
   free(value);
   Serial.println("processOutput: 5: " + String(freeMemory()));

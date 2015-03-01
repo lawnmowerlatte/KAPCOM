@@ -48,10 +48,10 @@ void Bargraph::update() {
 	write();
 }
 
-void Bargraph::print() {
-	Serial.println(name + ":");
-	Serial.println("Value: " + String(value) + ", Type: " + type);
-}
+// void Bargraph::print() {
+// 	Serial.println(name + ":");
+// 	Serial.println("Value: " + String(value) + ", Type: " + type);
+// }
 
 // ====================
 //	Private Methods
@@ -62,7 +62,7 @@ void Bargraph::format() {
 		bar.setBar(i, 0);
 	}
 	
-	if (type == "Default") {
+	if (type == F("Default")) {
 		float percent = (value * 100.0) / max;
 		int color = 0;
 		

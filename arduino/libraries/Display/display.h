@@ -14,8 +14,10 @@ class Display {
     String name;
 	String api;
 	
-	Display(String _name, String _api, LedControl _l, int _length, int _device);
-	Display(String _name, String _api, LedControl _l, int _length, int _device, int _offset, int _decimals, String _pad);
+	Display(String _name, String _api, LedControl _l, int _length, int _device, 
+		int _offset=0,
+		int _decimals=2,
+		String _pad=" ");
 	
 	void set(String _value);
 	void update();

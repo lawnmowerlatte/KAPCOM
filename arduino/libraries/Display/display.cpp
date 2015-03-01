@@ -15,18 +15,6 @@
 //	Constructors and Destructors
 // =================================
 
-Display::Display(String _name, String _api, LedControl _l, int _length, int _device) : l(_l) {
-	// Set variables
-	name		= _name;
-	api			= _api;
-	length		= _length;
-	device		= _device;
-	
-	offset		= 0;
-	decimals	= 2;
-	pad			= " ";
-}
-
 Display::Display(String _name, String _api, LedControl _l, int _length, int _device, int _offset, int _decimals, String _pad) : l(_l) {
 	// Set variables
 	name		= _name;
@@ -55,10 +43,10 @@ void Display::update() {
 	write();
 }
 
-void Display::print() {
-	Serial.println(name + ":");
-	Serial.println("Value: " + value + ", Formatted: " + formatted);
-}
+// void Display::print() {
+// 	Serial.println(name + ":");
+// 	Serial.println("Value: " + value + ", Formatted: " + formatted);
+// }
 
 // ====================
 //	Private Methods
@@ -99,7 +87,7 @@ void Display::format() {
 		// Truncate decimals to fit in remaining digits
 		decimal = decimal.substring(0, length-integer.length()-E.length()-1);
 		// Create formatted string
-		formatted = integer + "." + decimal + "E" + E;
+		formatted = integer + F(".") + decimal + F("E") + E;
 		
 	} else if (integer.length() < length) {
 		// Fewer integers than can be displayed
@@ -114,7 +102,7 @@ void Display::format() {
 		}
 		
 		// Create formatted string
-		formatted = integer + "." + decimal;
+		formatted = integer + F(".") + decimal;
 		
 	} else {
 		// Itegers fill display
@@ -129,7 +117,8 @@ void Display::format() {
 	// Final check for string length
 	if (formatted.length() != length) {
 		// Print a debug message
-		Serial.println("Something went wrong while formatting " + value + ". Formatted value " + formatted + " does not fit available length.");
+		Serial.println(F("Something went wrong while formatting"));
+		// Serial.println("Something went wrong while formatting " + value + ". Formatted value " + formatted + " does not fit available length.");
 		
 		// Set the display to dashes
 		formatted = "";

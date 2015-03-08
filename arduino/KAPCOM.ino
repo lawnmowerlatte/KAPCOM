@@ -22,8 +22,8 @@
 using namespace std;
 
 // Global Serial Reading
-String readLine = "";
-String nextLine = "";
+String readLine;
+String nextLine;
 
 // Create global LedControl
 int display_count = 5;
@@ -51,8 +51,6 @@ vector<Display>::iterator display;
 void(* reset) (void) = 0;
 
 void serialEvent() {
-  String input;
-
   while (Serial.available()) {
     char c = (char)Serial.read();
 
@@ -68,31 +66,19 @@ void serialEvent() {
       nextLine += c;
     }
   }
-  
-  if (readLine != F("")) {
-    Serial.print(freeMemory());
-    Serial.print(": ");
-
-    if (readLine == F("{}")) {
-      // Retransmission request
-      Serial.print("RETRANSMIT: ");
-      Serial.print(readLine);
-      Serial.print(": ");
-      input = processInput();
-    } 
-    else {
-      // Full sync
-    input = sync((char *)readLine.c_str());
-    }
-    
-    readLine = F("");
-    Serial.println(input);
-  }
 }
 
 void setup() {
+  
   // Start the serial connection
   Serial.begin(115200);
+  
+  Serial.println(freeMemory());
+  readLine.reserve(100);
+  nextLine.reserve(100);
+  Serial.println(freeMemory());
+  
+  
   // Report online status
   Serial.println(F("ONLINE"));
   // Receive configuration
@@ -101,17 +87,19 @@ void setup() {
   // Report calibration status
   Serial.println(F("CALIBRATING"));
 
+  Pin p = Pin(F("Throttle"), F("set_throttle"), A8, ANALOG, INPUT_PULLUP, F("Percent"));
+
 //  Serial.println(freeMemory());
 //  initVectors();
 //  showVectors();
 //  Serial.println(freeMemory());
-  initJoysticks();
+//  initJoysticks();
 //  Serial.println(freeMemory());
 //  initInputs();
 //  Serial.println(freeMemory());
 //  initCombos();
 //  Serial.println(freeMemory());
-  initLocks();
+//  initLocks();
 //  Serial.println(freeMemory());
 //  initDisplays();
 //  Serial.println(freeMemory());
@@ -382,7 +370,7 @@ void processOutput(char* json) {
     }
   }
   
-  free(json);
+//  free(json);
   free(api);
   free(value);
   Serial.println("processOutput: 5: " + String(freeMemory()));
@@ -400,4 +388,23 @@ String sync(char* output) {
   return F(""); 
 }
 
-void loop() { }
+void loop() {
+  if (readLine != F("")) {
+    Serial.print(freeMemory());
+    Serial.print(": ");
+
+    if (readLine == F("{}")) {
+      // Retransmission request
+      Serial.print("RETRANSMIT: ");
+      Serial.print(readLine);
+      Serial.print(": ");
+      Serial.println(processInput());
+    } 
+    else {
+      // Full sync
+    Serial.println(sync((char *)readLine.c_str()));
+    }
+    
+    readLine = F("");
+  }
+}

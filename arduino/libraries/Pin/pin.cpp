@@ -38,11 +38,6 @@ Pin::Pin(String _name, String _api, int _pin, boolean _type, boolean _mode, Stri
 	// Set the previous values
 	last_update = millis();
 	last_value = value;
-	
-	if (format==F("Key")) {
-		key = api;
-		api = F("KEY");
-	}
 }
 
 // ===================
@@ -179,7 +174,7 @@ String Pin::toString() {
 	
 	if (format == F("Key")) {
 		if (value == 1) {
-			return key;
+			return api;
 		} else {
 			return blank;
 		}

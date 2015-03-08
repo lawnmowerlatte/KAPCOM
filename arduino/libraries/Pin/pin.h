@@ -39,7 +39,6 @@ class Pin {
 	int last_value;
     int cooldown;
 	String format;
-	String key;
 	int min;
 	int max;
     

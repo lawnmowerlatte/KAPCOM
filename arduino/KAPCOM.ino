@@ -3,6 +3,10 @@
 #include <Adafruit_LEDBackpack.h>
 #include <Adafruit_GFX.h>
 
+// Global Serial Reading
+String readLine;
+String nextLine;
+
 int DIN=7;
 int CLK=6;
 int LOAD=5;
@@ -50,19 +54,18 @@ void displayWriter(int device, String data) {
       i++;
     }
   }
-  
 }
 
 void bargraphWriter(int device, String data) {
-  char red[3];
-  char green[3];
+  char red[4];
+  char green[4];
   int r, g, v;
   
-  memcpy(red, &data.c_str()[0], 3);
-  memcpy(green, &data.c_str()[3], 3);
+  memcpy(red, &data.c_str()[0], 4);
+  memcpy(green, &data.c_str()[4], 4);
   
   for (int i=0; i<3; i++) {
-    for (int j=0; j<8; j++) {
+    for (int j=2; j<8; j++) {
         r = bitRead(red[i], j);
         g = bitRead(green[i], j);
         
@@ -75,7 +78,7 @@ void bargraphWriter(int device, String data) {
           v=3;
         }
         
-        bargraphs[device].setBar(i*j, v);
+        bargraphs[device].setBar(i*6+j-2, v);
     }
   }
   
@@ -98,36 +101,65 @@ void pinModify(int pin, byte data){
   }
 }
 
+void(* reset) (void) = 0;
+
 void serialEvent() {
-  char readChar[64];
-  Serial.readBytesUntil(33,readChar,64);
-  String read_ = String(readChar);
-  
+  while (Serial.available()) {
+    char c = (char)Serial.read();
+
+    if (c == 255) {
+      readLine = nextLine;
+      nextLine = "";
+      if (readLine == F("RESTART")) {
+        Serial.println(F("Resetting..."));
+        delay(1000); 
+        reset();
+      }
+    } else {
+      nextLine += c;
+    }
+  }
+}
+
+void command(String read_) {
   // Retrieve components 
-  String cmd = read_.substring(1,2);
-  int id = int(read_.substring(2,2).c_str());
-  String data = read_.substring(3);
+  char cmd = read_[0];
+  int id = read_[1] - 32;
+  String data = read_.substring(2);
   
-  // Branch based on command
-  if (cmd == "pm") {
-    pinModify(id, data[0]);   
-  } else if (cmd == "dw") {
-    digitalWriter(id, data[0]);   
-  } else if (cmd == "dr") {
-    digitalReader(id);   
-  } else if (cmd == "aw") {
-    analogWriter(id, data[0]);   
-  } else if (cmd == "ar") {
-    analogReader(id);   
-  } else if (cmd == "7w") {
-    displayWriter(id, data);   
-  } else if (cmd == "bw") {
-    bargraphWriter(id, data);   
+  Serial.println(cmd + " : " + String(id) + " : " + data);
+  
+  // Switch based on command
+  switch (cmd) {
+    case 'm':
+      pinModify(id, data[0]);
+      break;
+    case 'd':
+      digitalWriter(id, data[0]);
+      break;
+    case 'D':
+      digitalReader(id);
+      break;
+    case 'a':
+      analogWriter(id, data[0]); 
+      break;
+    case 'A':
+      analogReader(id);
+      break;
+    case '7':
+      displayWriter(id, data);
+      break;
+    case 'b':
+      bargraphWriter(id, data);
+    default:
+      Serial.println("Unknown command: " + cmd);
   }
 }
 
 void setup()  {
   Serial.begin(115200);
+  
+  Serial.println("ONLINE");
   
   // Initialize the bargraphs
   for (int i=0; i<BARGRAPH_COUNT; i++) {
@@ -136,4 +168,10 @@ void setup()  {
   }
 }
 
-void loop() { }
+void loop() {
+  if (readLine !="") {
+    Serial.println(readLine);
+    command(readLine);
+    readLine = "";
+  }
+}

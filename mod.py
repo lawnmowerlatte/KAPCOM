@@ -1,111 +1,124 @@
-#define ANALOG 1
-#define DIGITAL 0
-#define NULL 0
+#!/usr/bin/python
 
-#include <pin.h>
-#include <lockedinput.h>
+from pin import pin
+from arduino import arduino
 
-#if (ARDUINO >= 100)
-#include <Arduino.h>
-#else
-#include <WProgram.h>
-#endif
+class mod(object):
+    def __init__(self, arduino, name, api, modifier, indicator, button, options=None):
+        """Initialize modifier with parameters"""
+        
+        # Set core attributes
+        self.mod            = digitalIn(arduino, name + " Modifier", "", modifier)
+        self.indicator      = digitalOut(arduino, name + " Indicator", "", indicator)
+        self.button         = digitalIn(arduino, name + " Button", "", button)
+        
+        self.name           =   name
+        self.api            =   api
+        
+        # Pre-set extra attributes
+        self._format        =   "value"
+        
+        # Override defaults with passed values
+        if options:
+            for key in options:
+                setattr(self, "_" + key, options[key])
+        
+        self.update()
+        self.value          =   0
+        # Not sure if I need this...
+        self._lastvalue     =   self.value
+        
+    def get(self):
+        self.update()
+        return self.value
+        
+    def toString(self):
+        # Define lambdas for selecting value based on format
+        value       = lambda x: str(x)
+        toggle      = lambda x: (None, "")[x]
+        truefalse   = lambda x: ("True", "False")[x]
+        true        = lambda x: ("True", "")[x]
+        false       = lambda x: ("", "False")[x]
+        zero        = lambda x: ("0", "")[x]
+        one         = lambda x: ("1", "")[x]
+        
+        # Define function for pressing a key
+        def key(x):
+            """Press a key"""
+            keyCommand = "osascript -e 'tell application \"Kerbal Space Program\" to keystroke \""+self.key+"\"'"
+            os.system(keyCommand)
+        
+        # Try to run the lambda/function specified by __format
+        try:
+            func = getattr(modulename, self._format)
+        except AttributeError:
+            print 'Format not found "%s" (%s)' % (self._format, arg)
+        else:
+            self._format(self.value)
 
-// =================================
-//	Constructors and Destructors
-// =================================
+    def update(self):
+        isLocked = self.mod.get()
+        self.indicator.set(isLocked)
+        
+        if isLocked is 0:
+            self.value = 0
+        else:
+            self.value = button.get()
+        
+    def changed(self):
+        isUpdated = self._lastvalue != self.value
+        self._lastvalue = self.value
+        return isUpdated
 
-LockedInput::LockedInput(String _name, String _api, int _lock, int _button, int _indicator, String _format) : lock(_name + " Locked", "", _lock, DIGITAL, INPUT_PULLUP), button(_name + " Button", "", _button, DIGITAL, INPUT_PULLUP), indicator(_name + " Indicator", "", _indicator, DIGITAL, OUTPUT) {
-	// Set variables
-	name		= _name;
-	api			= _api;
-	format		= _format;
-	
-	// Set default value, update from hardware, set initial value of previous
-	update();
-	last_value = value;
-}
+    def printout(self):
+        print  "{0} ({1})={2}".format(self.name, self.api, self.value)
+        self.mod.printout()
+        self.indicator.printout()
+        self.button.printout()
 
-// ===================
-//	Public Methods
-// ===================
 
-int LockedInput::get() {
-	// Update the hardware and return the object value
-	
-	update();
-	return value;
-}
+# #####################################
+# ########## Testing Methods ##########
+# #####################################
 
-String LockedInput::toString() {
-	if (format == "Value") {
-		return String(value);
-	}
-	
-	if (format == "Toggle") {
-		if (value == 1) {
-			return "None";
-		} else {
-			return "";
-		}
-	}
-	
-	if (format == "TrueFalse") {
-		if (value == 0) {
-			return "False";
-		} else {
-			return "True";
-		}
-	}
-	
-	if (format == "True") {
-		if (value == 1) {
-			return "True";
-		} else {
-			return "";
-		}
-	}
-	
-	if (format == "False") {
-		if (value == 0) {
-			return "False";
-		} else {
-			return "";
-		}
-	}
-	
-	Serial.println("Unexpected format \"" + format + "\" in object \"" + name + "\"");
-	return "Error";
-}
 
-void LockedInput::update() {
-	// Update the object value based on the hardware Pins
-	lock.update();
-	button.update();
-	
-	int isLocked = lock.get();
-	indicator.set(isLocked);
+def breakpoint():
+    """Python debug breakpoint."""
+    
+    from code import InteractiveConsole
+    from inspect import currentframe
+    try:
+        import readline # noqa
+    except ImportError:
+        pass
 
-	if (isLocked == LOW) {
-		value = 0;
-	} else {
-		value = button.get();
-	}
-}
+    caller = currentframe().f_back
 
-bool LockedInput::changed() {
-	// Return true if the value has changed since last changed()
-	bool is_updated = (last_value != value);
-	last_value = value;
-	return is_updated;
-}
+    env = {}
+    env.update(caller.f_globals)
+    env.update(caller.f_locals)
 
-void LockedInput::print() {
-	// Print the name of the pin and the value
-	// Does not force a hardware refresh
-	
-	Serial.println(name + ": " + (String)value);
-	lock.print();
-	button.print();
-	indicator.print();
-}
+    shell = InteractiveConsole(env)
+    shell.interact(
+        '* Break: {} ::: Line {}\n'
+        '* Continue with Ctrl+D...'.format(
+            caller.f_code.co_filename, caller.f_lineno
+        )
+    )
+
+
+def main():
+    # a = arduino()
+    a = "arduino"
+    aI = analogIn(a, "Test", "token", 0x0D)
+    breakpoint()
+
+if __name__ == "__main__":    
+    try:
+        main()
+    except KeyboardInterrupt:
+        sys.exit(0)
+    except EOFError:
+        sys.exit(0)
+    # except:
+    #     sys.exit(0)

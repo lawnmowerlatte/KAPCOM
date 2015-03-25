@@ -2,8 +2,7 @@
 
 from abc import ABCMeta, abstractmethod
 from datetime import datetime
-from pprint import pprint
-# from arduino import arduino
+from arduino import arduino
 
 class pin(object):
     __metaclass__ = ABCMeta
@@ -145,6 +144,10 @@ class __analog():
     
     def setMax(self, max):
         self._max = max
+        
+    def getFloat(self):
+        self.update()
+        return (self.value/self.max)
     
     def read(self):
         return self._arduino.analogRead(self.pin)
@@ -216,4 +219,3 @@ if __name__ == "__main__":
         sys.exit(0)
     # except:
     #     sys.exit(0)
-

@@ -1,88 +1,141 @@
-#define ANALOG 1
-#define DIGITAL 0
-#define NULL 0
+#!/usr/bin/python
 
-#include <joy.h>
-#include <pin.h>
+from pin import pin
+from arduino import arduino
 
-#if (ARDUINO >= 100)
-#include <Arduino.h>
-#else
-#include <WProgram.h>
-#endif
+class joy(object):
+    
+    def __init__(self, arduino, name, x, y, z, button, options=None):
+        allOptions = {'format':'floatpoint'}
+        
+        try:
+            buttonOptions = {'format':'value'}
+            buttonInvert = options['invertButton']
+            buttonOptions['invert'] = buttonInvert
+        except:
+            pass
+        try:
+            xOptions = allOptions.copy()
+            xInvert = options['invertX']
+            xOptions['invert'] = xInvert
+        except:
+            pass
+        try:
+            yOptions = allOptions.copy()
+            yInvert = options['invertY']
+            yOptions['invert'] = yInvert
+        except:
+            pass
+        try:
+            zOptions = allOptions.copy()
+            zInvert = options['invertZ']
+            zOptions['invert'] = zInvert
+        except:
+            pass
+        
+        # Set core attributes
+        self.x              =   analogIn(arduino, name + ":X", "", x, xOptions)
+        self.y              =   analogIn(arduino, name + ":Y", "", y, yOptions)
+        self.z              =   analogIn(arduino, name + ":Z", "", z, zOptions)
+        self.button         =   digitalIn(arduino, name + " Button", "", button)
+        
+        self.name           =   name
 
-// =================================
-//	Constructors and Destructors
-// =================================
+        # Pre-set extra attributes
+        self.scale          =   2
+        
+        # Set ephemeral values
+        self.centered       =   True
+        self.X              =   0
+        self.Y              =   0
+        self.Z              =   0
+        
+    def update(self):
+        def deadzones(value):
+            if value >= -.05 and value <= .05:
+                return 0
+            if value < -.95:
+                return -1
+            if value > .95
+                return 1
+            return value
+        
+        # Get floating point values of all axes
+        self.X = (x.getFloat()*2.0)-1.0
+        self.Y = (y.getFloat()*2.0)-1.0
+        self.Z = (z.getFloat()*2.0)-1.0
+        
+        # Check for deadzones
+        self.X = deadzones(self.X)
+        self.Y = deadzones(self.Y)
+        self.Z = deadzones(self.Z)
+        
+        # Check for center
+        if X = 0 and Y = 0 and Z = 0:
+            self.centered = True
+        else
+            self.centered = False
+            
+        if self.button.get() is 1:
+            self.X /= self.scale
+            self.Y /= self.scale
+            self.Z /= self.scale
+   
+   def centered(self):
+       return self.center
 
-Joy::Joy(String _name, int _x, int _y, int _z, int _button, bool _invertX, bool _invertY, bool _invertZ,  int _min, int _max) : x(_name + "x", "", _x, ANALOG, INPUT, "Float", 0, _min, _max, _invertX), y(_name + "y", "", _y, ANALOG, INPUT, "Float", 0, _min, _max, _invertY), z(_name + "z", "", _z, ANALOG, INPUT, "Float", 0, _min, _max, _invertZ), button(_name + " Button", "", _button, DIGITAL, INPUT_PULLUP, "Value", 0) {
-	// Set variables
-	name		= _name;
-	scale		= 2;
-}
+   def printout(self):
+       self.x.printout()
+       self.y.printout()
+       self.z.printout()
+       self.button.printout()
 
-// ===================
-//	Public Methods
-// ===================
+   def toString(self):
+       return self.X + "," + self.Y + "," + self.Z
 
-void Joy::update() {
-	// Refresh the hardware, get the values and scale appropriately
-	
-	// Refresh each axis
-	x.update();
-	y.update();
-	z.update();
-	button.update();
-	
-	// Set each axis to a value from -1 to 1
-	X = (x.getFloat()*2.0)-1.0;
-	Y = (y.getFloat()*2.0)-1.0;
-	Z = (z.getFloat()*2.0)-1.0;
-	
-	// If it's within 5% of the center, center the input
-	if (X >= -.05 && X <= .05) { X = 0; }
-	if (Y >= -.05 && Y <= .05) { Y = 0; }
-	if (Z >= -.05 && Z <= .05) { Z = 0; }
 
-	// If it's below 5%, set to minimum
-	if (X < -.95) { X = -1.0; }
-	if (Y < -.95) { Y = -1.0; }
-	if (Z < -.95) { Z = -1.0; }
+# #####################################
+# ########## Testing Methods ##########
+# #####################################
 
-	// If it's above 95%, set to maximum
-	if (X > .95) { X = 1.0; }
-	if (Y > .95) { Y = 1.0; }
-	if (Z > .95) { Z = 1.0; }
-	
-	// Detect if Joystick is centered
-	if (X == 0 && Y == 0 && Z == 0) {
-		center = true;
-	} else {
-		center = false;
-	}
-	
-	// If the button is pressed, reduce range
-	if (button.get() == 0) {
-		X = X / scale;
-		Y = Y / scale;
-		Z = Z / scale;
-	}
-}
 
-bool Joy::centered() {
-	return center;
-}
+def breakpoint():
+    """Python debug breakpoint."""
+    
+    from code import InteractiveConsole
+    from inspect import currentframe
+    try:
+        import readline # noqa
+    except ImportError:
+        pass
 
-// void Joy::print() {
-// 	// Print the name of the pin and the value
-// 	// Does not force a hardware refresh
-//
-// 	Serial.println(name + ":");
-// 	Serial.println("X: Raw: " + String(x.get()) + ", Raw: " + String(x.getFloat()) + ", Corrected " + String(X));
-// 	Serial.println("Y: Raw: " + String(y.get()) + ", Raw: " + String(y.getFloat()) + ", Corrected " + String(Y));
-// 	Serial.println("Z: Raw: " + String(z.get()) + ", Raw: " + String(z.getFloat()) + ", Corrected " + String(Z));
-// }
+    caller = currentframe().f_back
 
-// String Joy::toString() {
-// 	return String(X) + F(",") + String(Y) + F(",") + String(Z);
-// }
+    env = {}
+    env.update(caller.f_globals)
+    env.update(caller.f_locals)
+
+    shell = InteractiveConsole(env)
+    shell.interact(
+        '* Break: {} ::: Line {}\n'
+        '* Continue with Ctrl+D...'.format(
+            caller.f_code.co_filename, caller.f_lineno
+        )
+    )
+
+
+def main():
+    # a = arduino()
+    a = "arduino"
+    aI = analogIn(a, "Test", "token", 0x0D)
+    breakpoint()
+
+if __name__ == "__main__":    
+    try:
+        main()
+    except KeyboardInterrupt:
+        sys.exit(0)
+    except EOFError:
+        sys.exit(0)
+    # except:
+    #     sys.exit(0)

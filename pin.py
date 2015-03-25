@@ -1,64 +1,70 @@
 #!/usr/bin/python
 
+from abc import ABCMeta, abstractmethod
 from datetime import datetime
-from arduino import arduino
+from pprint import pprint
+# from arduino import arduino
 
 class pin(object):
-    """Base class for handling Arduino based I/O"""
+    __metaclass__ = ABCMeta
     
-    # Class Members
+    ## Core Class Members
     # name
     # api
     # pin
     # value
-    # __arduino
-    # __format
-    # __invert
-    # __cooldown
-    # __lastupdate
-    # __lastvalue
-
-    def __init__(self, arduino, name, api, pin, format="value", cooldown=500, invert=False):
+    # _arduino
+    # _format
+    # _invert
+    # _cooldown
+    # _lastupdate
+    # _lastvalue
+    
+    ## Optional Class Members
+    # _max
+    
+    def __init__(self, arduino, name, api, pin, options=None):
         """Initialize pin with parameters"""
+        # Set core attributes
+        self._arduino       =   arduino
         self.name           =   name
         self.api            =   api
         self.pin            =   pin
-        self.__format       =   format
-        self.__cooldown     =   cooldown
-        self.__invert       =   invert
-        self.__arduino      =   arduino
         
+        # Pre-set extra attributes
+        self._cooldown       =   500
+        self._invert         =   False
+        self._format         =   "value"
+        self._max           =   1024
+        
+        # Override defaults with passed values
+        if options:
+            for key in options:
+                setattr(self, "_" + key, options[key])
+        
+        # Initialize the hardware
         self.init()
         
+        # Set ephemeral values
         self.value          =   0
-        self.__lastvalue    =   0
-        self.__lastupdate   =   datetime.now()
+        self._lastvalue     =   0
+        self._lastupdate    =   datetime.now()
+        
+        # Run initial update
         self.update()
-
-
+        
+    @abstractmethod
     def init(self):
-        print "Unknown mode for base class."
-        
-        
-    def update(self):
-        # Check if cooldown has expired
-        delta = self.__lastupdate - datetime.now()
-        if (delta.total_seconds()*1000) > self.__cooldown:
-            return
-        
-        # Update counter
-        self.__lastupdate =   datetime.now()
-        
-        # Perform action described in individual class
-        self.act()
-        
-    def act(self):
-        print "No action defined for base class."
+        pass
 
+    @abstractmethod
+    def act(self, value=None):
+        pass
+        
     def get(self):
         self.update()
         return self.value
-    
+        
     def set(self, value):
     	if value == "1" or value == "True" or value == True:
             value = 1
@@ -67,10 +73,22 @@ class pin(object):
         
         self.value = value
         self.update()
+        
+    def update(self):
+        # Check if cooldown has expired
+        delta = self._lastupdate - datetime.now()
+        if (delta.total_seconds()*1000) > self._cooldown:
+            return
+        
+        # Update counter
+        self._lastupdate =   datetime.now()
+        
+        # Perform action described in individual class
+        self.act()
     
     def changed(self):
-    	changed = (self.__lastvalue != self.value);
-    	self.__lastvalue = self.value;
+    	changed = (self._lastvalue != self.value);
+    	self._lastvalue = self.value;
     	return changed
     
     def printout(self):
@@ -96,76 +114,68 @@ class pin(object):
         
         # Try to run the lambda/function specified by __format
         try:
-            func = getattr(modulename, self.__format)
+            func = getattr(modulename, self._format)
         except AttributeError:
-            print 'Format not found "%s" (%s)' % (self.__format, arg)
+            print 'Format not found "%s" (%s)' % (self._format, arg)
         else:
-            self.__format(self.value)
-          
-class analogIn(pin):
-    def __init__(self, arduino, name, api, pin, format="value", cooldown=500, invert=False):
-        super(analogIn, self).__init__(arduino, name, api, pin, format, cooldown, invert)
+            self._format(self.value)
+    
+class __input(pin):
+    __metaclass__ = ABCMeta
     
     def init(self):
+        # Tell Arduino to be input or output
         pass
     
-    def act(self):
-       self.read()
-    
-    def read(self):
-        self.value = self.__arduino.analogRead(self.pin)
-    
-    
-class analogOut(pin):
-    def __init__(self, arduino, name, api, pin, format="value", cooldown=500, invert=False):
-        super(analogOut, self).__init__(arduino, name, api, pin, format, cooldown, invert)
+    def act(self, value=None):
+        return self.read()
+
+class __output(pin):
+    __metaclass__ = ABCMeta
     
     def init(self):
-        self.__arduino.pinMode(self.pin, "OUTPUT")
-        
-    def act(self):
-        self.write()
-        
-    def write(self):
-        self.__arduino.analogWrite(self.pin, self.value)
-        
+        # Tell Arduino to be input or output
+        pass
     
-class digitalIn(pin):
-    def __init__(self, arduino, name, api, pin, format="value", cooldown=500, invert=False):
-        super(digitalIn, self).__init__(arduino, name, api, pin, format, cooldown, invert)
+    def act(self, value):
+        self.write(value)
+        
+class __analog():
+    __metaclass__ = ABCMeta
     
-    def init(self, pullup=True):
-        if pullup:
-            self.__arduino.pinMode(self.pin, "INPUT_PULLUP")
-        else:
-            self.__arduino.pinMode(self.pin, "INPUT")
+    def setMax(self, max):
+        self._max = max
     
-    def act(self):
-        self.read()
-       
     def read(self):
-        self.value = self.__arduino.digitalRead(self.pin)
-    
-    
-class digitalOut(pin):
-    def __init__(self, arduino, name, api, pin, format="value", cooldown=500, invert=False):
-        super(digitalOut, self).__init__(arduino, name, api, pin, format, cooldown, invert)
-    
-    def init(self):
-        self.__arduino.pinMode(self.pin, "OUTPUT")
+        return self._arduino.analogRead(self.pin)
         
-    def act(self):
-        self.write()
+    def write(self, value):
+        self._arduino.analogWrite(self.pin self.value)
+
+class __digital():
+    __metaclass__ = ABCMeta
+    
+    def read(self):
+        return self._arduino.digitalRead(self.pin)
         
-    def write(self):
-        self.__arduino.digitalWrite(self.pin, self.value)
+    def write(self, value):
+        self._arduino.digitalWrite(self.pin, self.value)
+        
+class analogIn(__analog, __input):
+    pass
     
+class analogOut(__analog, __output):
+    pass
     
+class digitalIn(__digital, __input):
+    pass
+    
+class digitalOut(__digital, __output):
+    pass
 
 # #####################################
 # ########## Testing Methods ##########
 # #####################################
-
 
 def breakpoint():
     """Python debug breakpoint."""
@@ -192,10 +202,9 @@ def breakpoint():
     )
 
 def main():
-    a = arduino()
-    #p = pin(a, "Test", "token", 0x0D, "truefalse")
-    #t = analogIn(a, "Throttle", "throttle", 0xA8, "value")
-    #l = digitalOut(a, "LED", "led", 0x0D, "value")
+    # a = arduino()
+    a = "arduino"
+    aI = analogIn(a, "Test", "token", 0x0D)
     breakpoint()
 
 if __name__ == "__main__":    
@@ -207,3 +216,4 @@ if __name__ == "__main__":
         sys.exit(0)
     # except:
     #     sys.exit(0)
+

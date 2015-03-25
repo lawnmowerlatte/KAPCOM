@@ -1,4 +1,5 @@
-#!/usr/bin/env python
+#!/usr/bin/python
+
 import platform
 import serial
 import time
@@ -11,8 +12,7 @@ elif platform.system() == 'Darwin':
 else:
     import glob
 
-debugger = 4
-
+debugger = 1
 def debug(message, level=debugger, newline=True):
     if level <= debugger:
         if newline:
@@ -20,39 +20,12 @@ def debug(message, level=debugger, newline=True):
         else:
             sys.stdout.write(message)
 
-def breakpoint():
-    """
-    Python debug breakpoint.
-    """
-    from code import InteractiveConsole
-    from inspect import currentframe
-    try:
-        import readline # noqa
-    except ImportError:
-        pass
+class arduino(object):
 
-    caller = currentframe().f_back
-
-    env = {}
-    env.update(caller.f_globals)
-    env.update(caller.f_locals)
-
-    shell = InteractiveConsole(env)
-    shell.interact(
-        '* Break: {} ::: Line {}\n'
-        '* Continue with Ctrl+D...'.format(
-            caller.f_code.co_filename, caller.f_lineno
-        )
-    )
-
-
-class Arduino(object):
-
-    def __init__(self, baud=250000, port=None, timeout=2, s=None):
+    def __init__(self, port=None, baud=250000, timeout=2, s=None):
         """Initializes serial communication with Arduino"""
         
         self.version = "KAPCOM v0.1"
-        
         
         if not s:
             if not port:
@@ -231,7 +204,7 @@ class Arduino(object):
         """Sends command to 24 LED bargraph"""
         
         if len(red) != 24 or len(green) != 24:
-            print "Unexpected data length while writing bargraph"
+            print("Unexpected data length while writing bargraph")
             return
         
         # Pre-populate data bytes with 01000000
@@ -281,38 +254,3 @@ class Arduino(object):
         if self.s.isOpen():
             self.s.flush()
             self.s.close()
-
-
-class KAPCOM(Arduino):
-    def __init__(self):
-        Arduino.__init__(self)
-
-
-
-a = Arduino(port="/dev/cu.usbmodem1421")
-breakpoint()
-
-import timeit
-s = time.time()
-for i in range(0,1000):
-    a.analogRead(0xA0)
-    a.analogRead(0xA1)
-    a.analogRead(0xA2)
-    a.analogRead(0xA4)
-    a.analogRead(0xA5)
-    a.analogRead(0xA6)
-    a.analogRead(0xA8)
-e = time.time()
-print e-s
-
-
-a.pinMode(13, "OUTPUT")
-
-
-while True:
-    print "ON"
-    a.digitalWrite(13, "HIGH")
-    time.sleep(1)
-    print "OFF"
-    a.digitalWrite(13, "LOW")
-    time.sleep(1)

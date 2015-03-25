@@ -1,57 +1,65 @@
 #! /usr/bin/python
 
 # This module allows programs to interface with Kerbal Space Program
-# This module interfaces with a connected Arduino via serial connection
-# and an API library for communication with Kerbal Space Program. This
-# has been initially written to use the Telemachus API library with the
-# Telemachus WebSocket API, but is designed to be modular enough that it
-# could be replaced in the future without needing to rewrite this library.
-
-debugger = 2
+# and a physical game controller based on Arduino hardware. The Arduino
+# and Kerbal Space Program interactions are handled in separate classes,
+# this module connects them and interfaces with various hardware driver
+# classes.
 
 import sys
 import socket
 import time
-import serial
-import os
-import linecache
-import math
 import pyksp
-import json
 import atexit
-import platform
-import glob
+from arduino import arduino
 
-sequence=0
-retransmits=0
-time_count=0
-time_sum=0
+cycles=0
+duration=0
 
+debugger = 6
 def debug(message, level=debugger, newline=True):
+    """Debugging log message"""
+    
     if level <= debugger:
         if newline:
             print(message) 
         else:
             sys.stdout.write(message)
 
-class arduino:
+def breakpoint():
+    """Python debug breakpoint."""
+    
+    from code import InteractiveConsole
+    from inspect import currentframe
+    try:
+        import readline # noqa
+    except ImportError:
+        pass
+
+    caller = currentframe().f_back
+
+    env = {}
+    env.update(caller.f_globals)
+    env.update(caller.f_locals)
+
+    shell = InteractiveConsole(env)
+    shell.interact(
+        '* Break: {} ::: Line {}\n'
+        '* Continue with Ctrl+D...'.format(
+            caller.f_code.co_filename, caller.f_lineno
+        )
+    )
+    
+class kapcom(object):
     """Creates an interface between the Arduino serial connection and Telemachus library."""
     
     # Use these for simulation and debugging
     # This overrides the serial port with input from the interactive shell
     interactive = False
-    ## This overrides the Telemachus port with static simulated input
+    # This overrides the Telemachus port with static simulated input
     headless = True
     
     buffer = ""
-    
-    # Specify either a specific port or list of ports to prefer to connect to
-    # If neither are set, the script will try to detect your serial port
-    
-    # port = "/dev/tty.usbmodem1411"
-    port = None
-    ports = [ "/dev/tty.usbmodem1411", "/dev/tty.usbmodem1421" ]
-    #ports  = None
     
     subscriptions = {
         "pause_state",
@@ -78,11 +86,13 @@ class arduino:
         "action_group_brake"
     }
     
-    def __init__(self, port=None, baud=115200):
-        """Takes an API object, serial port and baudrate and creates a new Arduino object."""
-        if port is not None:
-            self.port = port
+    def __init__(self, port=None, baud=250000, host="127.0.0.1", sock=8085):
+        """Takes serial port, baudrate and socket information and creates the KAPCOM object."""
+        
+        self.port = port
         self.baud = baud
+        self.host = host
+        self.sock = sock
         
         if not self.headless:
             self.vessel = pyksp.ActiveVessel()
@@ -91,207 +101,76 @@ class arduino:
         else:
             debug("Using dummy telemetry", 3)
             
-        if not self.interactive:
-            if self.port is None:
-                if self.ports is None:
-                    self.ports = self.listSerial()
-                
-                self.ports = self.trySerial(self.ports)
-                
-                if len(self.ports) is 0:
-                    debug("No serial ports found.")
-                    raw_input("Press [Enter] to retry.\n")
-                    main()
-                
-                if len(self.ports) is 1:
-                    self.port = self.ports[0]
-                else:
-                    for index, port in enumerate(self.ports):
-                        debug(str(index) + ": " + port)
-                    index = raw_input("Press [#] to connect: ")
-                    self.port = self.ports[int(index)]
-
-            try:
-                self.serial.close()
-            except:
-                pass
-                
-            if not self.openSerial(self.port, self.baud):
-                debug("Unable to connect to specified port.")
-                raw_input("Press [Enter] to retry.\n")
-                main()
-            
-        else:
-            debug("Using shell input", 3)
     
-    # Serial manipulation methods
-    def openSerial(self, port, baud):
-        try:
-            self.serial = serial.Serial(
-                port,
-                baud,
-                timeout=.1)
-            return True
-        except serial.SerialException:
-            debug("Port " + port + " in use.")
-            raw_input("Press [Enter] to retry.\n")
-            return openSerial(port, baud)
-        except:
-            return False
-    
-    def listSerial(self):
-        sys = platform.system()
-        available = []
+    # Initialization and Readiness methods
+    def start(self):
+        """Attempt to connect to Arduino and Telemachus"""
         
-        if sys == "Windows":
-            # Scan for available ports.
-            
-            for i in range(256):
-                try:
-                    s = serial.Serial(i)
-                    available.append(i)
-                    s.close()
-                except serial.SerialException:
-                    pass
-        elif sys == "Darwin":
-            # Mac
-            available = glob.glob('/dev/tty.*') + glob.glob('/dev/cu.*')
-        else:
-            # Assume Linux or something else
-            available = glob.glob('/dev/ttyS*') + glob.glob('/dev/ttyUSB*')
+        def hold(message):
+            debug("We have a hold for launch.", 1)
+            debug(message, 2)
+        def wait():
+            debug(".", 3, False)
+            time.sleep(1)
         
-        return available
-    
-    def trySerial(self, available):
-        for port in available:
-            if not self.openSerial(port, self.baud):
-                available.remove(port)
-        
-        return available
-        
-    
-    def readSerial(self, retry=False):
-        """Read a line from serial"""
-        if self.interactive:
-            line = raw_input("> ")
-        else:
-            line = ""
-            
-            if retry:
-                while not line:
-                    line = self.serial.readline()
-        
-                    if line is "":
-                        self.serial.write("{}\n")
-                        print "Poking..."
-            else:
-                try:
-                    line = self.serial.readline()
-                except serial.SerialException:
-                    debug("Lost connection to device.")
-                    exit(1)
-              
-        print ">> '" + line + "'"
-        return line
-    
-    def writeSerial(self, line):
-        """Write a line to serial"""
-        print "<< '" + line + "'"
-        
-        if self.interactive:
-            print "< " + line
-        else:
-            try:
-                self.serial.write(line + "\n")
-            except serial.SerialException:
-                debug("Lost connection to device.")
-                exit(1)
-    
-    def pressKey(self, key):
-        """Press a key"""
-        keyCommand = "osascript -e 'tell application \"Kerbal Space Program\" to keystroke \""+key+"\"'"
-        os.system(keyCommand)
-    
-    # Init and Readiness methods
-    def init(self):
         debug("Telemetry...", 2, False)
         if not self.headless:
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            r = s.connect_ex(("127.0.0.1", 8085))
+            r = s.connect_ex((self.host, self.sock))
             if r == 0:
                 self.vessel.start()
                 time.sleep(1)
             else:
                 self.hold("Unable to connect to telemetry")
                 return False
-        self.timer(10)
-        while not self.ready():
-            i = self.tick()
-            if i is False:
-                self.hold("Timeout while waiting for telemetry.")
-                return False
-            else:
-                debug(".", 3, False)
-        debug("Go", 2)
-        
-        debug("Arduino...", 2, False)
-        self.timer(5)
-        self.writeSerial("RESTART")
-        while not self.interactive and "ONLINE" not in self.readSerial(False):
-            i = self.tick()
-            if i is False:
-                self.hold("Timeout while waiting for Arduino.")
-                return False
-            else:
-                debug(".", 3, False)
-        debug("Go", 2)
-        
-        debug("Calibration...", 2, False)
-        self.timer(10)
-        while not self.interactive and "CALIBRATING" not in self.readSerial(False):
-            i = self.tick()
-            if i is False:
-                self.hold("Timeout while calibrating.")
-                return False
-            else:
-                debug(".", 3, False)
-        debug("Go", 2)
+        for i in range(1, 20):
+            if self.ready():
+                debug("Go", 2)
+                break
+            wait()
+        else:
+            self.hold("Timeout while waiting for telemetry.")
+            return False
         
         debug("Fly by wire...", 2, False)
-        self.timer(5)
-        while not self.interactive and "READY" not in self.readSerial(False):
-            i = self.tick()
-            if i is False:
-                self.hold("Timeout while connecting to inputs.")
-                return False
+        for i in range(1, 20):
+            try:
+                self.arduino = arduino(self.port, self.baud)
+            except:
+                wait()
             else:
-                debug(".", 3, False)
-        debug("Go", 2)
+                debug("Go", 2)
+                break
+        else:
+            self.hold("Timeout while waiting for telemetry.")
+            return False
+        
+        debug("Configuration...", 2, False)
+        try:
+            # Parse configuration
+            pass
+        except:
+            self.hold("Failed to read configuration file.")
+            return False
+        try:
+            # Create objects
+            debug("Go", 2)
+        except:
+            self.hold("Failed to create data models.")
+            return False
         
         debug("All stations are go.", 1) 
         return True
-    
-    def timer(self, i):
-        self.i = i
-    
-    def tick(self):
-        if self.i > 0:
-            self.i -= 1
-            time.sleep(1)
-            return True
-        else:
-            return False
-    
-    def hold(self, message):
-        debug("We have a hold for launch.", 1)
-        debug(message, 2)
+        
     
     def ready(self):
+        """Attempt to connect to Telemachus."""
+        
         connectionState = False
         
         if not self.headless:
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            r = s.connect_ex(("127.0.0.1", 8085))
+            r = s.connect_ex((self.host, self.sock))
             if r == 0:
                 connectionState = self.vessel.test_connection()
                 debug("Connection state: " + str(connectionState), 5)
@@ -301,6 +180,7 @@ class arduino:
         return connectionState
 
     def do(self):
+        """Act based on the game state."""
         if not self.headless and self.ready():
             state = self.vessel.get("pause_state")
             debug("Telemachus state: " + str(state), 5)
@@ -324,202 +204,74 @@ class arduino:
     
     # Game state methods
     def online(self):
-        global sequence
-        global retransmits
-        global time_count
-        global time_sum
+        """Update game and hardware."""
+        global cycles
+        global duration
         
-        sequence+=1
+        start       = time.time()
         
-        t0 = time.time()
+        # Iterate over lists to sync hardware and software
+        # Do the interesting stuff here
         
-        json = self.readOutput()
-        self.sendOutput(json)
-        
-        data = ""
-        while data is "":
-            data = self.readInput()
-            
-            if data is "":
-                self.sendOutput("{}")
-                retransmits+=1
+        end         = time.time()
+        d           = end - start
+        duration    = ((duration * cycles) + d)/(cycles+1)
+        cycles      += 1
+         
 
-        self.sendInput(data)
-        
-        t = time.time() - t0
-        time_count+=1
-        time_sum+=t
-        debug("%-2f" % t, 5)
-
-    def unpowered(self):
-        print "Antenna is unpowered"
-        while self.vessel.get("pause_state") == 2:
-            time.sleep(1)
-        
-    def missing(self):
-        print "No antenna found"
-        while self.vessel.get("pause_state") == 4:
-            time.sleep(1)
-        
-    def off(self):
-        print "Antenna is off"
-        while self.vessel.get("pause_state") == 3:
-            time.sleep(1)
-        
     def paused(self):
         print "Paused"
         while self.vessel.get("pause_state") == 1:
             time.sleep(1)
         print "Unpaused"
 
+    def unpowered(self):
+        print "Antenna is unpowered"
+        while self.vessel.get("pause_state") == 2:
+            time.sleep(1)
+    
+    def off(self):
+        print "Antenna is off"
+        while self.vessel.get("pause_state") == 3:
+            time.sleep(1)
+        
+    def missing(self):
+        print "No antenna found"
+        while self.vessel.get("pause_state") == 4:
+            time.sleep(1)
+       
     def menu(self):
         print "Waiting for vessel"
         while self.vessel.get("pause_state") == None:
             time.sleep(1)
         print "Vessel ready for connection"
         
-    # Data processing methods
-    def readOutput(self):
-        """Read Telemachus telemetry"""
-        debug("Read telemetry", 4)
-        
-        json = self.toJSON()
-        return json
-    
-    def toJSON(self):
-        """Return JSON string of the output"""
-        debug("Generate JSON", 4)
-        
-        if self.headless:
-            jdata=json.dumps({
-                    "vessel_altitude": 8549.71202316096,
-                    "vessel_apoapsis": 9478.33655130339,
-                    "vessel_periapsis": 4127.25709812508,
-                    "vessel_velocity": 158.384706582312,
-                    "vessel_inclination": 0.201299374925592,
-                
-                    "resource_lf_current": -1,
-                    "resource_lf_max": -1,
-                    "resource_mp_current": 253.60484143293,
-                    "resource_mp_max": 275,
-                    "resource_ox_current": -1,
-                    "resource_ox_max": -1,
-                    "resource_ec_current": 49.9994867002824,
-                    "resource_ec_max": 50,
-        
-                    "sas_status": "True",
-                    "rcs_status": "False",
-                    "action_group_light": "False",
-                    "action_group_gear": "False",
-                    "action_group_brake": "False"
-                })
-        else:
-            jdata=json.dumps({
-                    "vessel_altitude": self.vessel.get("vessel_altitude"),
-                    "vessel_apoapsis": self.vessel.get("vessel_apoapsis"),
-                    "vessel_periapsis": self.vessel.get("vessel_periapsis"),
-                    "vessel_velocity": self.vessel.get("vessel_velocity"),
-                    "vessel_inclination": self.vessel.get("vessel_inclination"),
-                    
-                    "resource_lf_current": self.vessel.get("resource_ox_current"),
-                    "resource_lf_max": self.vessel.get("resource_ox_max"),
-                    "resource_mp_current": self.vessel.get("resource_mp_current"),
-                    "resource_mp_max": self.vessel.get("resource_mp_max"),
-                    "resource_ox_current": self.vessel.get("resource_ox_current"),
-                    "resource_ox_max": self.vessel.get("resource_ox_max"),
-                    "resource_ec_current": self.vessel.get("resource_ec_current"),
-                    "resource_ec_max": self.vessel.get("resource_ec_max"),
-                    
-                    "sas_status": self.vessel.get("sas_status"),
-                    "rcs_status": self.vessel.get("rcs_status"),
-                    "action_group_light": self.vessel.get("action_group_light"),
-                    "action_group_gear": self.vessel.get("action_group_gear"),
-                    "action_group_brake": self.vessel.get("action_group_brake")
-                })
-        
-        return jdata
-    
-    def sendOutput(self, json):
-        """Send JSON data to Arduino"""
-        debug("Send output", 4)
-        
-        if json:
-            debug(json, 5)
-            self.writeSerial(json)
-        else:
-            debug("< No JSON data to send", 1)
-    
-    def readInput(self):
-        """Poll Arduino for line of input containing JSON data"""
-        debug("Read input", 4)
-        json = self.readSerial()
-        debug(json, 5)
-        return json
-    
-    def fromJSON(self, jdata):
-        """Parse JSON input from Arduino"""
-        debug("Parse JSON", 4)
-        
-        try:
-            data = json.loads(jdata)
-            return data
-        except:
-            debug("No JSON data found in string: " + str(jdata))
-            return json.loads("{}")
-        
-    
-    def sendInput(self, json):
-        """Send Telemachus commands based on input"""
-        debug("Parse JSON", 4)
-        data = self.fromJSON(json)
-        
-        if data:
-            debug(data, 2)
-        
-        debug("Send fly-by-wire", 4)
-        try:
-            for key, value in data.items():
-                if value == "None":
-                    value = None;
-                    
-                if key[:3] == "KEY":
-                    if not self.headless:
-                        self.pressKey(value)
-                    else:
-                        print "KEY: " + value
-                else:
-                    if not self.headless:
-                        self.vessel.run_command(key, value)
-        except AttributeError:
-            debug("No data in string.")
-
 def main():
-    a = arduino()
+    """Create KAPCOM object, initialize and run."""
+    k = kapcom()
     
-    while a.init() == False:
+    while k.start() == False:
         time.sleep(10)
         debug("Restarting countdown.", 1)
     
     debug("\nWaiting for input:", 2)
     while 1:
-        a.do()
+        k.do()
 
 @atexit.register
 def stats():
-    global sequence
-    global retransmits
+    """Calculate statistics based on duration of updates."""
+    global duration
+    global cycles
     
     print ""
     print ""
     print "=======[ Stats ]======="
-    print "Updates:       %s" % sequence
-    print "Retransmits:   %s" % retransmits
-    if sequence > 0:
-        print "Percentage:    %.2f%%" % (float(retransmits)*100/sequence)
-    if time_count > 0 and time_sum > 0:
-        print ""
-        print "Rate:          %.2fms" % (float(time_sum)*1000/time_count)
-        print "Frequency:     %.2fHz" % (1/(float(time_sum)/time_count))
+    print "Cycles:        %s"       % cycles
+    
+    if cycles > 0:
+        print "Rate:          %.2fms"   % (float(duration)*1000)
+        print "Frequency:     %.2fHz"   % (1/float(duration))
 
 if __name__ == "__main__":    
     try:

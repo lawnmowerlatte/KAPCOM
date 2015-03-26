@@ -12,7 +12,7 @@ elif platform.system() == 'Darwin':
 else:
     import glob
 
-debugger = 1
+debugger = 2
 def debug(message, level=debugger, newline=True):
     if level <= debugger:
         if newline:
@@ -21,23 +21,32 @@ def debug(message, level=debugger, newline=True):
             sys.stdout.write(message)
 
 class arduino(object):
-
-    def __init__(self, port=None, baud=250000, timeout=2, s=None):
+    def __init__(self, port=None, baud=115200, timeout=2, s=None):
         """Initializes serial communication with Arduino"""
         
+        self.connected = False
         self.version = "KAPCOM v0.1"
         
         if not s:
             if not port:
-                s = self.find_port(baud, timeout)
-                if not s:
-                    raise ValueError("Could not find port.")
+                # No port specified, search for a port
+                self.s = self.find_port(baud, timeout)
             else:
-                s = serial.Serial(port, baud, timeout=timeout)
+                # Try to connect to the specified port
+                try:
+                    self.s = serial.Serial(port, baud, timeout=timeout)
+                except (serial.serialutil.SerialException, OSError) as e:
+                    debug("Specified port is not found.", 4)
+                    self.s = None
                 
-        s.flush()
-        self.s = s
-
+            if not self.s:
+                debug("Using interactive mode.", 2)
+            else:
+                self.s.flush()
+        else:
+            self.s = s
+                
+                
     def find_port(self, baud, timeout):
         """Find the first port that is connected to an arduino with a compatible sketch installed."""
     
@@ -64,10 +73,10 @@ class arduino(object):
             
             # Check if the connected device is compatible
             v = self.getVersion(s)
-
+            
             # If not correct, continue search
             if v != self.version:
-                debug('Bad version {0}. This is not a KAPCOM/Arduino!'.format(v), 4)
+                debug('Bad version "{0}". This is not a KAPCOM/Arduino!'.format(v), 4)
                 s.close()
                 continue
                 
@@ -108,13 +117,17 @@ class arduino(object):
             
             if data:
                 # Concatenate whatever data is sent
-                command=command+data
+                command=command+str(data)
 
         return command
 
 
     def write(self, string, serial=None):
         """Write the string to serial"""
+
+        if not serial and not self.s:
+            print("<< " + string)
+            return
         
         debug(string, 5)
         
@@ -130,6 +143,11 @@ class arduino(object):
     
     def read(self, string, serial=None):
         """Write the string to serial and return the response"""
+        
+        if not serial and not self.s:
+            print("<< " + string)
+            return raw_input(">> ")
+            return
         
         debug(string, 5)
         
@@ -154,9 +172,9 @@ class arduino(object):
     def digitalWrite(self, pin, value):
         """Sends digitalWrite command to digital pin on Arduino"""
         
-        if value.upper() == "LOW" or value.upper() == "OFF":
+        if value == 0 or str(value).upper() == "LOW" or str(value).upper() == "OFF":
             value=0
-        elif value.upper() == "HIGH" or value.upper() == "ON":
+        elif value == 1 or str(value).upper() == "HIGH" or str(value).upper() == "ON":
             value=1
         else:
             debug("Unexpected value in digitalWrite: " + value)
@@ -245,6 +263,8 @@ class arduino(object):
             data = "2"
         else:
             data="{0}".format(value)
+        
+        print "Pin " + str(pin) + " = " + value + " (" + data + ")"
         
         self.write(self.command("m", pin, data))
 

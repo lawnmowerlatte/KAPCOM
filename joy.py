@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-from pin import pin
+from pin import *
 from arduino import arduino
 
 class joy(object):
@@ -50,20 +50,24 @@ class joy(object):
         self.Y              =   0
         self.Z              =   0
         
+        # Run initial update
+        self.update()
+        
     def update(self):
         def deadzones(value):
+            print value
             if value >= -.05 and value <= .05:
                 return 0
             if value < -.95:
                 return -1
-            if value > .95
+            if value > .95:
                 return 1
             return value
         
         # Get floating point values of all axes
-        self.X = (x.getFloat()*2.0)-1.0
-        self.Y = (y.getFloat()*2.0)-1.0
-        self.Z = (z.getFloat()*2.0)-1.0
+        self.X = (self.x.getFloat()*2.0)-1.0
+        self.Y = (self.y.getFloat()*2.0)-1.0
+        self.Z = (self.z.getFloat()*2.0)-1.0
         
         # Check for deadzones
         self.X = deadzones(self.X)
@@ -71,27 +75,28 @@ class joy(object):
         self.Z = deadzones(self.Z)
         
         # Check for center
-        if X = 0 and Y = 0 and Z = 0:
+        if self.X == 0 and self.Y == 0 and self.Z == 0:
             self.centered = True
-        else
+        else:
             self.centered = False
             
-        if self.button.get() is 1:
+        if self.button.get() is 0:
             self.X /= self.scale
             self.Y /= self.scale
             self.Z /= self.scale
    
-   def centered(self):
-       return self.center
+    def centered(self):
+        return self.center
 
-   def printout(self):
-       self.x.printout()
-       self.y.printout()
-       self.z.printout()
-       self.button.printout()
+    def printout(self):
+        print self.name + ": " + self.toString()
+        self.x.printout()
+        self.y.printout()
+        self.z.printout()
+        self.button.printout()
 
-   def toString(self):
-       return self.X + "," + self.Y + "," + self.Z
+    def toString(self):
+        return str(self.X) + "," + str(self.Y) + "," + str(self.Z)
 
 
 # #####################################
@@ -125,9 +130,19 @@ def breakpoint():
 
 
 def main():
-    # a = arduino()
-    a = "arduino"
-    aI = analogIn(a, "Test", "token", 0x0D)
+    a = arduino()
+    
+    j0 = joy(a, "J0", 0xA0, 0xA1, 0xA2, 0xA3)
+    j1 = joy(a, "J0", 0xA4, 0xA5, 0xA6, 0xA7)
+    
+    import time
+    while True:
+        j0.update()
+        j1.update()
+        print j0.toString() + "," + j1.toString()
+        time.sleep(1)
+    
+    
     breakpoint()
 
 if __name__ == "__main__":    

@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-from pin import pin
+from pin import *
 from arduino import arduino
 
 class mod(object):
@@ -23,10 +23,13 @@ class mod(object):
             for key in options:
                 setattr(self, "_" + key, options[key])
         
-        self.update()
+        # Set ephemeral values
         self.value          =   0
-        # Not sure if I need this...
-        self._lastvalue     =   self.value
+        self._lastvalue     =   0
+        self._lastupdate    =   datetime.now()
+        
+        # Run initial update
+        self.update()
         
     def get(self):
         self.update()
@@ -60,10 +63,10 @@ class mod(object):
         isLocked = self.mod.get()
         self.indicator.set(isLocked)
         
-        if isLocked is 0:
+        if int(isLocked) is 0:
             self.value = 0
         else:
-            self.value = button.get()
+            self.value = self.button.get()
         
     def changed(self):
         isUpdated = self._lastvalue != self.value
@@ -108,9 +111,21 @@ def breakpoint():
 
 
 def main():
-    # a = arduino()
-    a = "arduino"
-    aI = analogIn(a, "Test", "token", 0x0D)
+    a = arduino()
+    
+    abort = mod(a, "Abort", "abort", 0xA9, 0xAB, 0xAA)
+    stage = mod(a, "Stage", "stage", 0xAC, 0xAE, 0xAD)
+    
+    import time
+    
+    while False:
+        abort.update()
+        stage.update()
+        abort.printout()
+        abort.printout()
+        
+        time.sleep(1)
+    
     breakpoint()
 
 if __name__ == "__main__":    

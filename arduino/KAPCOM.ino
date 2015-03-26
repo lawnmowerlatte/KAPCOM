@@ -6,6 +6,10 @@
 // Global Serial Reading
 String readLine;
 String nextLine;
+String subscriptions;
+int analogOffset = A0;
+
+String v = "KAPCOM v0.1";
 
 int DIN=7;
 int CLK=6;
@@ -17,12 +21,20 @@ const int BARGRAPH_COUNT=5;
 Adafruit_24bargraph bargraphs[BARGRAPH_COUNT];
 
 void digitalReader(int pin) {
+  if (pin > 160) {
+    pin = pin - 160 + analogOffset;
+  }
+  
   Serial.println(digitalRead(pin));
 }
 
-void digitalWriter(int pin, byte data) {
-  if (data <= 1) {
-    digitalWrite(pin, data);
+void digitalWriter(int pin, String data) {
+  if (pin > 160) {
+    pin = pin - 160 + analogOffset;
+  }
+  
+  if (data.toInt() <= 1) {
+    digitalWrite(pin, data.toInt());
   } else {
     Serial.println("Bad data for digital write: " + data);
   }
@@ -32,8 +44,49 @@ void analogReader(int pin) {
   Serial.println(analogRead(pin));
 }
 
-void analogWriter(int pin, byte data) {
-  analogWrite(pin, data);
+void analogWriter(int pin, String data) {
+  analogWrite(pin, data.toInt());
+}
+
+void subscribe(String pins) {
+  subscriptions = pins;
+  
+  for (int i=0; i<subscriptions.length(); i++) {
+    subscriptions[i] -= 32;
+  }
+}
+
+void sendSubscription() {
+  char message[subscriptions.length()];
+  
+  for (int i=0; i<subscriptions.length(); i++) {
+    int id = subscriptions[i];
+    int v = 0;
+    byte b = 0;
+    
+    if (id < 160) {
+      v = digitalRead(id);
+      if (v == 1) {
+        v = '1';
+      } else {
+        v = '0';
+      }
+    } else {
+      id -= 160;
+      v = analogRead(id);
+      v = v/4;
+    }
+    
+    if (v > 255) {
+      v = 255;
+    }
+    
+    b = v;
+    message[i]=(char) b;
+    
+    Serial.print(message[i]);
+  }
+  Serial.println();
 }
 
 void displayWriter(int device, String data) {
@@ -85,8 +138,12 @@ void bargraphWriter(int device, String data) {
   bargraphs[device].writeDisplay();
 }
 
-void pinModify(int pin, byte data){
-  switch (data) {
+void pinModify(int pin, String data) {
+  if (pin > 160) {
+    pin = pin - 160 + analogOffset;
+  }
+  
+  switch (data.toInt()) {
     case 0:
       pinMode(pin, OUTPUT);
       break;
@@ -101,13 +158,17 @@ void pinModify(int pin, byte data){
   }
 }
 
+void getVersion() {
+  Serial.println(v);
+}
+
 void(* reset) (void) = 0;
 
 void serialEvent() {
   while (Serial.available()) {
     char c = (char)Serial.read();
 
-    if (c == 255) {
+    if (c == 10) {
       readLine = nextLine;
       nextLine = "";
       if (readLine == F("RESTART")) {
@@ -124,33 +185,43 @@ void serialEvent() {
 void command(String read_) {
   // Retrieve components 
   char cmd = read_[0];
-  int id = read_[1] - 32;
+  byte id = read_[1] - 32;
   String data = read_.substring(2);
   
-  Serial.println(cmd + " : " + String(id) + " : " + data);
+  //Serial.println(String(cmd) + " : " + String(id) + " : " + data);
   
   // Switch based on command
   switch (cmd) {
     case 'm':
-      pinModify(id, data[0]);
+      pinModify(id, data);
       break;
     case 'd':
-      digitalWriter(id, data[0]);
+      digitalWriter(id, data);
       break;
     case 'D':
       digitalReader(id);
       break;
     case 'a':
-      analogWriter(id, data[0]); 
+      analogWriter(id, data); 
       break;
     case 'A':
       analogReader(id);
+      break;
+    case 's':
+      subscribe(data);
+      break;
+    case 'S':
+      sendSubscription();
       break;
     case '7':
       displayWriter(id, data);
       break;
     case 'b':
       bargraphWriter(id, data);
+      break;
+    case 'v':
+      getVersion();
+      break;
     default:
       Serial.println("Unknown command: " + cmd);
   }
@@ -158,8 +229,6 @@ void command(String read_) {
 
 void setup()  {
   Serial.begin(115200);
-  
-  Serial.println("ONLINE");
   
   // Initialize the bargraphs
   for (int i=0; i<BARGRAPH_COUNT; i++) {
@@ -170,7 +239,7 @@ void setup()  {
 
 void loop() {
   if (readLine !="") {
-    Serial.println(readLine);
+    // Serial.println(readLine);
     command(readLine);
     readLine = "";
   }

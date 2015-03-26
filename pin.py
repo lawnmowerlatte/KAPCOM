@@ -34,7 +34,7 @@ class pin(object):
         self._cooldown       =   500
         self._invert         =   False
         self._format         =   "value"
-        self._max           =   1024
+        self._max            =   1024
         
         # Override defaults with passed values
         if options:
@@ -73,7 +73,7 @@ class pin(object):
         self.value = value
         self.update()
         
-    def update(self):
+    def update(self, value=None):
         # Check if cooldown has expired
         delta = self._lastupdate - datetime.now()
         if (delta.total_seconds()*1000) > self._cooldown:
@@ -83,7 +83,7 @@ class pin(object):
         self._lastupdate =   datetime.now()
         
         # Perform action described in individual class
-        self.act()
+        self.act(value)
     
     def changed(self):
     	changed = (self._lastvalue != self.value);
@@ -113,18 +113,16 @@ class pin(object):
         
         # Try to run the lambda/function specified by __format
         try:
-            func = getattr(modulename, self._format)
-        except AttributeError:
-            print 'Format not found "%s" (%s)' % (self._format, arg)
-        else:
             self._format(self.value)
+        except AttributeError:
+            print 'Format not found "%s"' % (self._format)
+            
     
 class __input(pin):
     __metaclass__ = ABCMeta
     
     def init(self):
-        # Tell Arduino to be input or output
-        pass
+        self._arduino.pinMode(self.pin, "INPUT_PULLUP")
     
     def act(self, value=None):
         return self.read()
@@ -133,7 +131,7 @@ class __output(pin):
     __metaclass__ = ABCMeta
     
     def init(self):
-        # Tell Arduino to be input or output
+        self._arduino.pinMode(self.pin, "OUTPUT")
         pass
     
     def act(self, value):
@@ -147,22 +145,28 @@ class __analog():
         
     def getFloat(self):
         self.update()
-        return (self.value/self.max)
+        return (float(self.value)/self._max)
     
     def read(self):
-        return self._arduino.analogRead(self.pin)
+        self.value = int(self._arduino.analogRead(self.pin))
+        return self.value
         
     def write(self, value):
-        self._arduino.analogWrite(self.pin self.value)
+        if value:
+            self.value = int(value)
+            self._arduino.analogWrite(self.pin, self.value)
 
 class __digital():
     __metaclass__ = ABCMeta
     
     def read(self):
-        return self._arduino.digitalRead(self.pin)
+        self.value = int(self._arduino.digitalRead(self.pin))
+        return self.value
         
     def write(self, value):
-        self._arduino.digitalWrite(self.pin, self.value)
+        if value:
+            self.value = int(value)
+            self._arduino.digitalWrite(self.pin, self.value)
         
 class analogIn(__analog, __input):
     pass
@@ -205,9 +209,13 @@ def breakpoint():
     )
 
 def main():
-    # a = arduino()
-    a = "arduino"
-    aI = analogIn(a, "Test", "token", 0x0D)
+    a = arduino()
+    #a = arduino("/dev/cu.usbmodem1411")
+    aI = analogIn(a, "Throttle", "throttle", 0xA8)
+    aO = analogOut(a, "Dimmer", "dimmer", 0x08)
+    dI = digitalIn(a, "SAS", "sas", 0x0A)
+    dO = digitalOut(a, "SAS Status", "sas_status", 0x0B)
+    
     breakpoint()
 
 if __name__ == "__main__":    

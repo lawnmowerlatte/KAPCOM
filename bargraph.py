@@ -1,85 +1,165 @@
-#define OFF 0
-#define RED 1
-#define YELLOW 2
-#define GREEN 3
+#!/usr/bin/python
 
-#include <bargraph.h>
+from arduino import arduino
+from termcolor import colored
 
-#if (ARDUINO >= 100)
-#include <Arduino.h>
-#else
-#include <WProgram.h>
-#endif
+class bargraph(object):
+    
+    def __init__(self, arduino, name, api, device, options=None):
+        """Initialize pin with parameters"""
+        # Set core attributes
+        self._arduino       =   arduino
+        self.name           =   name
+        self.api            =   api
+        self.device         =   device
+        
+        # Pre-set extra attributes
+        self._type          =   "default"
+        self._max           =   100
+        
+        # Override defaults with passed values
+        if options:
+            for key in options:
+                setattr(self, "_" + key, options[key])
+        
+        # Set ephemeral values
+        self.value        =   0
+        self.red          = [ False, False, False, False, False, False,
+                              False, False, False, False, False, False,
+                              False, False, False, False, False, False,
+                              False, False, False, False, False, False, ]
+        self.green        = [ False, False, False, False, False, False,
+                              False, False, False, False, False, False,
+                              False, False, False, False, False, False,
+                              False, False, False, False, False, False, ]
+        
+        # Run initial update
+        self.update()
+        
+    def set(self, value):
+        self.value = value
+        self.update()
+        
+    def setMax(self, newMax):
+        self._max = newMax
 
-// =================================
-//	Constructors and Destructors
-// =================================
+    def update(self):
+        self.format()
+        self.write()
+        
+    def printout(self):
+        print "Bargraph " + self.name + " (Type = " + self._type + ")"
+        print self.toString()
+        
+    def toString(self):
+        color   = "black"
+        bar     = "["
+        char    = "|"
+        
+        for i in range(0, 23):
+            if self.red[i] and self.green[i]:
+                char    =   colored(char, "yellow")
+            elif self.red[i]:
+                char    =   colored(char, "red")
+            elif self.green[i]:
+                char    =   colored(char, "green")
+            else:
+                char    =   " "
+            
+            bar+=char
+        
+        bar += "]"
+        return  bar
+        
+    def format(self):
+        def clear():
+            for i in range(0, 23):
+                self.red[i]     =   False
+                self.green[i]   =   False
+        
+        def default():
+            percent = float(self.value) * 100 / self._max;
+            
+            for i in range(0, min(23, int(23*percent/100))):
+                if percent > 50:
+                    self.green[i]   =   True
+                elif percent > 20:
+                    self.green[i]   =   True
+                    self.red[i]     =   True
+                if percent < 20:
+                    self.green[i]   =   False
+                    self.red[i]     =   True
+        
+        clear()
+        function = locals().get(self._type)
+        if not function:
+            debug("Unknown type: " + self._type)
+        function()
+        
+        
+            
+            
+    def write(self):
+        self._arduino.bargraphWrite(self.device, self.red, self.green)
 
-Bargraph::Bargraph(String _name, String _api, int _device, String _type) : bar() {
-	name		= _name;
-	api			= _api;
-	device		= _device;
-	type		= _type;
-	value		= 0;
-	
-	for (int i=0; i<24; i++) {
-		display[i] = OFF;
-	}
-	
-	bar.begin(0x70+device);
-}
 
-// ===================
-//	Public Methods
-// ===================
+# #####################################
+# ########## Testing Methods ##########
+# #####################################
 
-void Bargraph::set(String _value) {
-	value = _value.toInt();
-	
-	format();
-	update();
-}
 
-void Bargraph::setMax(String _max) {
-	max = _max.toInt();
-}
+def breakpoint():
+    """Python debug breakpoint."""
+    
+    from code import InteractiveConsole
+    from inspect import currentframe
+    try:
+        import readline # noqa
+    except ImportError:
+        pass
 
-void Bargraph::update() {
-	write();
-}
+    caller = currentframe().f_back
 
-// void Bargraph::print() {
-// 	Serial.println(name + ":");
-// 	Serial.println("Value: " + String(value) + ", Type: " + type);
-// }
+    env = {}
+    env.update(caller.f_globals)
+    env.update(caller.f_locals)
 
-// ====================
-//	Private Methods
-// ====================
+    shell = InteractiveConsole(env)
+    shell.interact(
+        '* Break: {} ::: Line {}\n'
+        '* Continue with Ctrl+D...'.format(
+            caller.f_code.co_filename, caller.f_lineno
+        )
+    )
 
-void Bargraph::format() {
-	for (int i=0; i<24; i++) {
-		bar.setBar(i, 0);
-	}
-	
-	if (type == F("Default")) {
-		float percent = (value * 100.0) / max;
-		int color = 0;
-		
-		if (percent > 50)					{	color = GREEN;	}
-		if (percent <= 50 && percent > 20)	{	color = YELLOW;	}
-		if (percent <= 20 && percent > 0)	{	color = RED;	}
-		
-		for (int i=0; i<int(percent); i++) {
-			display[i] = color;
-		}
-	}
-}
 
-void Bargraph::write() {
-	for (int i=0; i<24; i++) {
-		bar.setBar(i, display[i]);
-	}
+def main():
+    a = arduino()
+    
+    bar = bargraph(a, "Test", "test", 0)
+    bar.update()
+    bar.printout()
+    
+    import time
+    
+    for i in range(0, 100):
+        bar.set(i)
+        bar.printout()
+    
+    while False:
+        bar.update()
+        bar.printout()
+        
+        time.sleep(1)
+    
+    breakpoint()
 
-    bar.writeDisplay();
-}
+if __name__ == "__main__":    
+    try:
+        main()
+    except KeyboardInterrupt:
+        sys.exit(0)
+    except EOFError:
+        sys.exit(0)
+    # except:
+    #     sys.exit(0)

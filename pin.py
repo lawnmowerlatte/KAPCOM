@@ -64,7 +64,17 @@ class pin(object):
         self.update()
         return self.value
         
+    def push(self, value):
+        """Attempts to push the selected value and update"""
+    	if value == "1" or value == "True" or value == True:
+            value = 1
+    	if value == "0" or value == "False" or value == False:
+            value = 0
+        
+        return self.update(self, value)
+        
     def set(self, value):
+        """Set the value and update"""
     	if value == "1" or value == "True" or value == True:
             value = 1
     	if value == "0" or value == "False" or value == False:
@@ -74,6 +84,7 @@ class pin(object):
         self.update()
         
     def update(self, value=None):
+        """Check cooldown timer and act"""
         # Check if cooldown has expired
         delta = self._lastupdate - datetime.now()
         if (delta.total_seconds()*1000) > self._cooldown:
@@ -86,6 +97,7 @@ class pin(object):
         self.act(value)
     
     def changed(self):
+        """Check if value has changed since last check"""
     	changed = (self._lastvalue != self.value);
     	self._lastvalue = self.value;
     	return changed
@@ -126,33 +138,42 @@ class __input(pin):
         self._arduino.pinMode(self.pin, "INPUT_PULLUP")
     
     def act(self, value=None):
-        return self.read()
+        """If no value is passed, read"""
+        if value is None:
+            return self.read()
 
 class __output(pin):
     __metaclass__ = ABCMeta
     
     def init(self):
+        """Set the hardware and local value"""
         self._arduino.pinMode(self.pin, "OUTPUT")
+        self._cooldown = 0
         pass
     
     def act(self, value):
+        """Write the value"""
         self.write(value)
         
 class __analog():
     __metaclass__ = ABCMeta
     
     def setMax(self, max):
+        """Set the maximum value"""
         self._max = max
         
     def getFloat(self):
+        """Update the hardware and return latest value"""
         self.update()
         return (float(self.value)/self._max)
     
     def read(self):
+        """Read from hardware"""
         self.value = int(self._arduino.analogRead(self.pin))
         return self.value
         
     def write(self, value):
+        """Write to hardware"""
         if value:
             self.value = int(value)
             self._arduino.analogWrite(self.pin, self.value)
@@ -161,10 +182,12 @@ class __digital():
     __metaclass__ = ABCMeta
     
     def read(self):
+        """Read from hardware"""
         self.value = int(self._arduino.digitalRead(self.pin))
         return self.value
         
     def write(self, value):
+        """Write to hardware"""
         if value:
             self.value = int(value)
             self._arduino.digitalWrite(self.pin, self.value)

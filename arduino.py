@@ -146,8 +146,9 @@ class arduino(object):
         
         if not serial and not self.s:
             print("<< " + string)
+            print ">> 1"
+            return 1
             return raw_input(">> ")
-            return
         
         debug(string, 5)
         
@@ -211,6 +212,22 @@ class arduino(object):
         
         return self.read(self.command("D", pin))
         
+    def subscribe(self, pins):
+        """Subscribe to a set of pins"""
+        string =""
+        for pin in pins:
+            string += chr(pin)
+        
+        self.write(self.command("s", string))
+        
+    def getSubscriptions(self):
+        """Return values for subscriptions as a list"""
+        array   =   []
+        raw     =   self.read(self.command("S"))
+        for c in raw:
+            array.append(ord(c))
+            
+        return array
         
     def displayWrite(self, device, data):
         """Sends command to 7-segment display"""

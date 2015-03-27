@@ -97,6 +97,7 @@ class kapcom(object):
     outputs     =   []
     bargraphs   =   []
     displays    =   []
+    subs        =   []
     
     port        =   None
     baud        =   None
@@ -226,6 +227,7 @@ class kapcom(object):
                 
                 list.append(type(self.arduino, **configuration))
         
+        
         # Open the configuration file
         with open(self.configurationFile, 'r') as file:
             j   =   json.load(file)
@@ -248,6 +250,12 @@ class kapcom(object):
             for configuration in j[key]:
                 print "Loading object " + configuration['name']
                 loadObject(configuration, value)
+                
+                # If it's input, add it to the subscriptions
+                if configuration['type'].contains("In"):
+                    self.subs.append(value[-1].pin)
+        
+        self.arduino.subscribe(self.subs)
         
         file.close()
         
@@ -340,14 +348,22 @@ class kapcom(object):
         self.joy1.update()
         self.sendFlyByWire("v.setPitchYawRollXYZ", self.joy0.toString() + "," + self.joy1.toString())
         
+        # Get subscription values
+        subValues=self.arduino.getSubscriptions()
+       
         # Iterate across inputs
         for i in self.inputs:
-            # Get the value
-            value = i.get()
+            if i.pin in self.subs:
+                # Push the value
+                value = i.push(subValues[self.subs.index(i.pin)])
+            else:
+                # Get the value from hardware
+                value = i.get()
+            
             # If it had changed
             if i.changed():
-                # Send the update
-                self.sendFlyByWire(i.api, value)
+            # Send the update
+            self.sendFlyByWire(i.api, value)
             
         # Set the outputs
         for o in self.outputs:

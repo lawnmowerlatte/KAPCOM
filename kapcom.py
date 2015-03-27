@@ -98,13 +98,50 @@ class kapcom(object):
     bargraphs   =   []
     displays    =   []
     
-    def __init__(self, port=None, baud=250000, host="127.0.0.1", sock=8085):
+    port        =   None
+    baud        =   None
+    host        =   None
+    sock        =   None
+    
+    configurationFile   =   'kapcom.json'
+    
+    # Set default values
+    defaults    =   {
+        'port'  :   None,
+        'baud'  :   250000,
+        'host'  :   "127.0.0.1",
+        'sock'  :   8085    }
+    
+    def __init__(self, port=None, baud=None, host=None, sock=None):
         """Takes serial port, baudrate and socket information and creates the KAPCOM object."""
+        def loadDefaults(configuration, parameter, argument):
+            try:
+                config          =   configuration[parameter]
+            except:
+                config          =   None
+            
+            try:
+                default         =   self.defaults[parameter]
+            except:
+                default         =   None
         
-        self.port = port
-        self.baud = baud
-        self.host = host
-        self.sock = sock
+            if argument is None:
+                if config is None:
+                    setattr(self, parameter, default)
+                else:
+                    setattr(self, parameter, config)
+            else:
+                setattr(self, parameter, argument)
+        
+        with open(self.configurationFile, 'r') as file:
+            j   =   json.load(file)
+        
+        for list in {   ('port', port),
+                        ('baud', baud),
+                        ('host', host),
+                        ('sock', sock)     }:
+            loadDefaults(j, list[0], list[1])
+        file.close()
         
         if not self.headless:
             self.vessel = pyksp.ActiveVessel()
@@ -112,6 +149,7 @@ class kapcom(object):
                 self.vessel.subscribe(subscription)
         else:
             debug("Using dummy telemetry", 3)
+    
     
     
     # Initialization and Readiness methods
@@ -125,6 +163,34 @@ class kapcom(object):
             debug(".", 3, False)
             time.sleep(1)
         
+        debug("Fly by wire...", 2, False)
+        for i in range(1, 20):
+            try:
+                self.arduino = arduino(self.port, self.baud)
+            except:
+                wait()
+            else:
+                debug("Go", 2)
+                break
+        else:
+            hold("Timeout while waiting for hardware.")
+            return False
+        
+        debug("Configuration...", 2, False)
+        try:
+            self.configure()
+        except:
+            hold("Failed to read configuration file.")
+            return False
+        try:
+            # Create objects
+            debug("Go", 2)
+        except:
+            hold("Failed to create data models.")
+            return False
+        
+        breakpoint()
+         
         debug("Telemetry...", 2, False)
         if not self.headless:
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -144,323 +210,47 @@ class kapcom(object):
             self.hold("Timeout while waiting for telemetry.")
             return False
         
-        debug("Fly by wire...", 2, False)
-        for i in range(1, 20):
-            try:
-                self.arduino = arduino(self.port, self.baud)
-            except:
-                wait()
-            else:
-                debug("Go", 2)
-                break
-        else:
-            self.hold("Timeout while waiting for telemetry.")
-            return False
-        
-        debug("Configuration...", 2, False)
-        try:
-            # Parse configuration
-            pass
-        except:
-            self.hold("Failed to read configuration file.")
-            return False
-        try:
-            # Create objects
-            debug("Go", 2)
-        except:
-            self.hold("Failed to create data models.")
-            return False
-        
-        # Set some static shit
-        self.joy0 = joy(self.arduino, "Joy0", 0xA0, 0xA1, 0xA2, 0xA3)
-        self.joy1 = joy(self.arduino, "Joy1", 0xA4, 0xA5, 0xA6, 0xA7)
-        
-        self.inputs.append(analogIn(self.arduino, "Throttle", "set_throttle", 0xA8))
-        
-        self.inputs.append(mod(self.arduino, "Abort", "abort", 0xA9, 0xAB, 0xAA))
-        self.inputs.append(mod(self.arduino, "Stage", "stage", 0xAC, 0xAE, 0xAD))
-        
-        self.inputs.append(digitalIn(self.arduino, "Map", "toggle_map", 8))
-        
-        self.inputs.append(digitalIn(self.arduino, "SAS", "sas", 22))
-        self.inputs.append(digitalIn(self.arduino, "RCS", "ras", 26))
-        self.inputs.append(digitalIn(self.arduino, "Light", "light", 30))
-        self.inputs.append(digitalIn(self.arduino, "Gear", "gear", 34))
-        self.inputs.append(digitalIn(self.arduino, "Break", "brake", 38))
-        
-        self.inputs.append(digitalIn(self.arduino, "Action Group 1", "action_group_1", 23))
-        self.inputs.append(digitalIn(self.arduino, "Action Group 2", "action_group_2", 25))
-        self.inputs.append(digitalIn(self.arduino, "Action Group 3", "action_group_3", 27))
-        self.inputs.append(digitalIn(self.arduino, "Action Group 4", "action_group_4", 29))
-        self.inputs.append(digitalIn(self.arduino, "Action Group 5", "action_group_5", 31))
-        self.inputs.append(digitalIn(self.arduino, "Action Group 6", "action_group_6", 33))
-        self.inputs.append(digitalIn(self.arduino, "Action Group 7", "action_group_7", 35))
-        self.inputs.append(digitalIn(self.arduino, "Action Group 8", "action_group_8", 37))
-        self.inputs.append(digitalIn(self.arduino, "Action Group 9", "action_group_9", 39))
-        self.inputs.append(digitalIn(self.arduino, "Action Group 10", "action_group_10", 41))
-        
-        self.inputs.append(digitalIn(self.arduino, "Warp -", "", 42))
-        self.inputs.append(digitalIn(self.arduino, "Warp +", "", 43))
-        self.inputs.append(digitalIn(self.arduino, "Ship -", "", 44))
-        self.inputs.append(digitalIn(self.arduino, "Ship +", "", 45))
-        self.inputs.append(digitalIn(self.arduino, "Camera -", "", 46))
-        self.inputs.append(digitalIn(self.arduino, "Camera +", "", 47))
-        
-        self.outputs.append(digitalOut(self.arduino, "SAS Status", "sas_status", 24))
-        self.outputs.append(digitalOut(self.arduino, "SAS Status", "sas_status", 28))
-        self.outputs.append(digitalOut(self.arduino, "Light Status", "action_group_light", 32))
-        self.outputs.append(digitalOut(self.arduino, "Gear Status", "action_group_gear", 36))
-        self.outputs.append(digitalOut(self.arduino, "Break Status", "action_group_brake", 40))
-        
-        self.bargraphs.append(bargraph(self.arduino, "LF", "resource_lf_current", 0))
-        self.bargraphs.append(bargraph(self.arduino, "OX", "resource_ox_current", 1))
-        self.bargraphs.append(bargraph(self.arduino, "EL", "resource_ec_current", 2))
-        self.bargraphs.append(bargraph(self.arduino, "MP", "resource_mp_current", 3))
-        self.bargraphs.append(bargraph(self.arduino, "SF", "resource_sf_current", 4))
-        
-        self.displays.append(display(self.arduino, "ALT", "vessel_altitude", 0))
-        self.displays.append(display(self.arduino, "VEL", "vessel_orbital_velocity", 1))
-        self.displays.append(display(self.arduino, "AP", "vessel_apoapsis", 2))
-        self.displays.append(display(self.arduino, "PE", "vessel_periapsis", 3))
-        self.displays.append(display(self.arduino, "RAD", "vessel_asl_height", 4))
-        
-        j    =   { 'joys'        :   [
-                            {   "name"    :   "Joy0",
-                                "x"       :   0xA0,
-                                "y"       :   0xA1,
-                                "z"       :   0xA2,
-                                "button"  :   0xA3,
-                                "options" :   None
-                            },
-                            {   "name"    :   "Joy1",
-                                "x"       :   0xA4,
-                                "y"       :   0xA5,
-                                "z"       :   0xA6,
-                                "button"  :   0xA7,
-                                "options" :   None
-                            }],
-                      'inputs'      :   [
-                            {   "type"    :   "analogIn",
-                                "name"    :   "Throttle",
-                                "api"     :   "set_throttle",
-                                "pin"     :   0xA8
-                            },
-                            {   "type"    :   "analogIn",
-                                "name"    :   "Throttle",
-                                "api"     :   "set_throttle",
-                                "pin"     :   0xA8
-                            },
-                            {   "type"    :   "mod",
-                                "name"    :   "Abort",
-                                "api"     :   "abort",
-                                "pin"     :   [ 0xA9, 0xAA, 0xAB ]
-                            },
-                            {   "type"    :   "mod",
-                                "name"    :   "Stage", 
-                                "api"     :   "stage",
-                                "pin"     :   [ 0xAC, 0xAD,0xAE ]
-                            },
-                            {   "type"    :   "digitalIn",
-                                "name"    :   "Map",
-                                "api"     :   "toggle_map",
-                                "pin"     :   8
-                            },
-                            {   "type"    :   "digitalIn",
-                                "name"    :   "SAS",
-                                "api"     :   "sas",
-                                "pin"     :   22
-                            },
-                            {   "type"    :   "digitalIn",
-                                "name"    :   "RCS",
-                                "api"     :   "ras",
-                                "pin"     :   26
-                            },
-                            {   "type"    :   "digitalIn",
-                                "name"    :   "Light",
-                                "api"     :   "light",
-                                "pin"     :   30
-                            },
-                            {   "type"    :   "digitalIn",
-                                "name"    :   "Gear",
-                                "api"     :   "gear",
-                                "pin"     :   34
-                            },
-                            {   "type"    :   "digitalIn",
-                                "name"    :   "Break",
-                                "api"     :   "brake",
-                                "pin"     :   38
-                            },
-                            {   "type"    :   "digitalIn",
-                                "name"    :   "Action Group 1",
-                                "api"     :   "action_group_1",
-                                "pin"     :   23
-                            },
-                            {   "type"    :   "digitalIn",
-                                "name"    :   "Action Group 2",
-                                "api"     :   "action_group_2",
-                                "pin"     :   25
-                            },
-                            {   "type"    :   "digitalIn",
-                                "name"    :   "Action Group 3",
-                                "api"     :   "action_group_3",
-                                "pin"     :   27
-                            },
-                            {   "type"    :   "digitalIn",
-                                "name"    :   "Action Group 4",
-                                "api"     :   "action_group_4",
-                                "pin"     :   29
-                            },
-                            {   "type"    :   "digitalIn",
-                                "name"    :   "Action Group 5",
-                                "api"     :   "action_group_5",
-                                "pin"     :   31
-                            },
-                            {   "type"    :   "digitalIn",
-                                "name"    :   "Action Group 6",
-                                "api"     :   "action_group_6",
-                                "pin"     :   33
-                            },
-                            {   "type"    :   "digitalIn",
-                                "name"    :   "Action Group 7",
-                                "api"     :   "action_group_7",
-                                "pin"     :   35
-                            },
-                            {   "type"    :   "digitalIn",
-                                "name"    :   "Action Group 8",
-                                "api"     :   "action_group_8",
-                                "pin"     :   37
-                            },
-                            {   "type"    :   "digitalIn",
-                                "name"    :   "Action Group 9",
-                                "api"     :   "action_group_9",
-                                "pin"     :   39
-                            },
-                            {   "type"    :   "digitalIn",
-                                "name"    :   "Action Group 10",
-                                "api"     :   "action_group_10",
-                                "pin"     :   41
-                            },
-        
-                            {   "type"    :   "digitalIn",
-                                "name"    :   "Warp -",
-                                "api"     :   "",
-                                "pin"     :   42
-                            },
-                            {   "type"    :   "digitalIn",
-                                "name"    :   "Warp +",
-                                "api"     :   "",
-                                "pin"     :   43
-                            },
-                            {   "type"    :   "digitalIn",
-                                "name"    :   "Ship -",
-                                "api"     :   "",
-                                "pin"     :   44
-                            },
-                            {   "type"    :   "digitalIn",
-                                "name"    :   "Ship +",
-                                "api"     :   "",
-                                "pin"     :   45
-                            },
-                            {   "type"    :   "digitalIn",
-                                "name"    :   "Camera -",
-                                "api"     :   "",
-                                "pin"     :   46
-                            },
-                            {   "type"    :   "digitalIn",
-                                "name"    :   "Camera +",
-                                "api"     :   "",
-                                "pin"     :   47
-                            }],
-                        'outputs'       :   [
-                            {   "type"    :   "digitalOut",
-                                "name"    :   "SAS Status",
-                                "api"     :   "sas_status",
-                                "pin"     :   24
-                            },
-                            {   "type"    :   "digitalOut",
-                                "name"    :   "SAS Status",
-                                "api"     :   "sas_status",
-                                "pin"     :   28
-                            },
-                            {   "type"    :   "digitalOut",
-                                "name"    :   "Light Status",
-                                "api"     :   "action_group_light",
-                                "pin"     :   32
-                            },
-                            {   "type"    :   "digitalOut",
-                                "name"    :   "Gear Status",
-                                "api"     :   "action_group_gear",
-                                "pin"     :   36
-                            },
-                            {   "type"    :   "digitalOut",
-                                "name"    :   "Break Status",
-                                "api"     :   "action_group_brake",
-                                "pin"     :   40
-                            }],
-                        'bargraphs'     :   [
-                            {   "type"    :   "bargraph",
-                                "name"    :   "LF",
-                                "api"     :   "resource_lf_current",
-                                "pin"     :   0
-                            },
-                            {   "type"    :   "bargraph",
-                                "name"    :   "OX",
-                                "api"     :   "resource_ox_current",
-                                "pin"     :   1
-                            },
-                            {   "type"    :   "bargraph",
-                                "name"    :   "EL",
-                                "api"     :   "resource_ec_current",
-                                "pin"     :   2
-                            },
-                            {   "type"    :   "bargraph",
-                                "name"    :   "MP",
-                                "api"     :   "resource_mp_current",
-                                "pin"     :   3
-                            },
-                            {   "type"    :   "bargraph",
-                                "name"    :   "SF",
-                                "api"     :   "resource_sf_current",
-                                "pin"     :   4
-                            }],
-                        'displays'      :   [
-                            {   "type"    :   "display",
-                                "name"    :   "ALT",
-                                "api"     :   "vessel_altitude",
-                                "pin"     :   0
-                            },
-                            {   "type"    :   "display",
-                                "name"    :   "VEL",
-                                "api"     :   "vessel_orbital_velocity",
-                                "pin"     :   1
-                            },
-                            {   "type"    :   "display",
-                                "name"    :   "AP",
-                                "api"     :   "vessel_apoapsis",
-                                "pin"     :   2
-                            },
-                            {   "type"    :   "display",
-                                "name"    :   "PE",
-                                "api"     :   "vessel_periapsis",
-                                "pin"     :   3
-                            },
-                            {   "type"    :   "display",
-                                "name"    :   "RAD",
-                                "api"     :   "vessel_asl_height",
-                                "pin"     :   4
-                            }]
-                    }
-                  
-        with open('kapcom.json', 'w') as file:
-            json.dump(j, file, indent=4, separators=(',', ': '))
-                    
-        breakpoint()
-         
-                              
         debug("All stations are go.", 1) 
         return True
         
-    
+    def configure(self):
+        def loadObject(configuration, list):
+            try:
+                type = globals().get(configuration['type'])
+            except AttributeError:
+                print 'Type not found "%s" (%s)' % (self._format, arg)
+            else:
+                configuration.pop('type', None)
+                if not configuration.get('options'):
+                    configuration['options']    =   None
+                
+                list.append(type(self.arduino, **configuration))
+        
+        # Open the configuration file
+        with open(self.configurationFile, 'r') as file:
+            j   =   json.load(file)
+        
+        # Load the joysticks
+        for joyIndex in j['joys']:
+            if joyIndex['name'] == 'Joy0':
+                self.joy0 = joy(self.arduino, **joyIndex)
+            elif joyIndex['name'] == 'Joy1':
+                self.joy1 = joy(self.arduino, **joyIndex)
+            else:
+                print "Unknown joystick: " + joyIndex['name']
+        
+        # Load all the objects!
+        for key, value in { 'inputs'      : self.inputs,
+                            'outputs'     : self.outputs,
+                            'bargraphs'   : self.bargraphs,
+                            'displays'    : self.displays     }.iteritems():
+            print "Loading list: " + key
+            for configuration in j[key]:
+                print "Loading object " + configuration['name']
+                loadObject(configuration, value)
+        
+        file.close()
+        
     def ready(self):
         """Attempt to connect to Telemachus."""
         
@@ -585,7 +375,8 @@ class kapcom(object):
         # If we're connected, send the command
         if not self.headless:
             self.vessel.run_command(api, value)
-        
+        else:
+            print api + "=" + str(value)
         
   
 def main():

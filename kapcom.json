@@ -1,0 +1,282 @@
+{
+    "displays": [
+        {
+            "api": "vessel_altitude",
+            "type": "display",
+            "name": "ALT",
+            "pin": 0
+        },
+        {
+            "api": "vessel_orbital_velocity",
+            "type": "display",
+            "name": "VEL",
+            "pin": 1
+        },
+        {
+            "api": "vessel_apoapsis",
+            "type": "display",
+            "name": "AP",
+            "pin": 2
+        },
+        {
+            "api": "vessel_periapsis",
+            "type": "display",
+            "name": "PE",
+            "pin": 3
+        },
+        {
+            "api": "vessel_asl_height",
+            "type": "display",
+            "name": "RAD",
+            "pin": 4
+        }
+    ],
+    "joys": [
+        {
+            "name": "Joy0",
+            "button": 163,
+            "y": 161,
+            "x": 160,
+            "z": 162,
+            "options": null
+        },
+        {
+            "name": "Joy1",
+            "button": 167,
+            "y": 165,
+            "x": 164,
+            "z": 166,
+            "options": null
+        }
+    ],
+    "bargraphs": [
+        {
+            "api": "resource_lf_current",
+            "type": "bargraph",
+            "name": "LF",
+            "pin": 0
+        },
+        {
+            "api": "resource_ox_current",
+            "type": "bargraph",
+            "name": "OX",
+            "pin": 1
+        },
+        {
+            "api": "resource_ec_current",
+            "type": "bargraph",
+            "name": "EL",
+            "pin": 2
+        },
+        {
+            "api": "resource_mp_current",
+            "type": "bargraph",
+            "name": "MP",
+            "pin": 3
+        },
+        {
+            "api": "resource_sf_current",
+            "type": "bargraph",
+            "name": "SF",
+            "pin": 4
+        }
+    ],
+    "outputs": [
+        {
+            "api": "sas_status",
+            "type": "digitalOut",
+            "name": "SAS Status",
+            "pin": 24
+        },
+        {
+            "api": "sas_status",
+            "type": "digitalOut",
+            "name": "SAS Status",
+            "pin": 28
+        },
+        {
+            "api": "action_group_light",
+            "type": "digitalOut",
+            "name": "Light Status",
+            "pin": 32
+        },
+        {
+            "api": "action_group_gear",
+            "type": "digitalOut",
+            "name": "Gear Status",
+            "pin": 36
+        },
+        {
+            "api": "action_group_brake",
+            "type": "digitalOut",
+            "name": "Break Status",
+            "pin": 40
+        }
+    ],
+    "inputs": [
+        {
+            "api": "set_throttle",
+            "type": "analogIn",
+            "name": "Throttle",
+            "pin": 168
+        },
+        {
+            "api": "set_throttle",
+            "type": "analogIn",
+            "name": "Throttle",
+            "pin": 168
+        },
+        {
+            "api": "abort",
+            "type": "mod",
+            "name": "Abort",
+            "pin": [
+                169,
+                170,
+                171
+            ]
+        },
+        {
+            "api": "stage",
+            "type": "mod",
+            "name": "Stage",
+            "pin": [
+                172,
+                173,
+                174
+            ]
+        },
+        {
+            "api": "toggle_map",
+            "type": "digitalIn",
+            "name": "Map",
+            "pin": 8
+        },
+        {
+            "api": "sas",
+            "type": "digitalIn",
+            "name": "SAS",
+            "pin": 22
+        },
+        {
+            "api": "ras",
+            "type": "digitalIn",
+            "name": "RCS",
+            "pin": 26
+        },
+        {
+            "api": "light",
+            "type": "digitalIn",
+            "name": "Light",
+            "pin": 30
+        },
+        {
+            "api": "gear",
+            "type": "digitalIn",
+            "name": "Gear",
+            "pin": 34
+        },
+        {
+            "api": "brake",
+            "type": "digitalIn",
+            "name": "Break",
+            "pin": 38
+        },
+        {
+            "api": "action_group_1",
+            "type": "digitalIn",
+            "name": "Action Group 1",
+            "pin": 23
+        },
+        {
+            "api": "action_group_2",
+            "type": "digitalIn",
+            "name": "Action Group 2",
+            "pin": 25
+        },
+        {
+            "api": "action_group_3",
+            "type": "digitalIn",
+            "name": "Action Group 3",
+            "pin": 27
+        },
+        {
+            "api": "action_group_4",
+            "type": "digitalIn",
+            "name": "Action Group 4",
+            "pin": 29
+        },
+        {
+            "api": "action_group_5",
+            "type": "digitalIn",
+            "name": "Action Group 5",
+            "pin": 31
+        },
+        {
+            "api": "action_group_6",
+            "type": "digitalIn",
+            "name": "Action Group 6",
+            "pin": 33
+        },
+        {
+            "api": "action_group_7",
+            "type": "digitalIn",
+            "name": "Action Group 7",
+            "pin": 35
+        },
+        {
+            "api": "action_group_8",
+            "type": "digitalIn",
+            "name": "Action Group 8",
+            "pin": 37
+        },
+        {
+            "api": "action_group_9",
+            "type": "digitalIn",
+            "name": "Action Group 9",
+            "pin": 39
+        },
+        {
+            "api": "action_group_10",
+            "type": "digitalIn",
+            "name": "Action Group 10",
+            "pin": 41
+        },
+        {
+            "api": "",
+            "type": "digitalIn",
+            "name": "Warp -",
+            "pin": 42
+        },
+        {
+            "api": "",
+            "type": "digitalIn",
+            "name": "Warp +",
+            "pin": 43
+        },
+        {
+            "api": "",
+            "type": "digitalIn",
+            "name": "Ship -",
+            "pin": 44
+        },
+        {
+            "api": "",
+            "type": "digitalIn",
+            "name": "Ship +",
+            "pin": 45
+        },
+        {
+            "api": "",
+            "type": "digitalIn",
+            "name": "Camera -",
+            "pin": 46
+        },
+        {
+            "api": "",
+            "type": "digitalIn",
+            "name": "Camera +",
+            "pin": 47
+        }
+    ]
+}

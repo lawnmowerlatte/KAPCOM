@@ -111,9 +111,10 @@ class pin(object):
             keyCommand = "osascript -e 'tell application \"Kerbal Space Program\" to keystroke \""+self.key+"\"'"
             os.system(keyCommand)
         
-        # Try to run the lambda/function specified by __format
+        # Try to run the lambda/function specified by _format
+        function = locals().get(self._format)
         try:
-            self._format(self.value)
+            function()
         except AttributeError:
             print 'Format not found "%s"' % (self._format)
             

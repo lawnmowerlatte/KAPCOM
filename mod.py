@@ -4,8 +4,13 @@ from pin import *
 from arduino import arduino
 
 class mod(object):
-    def __init__(self, arduino, name, api, modifier, indicator, button, options=None):
+    def __init__(self, arduino, name, api, pin, options=None):
         """Initialize modifier with parameters"""
+        
+        # Remap pins from array
+        modifier    =   pin[0]
+        indicator   =   pin[1]
+        button      =   pin[2]
         
         # Set core attributes
         self.mod            = digitalIn(arduino, name + " Modifier", "", modifier)
@@ -51,13 +56,12 @@ class mod(object):
             keyCommand = "osascript -e 'tell application \"Kerbal Space Program\" to keystroke \""+self.key+"\"'"
             os.system(keyCommand)
         
-        # Try to run the lambda/function specified by __format
+        # Try to run the lambda/function specified by _format
+        function = locals().get(self._format)
         try:
-            func = getattr(modulename, self._format)
+            function()
         except AttributeError:
-            print 'Format not found "%s" (%s)' % (self._format, arg)
-        else:
-            self._format(self.value)
+            print 'Format not found "%s"' % (self._format)
 
     def update(self):
         isLocked = self.mod.get()

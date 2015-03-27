@@ -4,31 +4,31 @@
             "api": "vessel_altitude",
             "type": "display",
             "name": "ALT",
-            "pin": 0
+            "device": 0
         },
         {
             "api": "vessel_orbital_velocity",
             "type": "display",
             "name": "VEL",
-            "pin": 1
+            "device": 1
         },
         {
             "api": "vessel_apoapsis",
             "type": "display",
             "name": "AP",
-            "pin": 2
+            "device": 2
         },
         {
             "api": "vessel_periapsis",
             "type": "display",
             "name": "PE",
-            "pin": 3
+            "device": 3
         },
         {
             "api": "vessel_asl_height",
             "type": "display",
             "name": "RAD",
-            "pin": 4
+            "device": 4
         }
     ],
     "joys": [
@@ -54,31 +54,31 @@
             "api": "resource_lf_current",
             "type": "bargraph",
             "name": "LF",
-            "pin": 0
+            "device": 0
         },
         {
             "api": "resource_ox_current",
             "type": "bargraph",
             "name": "OX",
-            "pin": 1
+            "device": 1
         },
         {
             "api": "resource_ec_current",
             "type": "bargraph",
             "name": "EL",
-            "pin": 2
+            "device": 2
         },
         {
             "api": "resource_mp_current",
             "type": "bargraph",
             "name": "MP",
-            "pin": 3
+            "device": 3
         },
         {
             "api": "resource_sf_current",
             "type": "bargraph",
             "name": "SF",
-            "pin": 4
+            "device": 4
         }
     ],
     "outputs": [

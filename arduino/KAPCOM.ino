@@ -214,10 +214,10 @@ void command(String read_) {
       sendSubscription();
       break;
     case '7':
-      displayWriter(id, data);
+      displayWriter(String(id).toInt(), data);
       break;
     case 'b':
-      bargraphWriter(id, data);
+      bargraphWriter(String(id).toInt(), data);
       break;
     case 'v':
       getVersion();

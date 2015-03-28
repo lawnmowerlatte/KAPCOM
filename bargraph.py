@@ -91,10 +91,11 @@ class bargraph(object):
                     self.red[i]     =   True
         
         clear()
-        function = locals().get(self._type)
-        if not function:
+        f = locals().get(self._type)
+        if not f:
             debug("Unknown type: " + self._type)
-        function()
+        
+        f()
         
         
             

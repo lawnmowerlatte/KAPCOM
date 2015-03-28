@@ -53,7 +53,7 @@ class display(object):
         exponent    =   0
      
         # Break the value into integer and decimal portions
-        value       =   '{0:f}'.format(self.value)
+        value       =   '{0:f}'.format(int(self.value))
         integer     =   value[:value.index('.')]
         decimal     =   value[value.index('.')+1:]
         

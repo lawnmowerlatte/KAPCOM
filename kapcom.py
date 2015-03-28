@@ -64,7 +64,7 @@ class kapcom(object):
     # This overrides the serial port with input from the interactive shell
     interactive = False
     # This overrides the Telemachus port with static simulated input
-    headless = True
+    headless = False
     
     buffer = ""
     
@@ -81,6 +81,8 @@ class kapcom(object):
         "resource_ox_current",
         "resource_lf_max",
         "resource_lf_current",
+        "resource_sf_max",
+        "resource_sf_current",
         "resource_mp_max",
         "resource_mp_current",
         "resource_ec_max",
@@ -97,7 +99,6 @@ class kapcom(object):
     outputs     =   []
     bargraphs   =   []
     displays    =   []
-    subs        =   []
     
     port        =   None
     baud        =   None
@@ -109,7 +110,7 @@ class kapcom(object):
     # Set default values
     defaults    =   {
         'port'  :   None,
-        'baud'  :   250000,
+        'baud'  :   115200,
         'host'  :   "127.0.0.1",
         'sock'  :   8085    }
     
@@ -189,8 +190,6 @@ class kapcom(object):
         except:
             hold("Failed to create data models.")
             return False
-        
-        breakpoint()
          
         debug("Telemetry...", 2, False)
         if not self.headless:
@@ -211,22 +210,26 @@ class kapcom(object):
             self.hold("Timeout while waiting for telemetry.")
             return False
         
-        debug("All stations are go.", 1) 
+        debug("All stations are go.", 1)
+        self.sendFlyByWire("toggle_fbw", None)
         return True
         
     def configure(self):
+        self.inputs      =   []
+        self.outputs     =   []
+        self.bargraphs   =   []
+        self.displays    =   []
+        
         def loadObject(configuration, list):
             try:
                 type = globals().get(configuration['type'])
             except AttributeError:
                 print 'Type not found "%s" (%s)' % (self._format, arg)
             else:
-                configuration.pop('type', None)
+                configuration.pop('type')
                 if not configuration.get('options'):
                     configuration['options']    =   None
-                
                 list.append(type(self.arduino, **configuration))
-        
         
         # Open the configuration file
         with open(self.configurationFile, 'r') as file:
@@ -246,16 +249,8 @@ class kapcom(object):
                             'outputs'     : self.outputs,
                             'bargraphs'   : self.bargraphs,
                             'displays'    : self.displays     }.iteritems():
-            print "Loading list: " + key
             for configuration in j[key]:
-                print "Loading object " + configuration['name']
                 loadObject(configuration, value)
-                
-                # If it's input, add it to the subscriptions
-                if configuration['type'].contains("In"):
-                    self.subs.append(value[-1].pin)
-        
-        self.arduino.subscribe(self.subs)
         
         file.close()
         
@@ -346,24 +341,18 @@ class kapcom(object):
         # Update joysticks and send data
         self.joy0.update()
         self.joy1.update()
-        self.sendFlyByWire("v.setPitchYawRollXYZ", self.joy0.toString() + "," + self.joy1.toString())
+        self.sendFlyByWire("six_dof", self.joy0.toString() + "," + self.joy1.toString())
         
-        # Get subscription values
-        subValues=self.arduino.getSubscriptions()
-       
         # Iterate across inputs
         for i in self.inputs:
-            if i.pin in self.subs:
-                # Push the value
-                value = i.push(subValues[self.subs.index(i.pin)])
-            else:
-                # Get the value from hardware
-                value = i.get()
+            # Get the value from hardware
+            i.update()
+            value = i.toString()
             
             # If it had changed
             if i.changed():
-            # Send the update
-            self.sendFlyByWire(i.api, value)
+                # Send the update
+                self.sendFlyByWire(i.api, value)
             
         # Set the outputs
         for o in self.outputs:
@@ -379,7 +368,7 @@ class kapcom(object):
         
     def getTelemetry(self, api):
         if not self.headless:
-            return self.getTelemetry(api)
+            return self.vessel.get(api)
         else:
             return 0
     
@@ -388,11 +377,11 @@ class kapcom(object):
         if api == "" or value == "":
             return
         
+        print api + "=" + str(value)
+        
         # If we're connected, send the command
         if not self.headless:
             self.vessel.run_command(api, value)
-        else:
-            print api + "=" + str(value)
         
   
 def main():

@@ -7,7 +7,7 @@
             "device": 0
         },
         {
-            "api": "vessel_orbital_velocity",
+            "api": "vessel_velocity",
             "type": "display",
             "name": "VEL",
             "device": 1
@@ -89,9 +89,9 @@
             "pin": 24
         },
         {
-            "api": "sas_status",
+            "api": "rcs_status",
             "type": "digitalOut",
-            "name": "SAS Status",
+            "name": "RCS Status",
             "pin": 28
         },
         {
@@ -109,7 +109,7 @@
         {
             "api": "action_group_brake",
             "type": "digitalOut",
-            "name": "Break Status",
+            "name": "Brake Status",
             "pin": 40
         }
     ],
@@ -118,13 +118,10 @@
             "api": "set_throttle",
             "type": "analogIn",
             "name": "Throttle",
-            "pin": 168
-        },
-        {
-            "api": "set_throttle",
-            "type": "analogIn",
-            "name": "Throttle",
-            "pin": 168
+            "pin": 168,
+			"options": {
+				"format": "floatpoint"
+			}
         },
         {
             "api": "abort",
@@ -159,7 +156,7 @@
             "pin": 22
         },
         {
-            "api": "ras",
+            "api": "rcs",
             "type": "digitalIn",
             "name": "RCS",
             "pin": 26
@@ -179,7 +176,7 @@
         {
             "api": "brake",
             "type": "digitalIn",
-            "name": "Break",
+            "name": "Brake",
             "pin": 38
         },
         {

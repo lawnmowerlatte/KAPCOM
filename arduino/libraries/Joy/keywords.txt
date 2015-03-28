@@ -1,6 +1,0 @@
-Joy	KEYWORD1	Class
-
-update	KEYWORD2	Method
-centered	KEYWORD2	Method
-print	KEYWORD2	Method
-toString	KEYWORD2	Method

@@ -57,9 +57,9 @@ class mod(object):
             os.system(keyCommand)
         
         # Try to run the lambda/function specified by _format
-        function = locals().get(self._format)
+        f = locals().get(self._format)
         try:
-            function()
+            return f(self.value)
         except AttributeError:
             print 'Format not found "%s"' % (self._format)
 

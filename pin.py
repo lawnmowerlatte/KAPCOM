@@ -114,8 +114,8 @@ class pin(object):
         false       = lambda x: ("", "False")[x]
         zero        = lambda x: ("0", "")[x]
         one         = lambda x: ("1", "")[x]
-        floatpoint  = lambda x: str(x/self.max)
-        percent     = lambda x: str(x/self.max*100)
+        floatpoint  = lambda x: str(float(x)/self._max)
+        percent     = lambda x: str(float(x)/self._max*100)
         
         # Define function for pressing a key
         def key(x):
@@ -124,12 +124,13 @@ class pin(object):
             os.system(keyCommand)
         
         # Try to run the lambda/function specified by _format
-        function = locals().get(self._format)
+        f = locals().get(self._format)
         try:
-            function()
+            return f(self.value)
         except AttributeError:
             print 'Format not found "%s"' % (self._format)
-            
+        
+        return ""
     
 class __input(pin):
     __metaclass__ = ABCMeta
@@ -166,6 +167,16 @@ class __analog():
         """Update the hardware and return latest value"""
         self.update()
         return (float(self.value)/self._max)
+    
+    def changed(self):
+        """Check if value has changed significantly since last check"""
+    	changed = float(self._lastvalue - self.value)/self._max*100;
+        
+        if abs(changed) > 1:
+            self._lastvalue = self.value;
+            return True
+        else:
+            return False
     
     def read(self):
         """Read from hardware"""

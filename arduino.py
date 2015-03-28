@@ -81,7 +81,7 @@ class arduino(object):
                 continue
                 
             # Version matches    
-            debug('Using port {0}.'.format(p), 2)
+            debug('Using port {0}.'.format(p), 3)
             if s:
                 return s
         
@@ -146,8 +146,6 @@ class arduino(object):
         
         if not serial and not self.s:
             print("<< " + string)
-            print ">> 1"
-            return 1
             return raw_input(">> ")
         
         debug(string, 5)
@@ -280,8 +278,6 @@ class arduino(object):
             data = "2"
         else:
             data="{0}".format(value)
-        
-        print "Pin " + str(pin) + " = " + value + " (" + data + ")"
         
         self.write(self.command("m", pin, data))
 

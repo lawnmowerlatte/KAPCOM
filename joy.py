@@ -55,7 +55,6 @@ class joy(object):
         
     def update(self):
         def deadzones(value):
-            print value
             if value >= -.05 and value <= .05:
                 return 0
             if value < -.95:

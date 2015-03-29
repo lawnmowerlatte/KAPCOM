@@ -33,6 +33,9 @@ class bargraph(object):
                               False, False, False, False, False, False,
                               False, False, False, False, False, False, ]
         
+        for i in range(self._max, 0):
+            self.set(i)
+        
         # Run initial update
         self.update()
         
@@ -56,7 +59,7 @@ class bargraph(object):
         bar     = "["
         char    = "|"
         
-        for i in range(0, 23):
+        for i in range(0, 24):
             if self.red[i] and self.green[i]:
                 char    =   colored(char, "yellow")
             elif self.red[i]:
@@ -73,20 +76,20 @@ class bargraph(object):
         
     def format(self):
         def clear():
-            for i in range(0, 23):
+            for i in range(0, 24):
                 self.red[i]     =   False
                 self.green[i]   =   False
         
         def default():
             percent = float(self.value) * 100 / self._max;
             
-            for i in range(0, min(23, int(23*percent/100))):
+            for i in range(0, min(24, int(24*percent/100))):
                 if percent > 50:
                     self.green[i]   =   True
                 elif percent > 20:
                     self.green[i]   =   True
                     self.red[i]     =   True
-                if percent < 20:
+                if percent <= 20:
                     self.green[i]   =   False
                     self.red[i]     =   True
         
@@ -137,22 +140,31 @@ def breakpoint():
 def main():
     a = arduino()
     
-    bar = bargraph(a, "Test", "test", 0)
-    bar.update()
-    bar.printout()
+    bar0 = bargraph(a, "Test", "test", 0)
+    bar1 = bargraph(a, "Test", "test", 1)
+    bar2 = bargraph(a, "Test", "test", 2)
+    bar3 = bargraph(a, "Test", "test", 3)
+    # bar4 = bargraph(a, "Test", "test", 4)
+    
+    bar0.update()
+    bar1.update()
+    bar2.update()
+    bar3.update()
+    # bar4.update()
+    
+    bar0.printout()
     
     import time
     
     for i in range(0, 100):
-        bar.set(i)
-        bar.printout()
-    
-    while False:
-        bar.update()
-        bar.printout()
+        bar0.set(i)
+        bar1.set(i)
+        bar2.set(i)
+        bar3.set(i)
+        # bar4.set(i)
         
-        time.sleep(1)
-    
+        bar0.printout()
+        
     breakpoint()
 
 if __name__ == "__main__":    

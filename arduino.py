@@ -105,20 +105,28 @@ class arduino(object):
                 break
 
 
-    def command(self, command, device=None, data=None):
+    def command(self, command, device=None, data=None, remap=True):
         """Build a command string that can be sent to the Arduino"""
         
-        if device:
-            # Remap pin to avoid ASCII control characters
-            device+=32
-        
-            # Concatenate the byte value of the pin we are sent
-            command=command+chr(device)
-            
-            if data:
-                # Concatenate whatever data is sent
-                command=command+str(data)
-
+        if remap:
+            if device is not None:
+                # Remap pin to avoid ASCII control characters
+                device+=32
+                
+                # Concatenate the byte value of the pin we are sent
+                command=command+chr(device)
+                
+                if data is not None:
+                    # Concatenate whatever data is sent
+                    command=command+str(data)
+        else:
+            if device is not None:
+                # Concatenate the byte value of the pin we are sent
+                command=command+str(device)
+                if data is not None:
+                    # Concatenate whatever data is sent
+                    command=command+str(data)
+                    
         return command
 
 
@@ -139,6 +147,8 @@ class arduino(object):
             serial.flush()
         except:
             pass
+            
+        serial.readline()
         
     
     def read(self, string, serial=None):
@@ -229,8 +239,7 @@ class arduino(object):
         
     def displayWrite(self, device, data):
         """Sends command to 7-segment display"""
-        
-        self.write(self.command("7", device, data))
+        self.write(self.command("7", device, data, False))
         
         
     def bargraphWrite(self, device, red, green):
@@ -241,8 +250,8 @@ class arduino(object):
             return
         
         # Pre-populate data bytes with 01000000
-        r = [ 64, 64, 64, 64 ]
-        g = [ 64, 64, 64, 64 ]
+        r = [ 128, 128, 128, 128 ]
+        g = [ 128, 128, 128, 128 ]
         
         # Iterate over bytes
         for i in range(0,4):
@@ -264,7 +273,7 @@ class arduino(object):
         for i in range(0,4):
             data += chr(g[i])
         
-        self.write(self.command("b", device, data))
+        self.write(self.command("b", device, data, False))
         
 
     def pinMode(self, pin, value):

@@ -1,4 +1,4 @@
-#include <LedControl.h>
+#include "LedControl.h"
 #include <Wire.h>
 #include <Adafruit_LEDBackpack.h>
 #include <Adafruit_GFX.h>
@@ -12,8 +12,8 @@ int analogOffset = A0;
 String v = "KAPCOM v0.1";
 
 int DIN=7;
-int CLK=6;
-int LOAD=5;
+int LOAD=6;
+int CLK=5;
 int DISPLAY_COUNT=5;
 LedControl displays=LedControl(DIN,CLK,LOAD,DISPLAY_COUNT);
 
@@ -38,6 +38,7 @@ void digitalWriter(int pin, String data) {
   } else {
     Serial.println("Bad data for digital write: " + data);
   }
+  Serial.println();
 }
 
 void analogReader(int pin) {
@@ -46,6 +47,7 @@ void analogReader(int pin) {
 
 void analogWriter(int pin, String data) {
   analogWrite(pin, data.toInt());
+  Serial.println();
 }
 
 void subscribe(String pins) {
@@ -54,6 +56,7 @@ void subscribe(String pins) {
   for (int i=0; i<subscriptions.length(); i++) {
     subscriptions[i] -= 32;
   }
+  Serial.println();
 }
 
 void sendSubscription() {
@@ -90,23 +93,36 @@ void sendSubscription() {
 }
 
 void displayWriter(int device, String data) {
-  bool point;
+  bool point       =  false;
+  int  marker      =  0;
+  char character   =  ' ';
 
-  for (int i=0; i<data.length(); i++) {
-    point = false;
+  for (int i = 0; i < 8; i++) {
+    point      =  false;
+    character  =  data.charAt(marker);
+    
     // Detect decimal point in next character
-    if (data.charAt(i+1) == '.') {
+    if (data.charAt(marker+1) == '.') {
       point = true;
+      marker++;
     }
-		
-    // Write the character to the display
-    displays.setDigit(device, 7-i, data.charAt(i), point);
-		
-    // If decimal was detected in the next character, skip it
-    if (point) {
-      i++;
+    
+    switch (character) {
+      case ' ':
+      case 'E':
+      case '-':
+        // Set the character to blank
+        displays.setChar(device, 7-i, character, point);
+        break;
+      default:
+        // Write the character to the display
+        displays.setDigit(device, 7-i, String(character).toInt(), point);
+        break;
     }
+    
+    marker++;
   }
+  Serial.println();
 }
 
 void bargraphWriter(int device, String data) {
@@ -114,13 +130,15 @@ void bargraphWriter(int device, String data) {
   char green[4];
   int r, g, v;
   
-  memcpy(red, &data.c_str()[0], 4);
-  memcpy(green, &data.c_str()[4], 4);
+  for (int i = 0; i < 4; i++) {
+    red[i]    =  data[i];
+    green[i]  =  data[i+4];
+  }
   
-  for (int i=0; i<3; i++) {
-    for (int j=2; j<8; j++) {
-        r = bitRead(red[i], j);
-        g = bitRead(green[i], j);
+  for (int i=0; i<4; i++) {
+    for (int j=0; j<6; j++) {
+      r = bitRead(red[i], j);
+      g = bitRead(green[i], j);
         
         v=0;
         if (r==1 && g==1) {
@@ -131,11 +149,12 @@ void bargraphWriter(int device, String data) {
           v=3;
         }
         
-        bargraphs[device].setBar(i*6+j-2, v);
+        bargraphs[device].setBar(23  -((i*6)+(5-j)), v);
     }
   }
   
   bargraphs[device].writeDisplay();
+  Serial.println();
 }
 
 void pinModify(int pin, String data) {
@@ -156,10 +175,12 @@ void pinModify(int pin, String data) {
     default:
       Serial.println("Bad data for pin mode: " + data);
   }
+  Serial.println();
 }
 
 void getVersion() {
   Serial.println(v);
+  Serial.println();
 }
 
 void(* reset) (void) = 0;
@@ -214,10 +235,12 @@ void command(String read_) {
       sendSubscription();
       break;
     case '7':
-      displayWriter(String(id).toInt(), data);
+      id        +=  32;
+      displayWriter(String(char(id)).toInt(), data);
       break;
     case 'b':
-      bargraphWriter(String(id).toInt(), data);
+      id        +=  32;
+      bargraphWriter(String(char(id)).toInt(), data);
       break;
     case 'v':
       getVersion();
@@ -235,6 +258,12 @@ void setup()  {
     bargraphs[i] = Adafruit_24bargraph();
     bargraphs[i].begin(0x70+i);
   }
+  
+  for (int i = 0; i < DISPLAY_COUNT; i++) {
+    displays.shutdown(i,false);   // Enable display
+    displays.setIntensity(i,10);  // Set brightness level (0 is min, 15 is max)
+    displays.clearDisplay(i);     // Clear display register
+  } 
 }
 
 void loop() {

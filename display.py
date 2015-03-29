@@ -25,13 +25,17 @@ class display(object):
                 setattr(self, "_" + key, options[key])
         
         # Set ephemeral values
-        self.value        =   self._pad * self._length
+        self.value        =   "-" * self._length
         
         # Run initial update
-        #self.update()
+        self.update()
 
     def set(self, value):
-        self.value = value
+        if isinstance(value, str):
+            self.value = float(value)
+        else:
+            self.value = value
+        
         self.format()
         self.update()
         
@@ -43,7 +47,7 @@ class display(object):
         print self.toString()
         
     def toString(self):
-        return "[" + colored(self.value, "cyan") + "]"
+        return "[" + colored(self.value, "green") + "]"
         
     def format(self):
         # Take the value passed and format it for the 8 digit seven-segment display
@@ -53,7 +57,7 @@ class display(object):
         exponent    =   0
      
         # Break the value into integer and decimal portions
-        value       =   '{0:f}'.format(int(self.value))
+        value       =   '{0:f}'.format(self.value)
         integer     =   value[:value.index('.')]
         decimal     =   value[value.index('.')+1:]
         
@@ -151,18 +155,28 @@ def breakpoint():
 
 
 def main():
-    d = display(None, "Test", "test", 0)
+    a = arduino()
+    d0 = display(a, "Test", "test", 0)
+    d1 = display(a, "Test", "test", 1)
+    d2 = display(a, "Test", "test", 2)
+    d3 = display(a, "Test", "test", 3)
+    d4 = display(a, "Test", "test", 4)
     
     import time
     
     value = .00000012345678
     
     for i in range(0,20):
-        d.value = value
-        d.format()
-        print d.toString()
+        d0.set(value)
+        d1.set(value)
+        d2.set(value)
+        d3.set(value)
+        d4.set(value)
+        
+        print d0.toString()
         
         value *= 10
+        time.sleep(1)
     
     # breakpoint()
 

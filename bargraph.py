@@ -1,7 +1,8 @@
 #!/usr/bin/python
 
-from arduino import arduino
+from datetime import datetime
 from termcolor import colored
+from arduino import arduino
 
 class bargraph(object):
     
@@ -14,8 +15,9 @@ class bargraph(object):
         self.device         =   device
         
         # Pre-set extra attributes
-        self._type          =   "default"
+        self._type          =   "delta"
         self._max           =   100
+        self._showdelta     =   30*1000
         
         # Override defaults with passed values
         if options:
@@ -23,15 +25,17 @@ class bargraph(object):
                 setattr(self, "_" + key, options[key])
         
         # Set ephemeral values
-        self.value        =   0
-        self.red          = [ False, False, False, False, False, False,
-                              False, False, False, False, False, False,
-                              False, False, False, False, False, False,
-                              False, False, False, False, False, False, ]
-        self.green        = [ False, False, False, False, False, False,
-                              False, False, False, False, False, False,
-                              False, False, False, False, False, False,
-                              False, False, False, False, False, False, ]
+        self.value          =   0
+        self._lastvalue     =   0
+        
+        self._lastupdate    =   datetime.now()
+        self._delta         =   datetime.now() - self._lastupdate
+        
+        
+        self.red            =   [ False ] * 24
+        self.green          =   [ False ] * 24
+        self._lastred       =   [ False ] * 24
+        self._lastgreen     =   [ False ] * 24
         
         for i in range(self._max, 0):
             self.set(i)
@@ -40,7 +44,10 @@ class bargraph(object):
         self.update()
         
     def set(self, value):
-        self.value = value
+        self._lastvalue     =   self.value
+        self._delta         =   datetime.now() - self._lastupdate
+        self._lastupdate    =   datetime.now()
+        self.value          =   value
         self.update()
         
     def setMax(self, newMax):
@@ -61,21 +68,24 @@ class bargraph(object):
         
         for i in range(0, 24):
             if self.red[i] and self.green[i]:
-                char    =   colored(char, "yellow")
+                c    =   colored(char, "yellow")
             elif self.red[i]:
-                char    =   colored(char, "red")
+                c    =   colored(char, "red")
             elif self.green[i]:
-                char    =   colored(char, "green")
+                c    =   colored(char, "green")
             else:
-                char    =   " "
+                c    =   " "
             
-            bar+=char
+            bar+=c
         
         bar += "]"
         return  bar
         
     def format(self):
         def clear():
+            self._lastred       =   self.red[:]
+            self._lastgreen     =   self.green[:]
+            
             for i in range(0, 24):
                 self.red[i]     =   False
                 self.green[i]   =   False
@@ -89,10 +99,59 @@ class bargraph(object):
                 elif percent > 20:
                     self.green[i]   =   True
                     self.red[i]     =   True
-                if percent <= 20:
+                else:
                     self.green[i]   =   False
                     self.red[i]     =   True
         
+        def rainbow():
+            percent = float(self.value) * 100 / self._max;
+            
+            for i in range(0, min(24, int(24*percent/100))):
+                if i > 12:
+                    self.green[i]   =   True
+                elif i > 4:
+                    self.green[i]   =   True
+                    self.red[i]     =   True
+                else:
+                    self.green[i]   =   False
+                    self.red[i]     =   True
+        
+        def red():
+            percent = float(self.value) * 100 / self._max;
+            
+            for i in range(0, min(24, int(24*percent/100))):
+                self.red[i]         =   True
+                
+        def green():
+            percent = float(self.value) * 100 / self._max;
+            
+            for i in range(0, min(24, int(24*percent/100))):
+                self.green[i]       =   True
+                
+        def yellow():
+            percent = float(self.value) * 100 / self._max;
+            
+            for i in range(0, min(24, int(24*percent/100))):
+                self.red[i]         =   True
+                self.green[i]       =   True
+        
+        def delta():
+            green()
+            
+            percent         =   float(self.value) * 100 / self._max;
+            changepermilli  =   float(self.value-self._lastvalue)/(self._delta.total_seconds()*1000)
+            projectedchange =   changepermilli * self._showdelta
+            percentchange   =   projectedchange / self._max
+            
+            if percentchange > 0:
+                for i in range(min(24, int(24*percent/100)), min(24, int(24*(percent+percentchange)/100))):
+                    self.red[i]     =   True
+                    self.green[i]   =   True
+            elif percentchange < 0:
+                for i in range(max(0, (int(24*(percent+percentchange)/100)-1)), min(24, int(24*percent/100))):
+                    self.red[i]     =   True
+                    self.green[i]   =   False
+            
         clear()
         f = locals().get(self._type)
         if not f:
@@ -101,11 +160,12 @@ class bargraph(object):
         f()
         
         
-            
-            
     def write(self):
-        self._arduino.bargraphWrite(self.device, self.red, self.green)
-
+        # breakpoint()
+        if cmp(self.red, self._lastred) == 0 and cmp(self.green, self._lastgreen) == 0:
+            pass
+        else:
+            self._arduino.bargraphWrite(self.device, self.red, self.green)
 
 # #####################################
 # ########## Testing Methods ##########
@@ -138,34 +198,46 @@ def breakpoint():
 
 
 def main():
+    import sys
+    
     a = arduino()
     
     bar0 = bargraph(a, "Test", "test", 0)
-    bar1 = bargraph(a, "Test", "test", 1)
-    bar2 = bargraph(a, "Test", "test", 2)
-    bar3 = bargraph(a, "Test", "test", 3)
+    # bar1 = bargraph(a, "Test", "test", 1)
+    # bar2 = bargraph(a, "Test", "test", 2)
+    # bar3 = bargraph(a, "Test", "test", 3)
     # bar4 = bargraph(a, "Test", "test", 4)
     
     bar0.update()
-    bar1.update()
-    bar2.update()
-    bar3.update()
+    # bar1.update()
+    # bar2.update()
+    # bar3.update()
     # bar4.update()
     
     bar0.printout()
     
     import time
     
-    for i in range(0, 100):
+    for i in range(0, 101):
         bar0.set(i)
-        bar1.set(i)
-        bar2.set(i)
-        bar3.set(i)
+        # bar1.set(i)
+        # bar2.set(i)
+        # bar3.set(i)
         # bar4.set(i)
         
-        bar0.printout()
+        print bar0.toString()
+        time.sleep(.02)
         
-    breakpoint()
+    for i in range(101, -1, -1):
+        bar0.set(i)
+        # bar1.set(i)
+        # bar2.set(i)
+        # bar3.set(i)
+        # bar4.set(i)
+        
+        print bar0.toString()
+        time.sleep(.02)
+        
 
 if __name__ == "__main__":    
     try:

@@ -25,16 +25,19 @@ class display(object):
                 setattr(self, "_" + key, options[key])
         
         # Set ephemeral values
-        self.value        =   "-" * self._length
+        self.value          =   "-" * self._length
+        self._lastvalue     =   "-" * self._length
         
         # Run initial update
         self.update()
 
     def set(self, value):
+        self._lastvalue     =   self.value;
+        
         if isinstance(value, str):
-            self.value = float(value)
+            self.value      = float(value)
         else:
-            self.value = value
+            self.value      = value
         
         self.format()
         self.update()
@@ -51,7 +54,7 @@ class display(object):
         
     def format(self):
         # Take the value passed and format it for the 8 digit seven-segment display
-         
+        
         # Counter for exponents when using scientific notation
         E           =   ""
         exponent    =   0
@@ -121,7 +124,8 @@ class display(object):
         self.value = formatted
 
     def write(self):
-        self._arduino.displayWrite(self.device, self.value)
+        if self.value != self.lastvalue:
+            self._arduino.displayWrite(self.device, self.value)
 
 
 # #####################################

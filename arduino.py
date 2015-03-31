@@ -21,11 +21,12 @@ def debug(message, level=debugger, newline=True):
             sys.stdout.write(message)
 
 class arduino(object):
-    def __init__(self, port=None, baud=115200, timeout=2, s=None):
+    def __init__(self, port=None, baud=115200, timeout=2, s=None, silent=True):
         """Initializes serial communication with Arduino"""
         
         self.connected = False
         self.version = "KAPCOM v0.1"
+        self.silent = silent
         
         if not s:
             if not port:
@@ -134,7 +135,8 @@ class arduino(object):
         """Write the string to serial"""
 
         if not serial and not self.s:
-            print("<< " + string)
+            if not self.silent:
+                print("<< " + string)
             return
         
         debug(string, 5)
@@ -155,8 +157,10 @@ class arduino(object):
         """Write the string to serial and return the response"""
         
         if not serial and not self.s:
-            print("<< " + string)
-            return raw_input(">> ")
+            if not self.silent:
+                print("<< " + string)
+                return raw_input(">> ")
+            return 1
         
         debug(string, 5)
         

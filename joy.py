@@ -54,12 +54,12 @@ class joy(object):
         self.update()
         
     def update(self):
-        def deadzones(value):
-            if value >= -.05 and value <= .05:
+        def deadzones(value, deadzone=.05):
+            if value >= -1 * deadzone and value <= deadzone:
                 return 0
-            if value < -.95:
+            if value < -1 + deadzone:
                 return -1
-            if value > .95:
+            if value > 1 - deadzone:
                 return 1
             return value
         
@@ -71,7 +71,7 @@ class joy(object):
         # Check for deadzones
         self.X = deadzones(self.X)
         self.Y = deadzones(self.Y)
-        self.Z = deadzones(self.Z)
+        self.Z = deadzones(self.Z, .1)
         
         # Check for center
         if self.X == 0 and self.Y == 0 and self.Z == 0:

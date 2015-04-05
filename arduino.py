@@ -190,7 +190,7 @@ class arduino(object):
         elif value == 1 or str(value).upper() == "HIGH" or str(value).upper() == "ON":
             value=1
         else:
-            debug("Unexpected value in digitalWrite: " + value)
+            debug("Unexpected value in digitalWrite: " + str(value))
             return
             
         self.write(self.command("d", pin, str(value)))

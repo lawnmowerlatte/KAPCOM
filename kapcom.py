@@ -349,7 +349,6 @@ class kapcom(object):
         self.joy0.update()
         self.joy1.update()
 
-        # self.sendFlyByWire("toggle_fbw", "1")
         self.sendFlyByWire("six_dof", self.joy0.toString() + "," + self.joy1.toString())
         
         # Iterate across inputs

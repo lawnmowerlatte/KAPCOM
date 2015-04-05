@@ -83,34 +83,34 @@
     ],
     "outputs": [
         {
-            "api": "sas_status",
-            "type": "digitalOut",
-            "name": "SAS Status",
-            "pin": 24
-        },
-        {
             "api": "rcs_status",
             "type": "digitalOut",
             "name": "RCS Status",
-            "pin": 28
+            "pin": 2
+        },
+		{
+            "api": "sas_status",
+            "type": "digitalOut",
+            "name": "SAS Status",
+            "pin": 4
         },
         {
             "api": "action_group_light",
             "type": "digitalOut",
             "name": "Light Status",
-            "pin": 32
+            "pin": 18
         },
         {
             "api": "action_group_gear",
             "type": "digitalOut",
             "name": "Gear Status",
-            "pin": 36
+            "pin": 17
         },
         {
             "api": "action_group_brake",
             "type": "digitalOut",
             "name": "Brake Status",
-            "pin": 40
+            "pin": 15
         }
     ],
     "inputs": [
@@ -128,152 +128,82 @@
             "type": "mod",
             "name": "Abort",
             "pin": [
-                169,
-                170,
-                171
-            ]
+                172,
+                174,
+                173
+            ],
+			"options": {
+				"format": "true",
+				"button": {
+					"invert" : "True"
+				}
+			} 
         },
         {
             "api": "stage",
             "type": "mod",
             "name": "Stage",
             "pin": [
-                172,
-                173,
-                174
-            ]
-        },
-        {
-            "api": "toggle_map",
-            "type": "digitalIn",
-            "name": "Map",
-            "pin": 8
-        },
-        {
-            "api": "sas",
-            "type": "digitalIn",
-            "name": "SAS",
-            "pin": 22
+                169,
+                171,
+                170
+            ],
+			"options": {
+				"format": "true",
+				"button": {
+					"invert" : "True"
+				}
+			}
         },
         {
             "api": "rcs",
             "type": "digitalIn",
             "name": "RCS",
-            "pin": 26
+            "pin": 175,
+			"options": {
+				"invert": "True",
+				"format": "toggle"
+			}
+        },
+        {
+            "api": "sas",
+            "type": "digitalIn",
+            "name": "SAS",
+            "pin": 3,
+			"options": {
+				"invert": "True",
+				"format": "toggle"
+			}
         },
         {
             "api": "light",
             "type": "digitalIn",
             "name": "Light",
-            "pin": 30
+            "pin": 19,
+			"options": {
+				"invert": "True",
+				"format": "toggle"
+			}
         },
         {
             "api": "gear",
             "type": "digitalIn",
             "name": "Gear",
-            "pin": 34
+            "pin": 16,
+			"options": {
+				"invert": "True",
+				"format": "toggle"
+			}
         },
         {
             "api": "brake",
             "type": "digitalIn",
             "name": "Brake",
-            "pin": 38
-        },
-        {
-            "api": "action_group_1",
-            "type": "digitalIn",
-            "name": "Action Group 1",
-            "pin": 23
-        },
-        {
-            "api": "action_group_2",
-            "type": "digitalIn",
-            "name": "Action Group 2",
-            "pin": 25
-        },
-        {
-            "api": "action_group_3",
-            "type": "digitalIn",
-            "name": "Action Group 3",
-            "pin": 27
-        },
-        {
-            "api": "action_group_4",
-            "type": "digitalIn",
-            "name": "Action Group 4",
-            "pin": 29
-        },
-        {
-            "api": "action_group_5",
-            "type": "digitalIn",
-            "name": "Action Group 5",
-            "pin": 31
-        },
-        {
-            "api": "action_group_6",
-            "type": "digitalIn",
-            "name": "Action Group 6",
-            "pin": 33
-        },
-        {
-            "api": "action_group_7",
-            "type": "digitalIn",
-            "name": "Action Group 7",
-            "pin": 35
-        },
-        {
-            "api": "action_group_8",
-            "type": "digitalIn",
-            "name": "Action Group 8",
-            "pin": 37
-        },
-        {
-            "api": "action_group_9",
-            "type": "digitalIn",
-            "name": "Action Group 9",
-            "pin": 39
-        },
-        {
-            "api": "action_group_10",
-            "type": "digitalIn",
-            "name": "Action Group 10",
-            "pin": 41
-        },
-        {
-            "api": "",
-            "type": "digitalIn",
-            "name": "Warp -",
-            "pin": 42
-        },
-        {
-            "api": "",
-            "type": "digitalIn",
-            "name": "Warp +",
-            "pin": 43
-        },
-        {
-            "api": "",
-            "type": "digitalIn",
-            "name": "Ship -",
-            "pin": 44
-        },
-        {
-            "api": "",
-            "type": "digitalIn",
-            "name": "Ship +",
-            "pin": 45
-        },
-        {
-            "api": "",
-            "type": "digitalIn",
-            "name": "Camera -",
-            "pin": 46
-        },
-        {
-            "api": "",
-            "type": "digitalIn",
-            "name": "Camera +",
-            "pin": 47
+            "pin": 14,
+			"options": {
+				"invert": "True",
+				"format": "toggle"
+			}
         }
     ]
 }

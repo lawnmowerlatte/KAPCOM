@@ -9,9 +9,11 @@
 import sys
 import socket
 import time
-import pyksp
 import atexit
 import json
+
+# sys.path.append("./pyksp")
+import pyksp
 
 from arduino import arduino
 from pin import *
@@ -23,7 +25,7 @@ from display import display
 cycles=0
 duration=0
 
-debugger = 6
+debugger = 4
 def debug(message, level=debugger, newline=True):
     """Debugging log message"""
     
@@ -199,7 +201,7 @@ class kapcom(object):
                 self.vessel.start()
                 time.sleep(1)
             else:
-                self.hold("Unable to connect to telemetry")
+                hold("Unable to connect to telemetry")
                 return False
         for i in range(1, 20):
             if self.ready():
@@ -211,7 +213,7 @@ class kapcom(object):
             return False
         
         debug("All stations are go.", 1)
-        self.sendFlyByWire("toggle_fbw", None)
+        self.sendFlyByWire("toggle_fbw", "1")
         return True
         
     def configure(self):
@@ -250,8 +252,13 @@ class kapcom(object):
                             'bargraphs'   : self.bargraphs,
                             'displays'    : self.displays     }.iteritems():
             for configuration in j[key]:
-                loadObject(configuration, value)
-        
+                try:
+                    type = configuration['type']
+                    loadObject(configuration, value)
+                except:
+                    print "No type found. Skipping."
+                    print configuration
+                
         file.close()
         
     def ready(self):
@@ -341,6 +348,8 @@ class kapcom(object):
         # Update joysticks and send data
         self.joy0.update()
         self.joy1.update()
+
+        # self.sendFlyByWire("toggle_fbw", "1")
         self.sendFlyByWire("six_dof", self.joy0.toString() + "," + self.joy1.toString())
         
         # Iterate across inputs

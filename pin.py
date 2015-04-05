@@ -80,19 +80,17 @@ class pin(object):
     	if value == "0" or value == "False" or value == False:
             value = 0
         
-        self.value = value
-        self.update()
+        self.update(value)
         
     def update(self, value=None):
         """Check cooldown timer and act"""
         # Check if cooldown has expired
         delta = self._lastupdate - datetime.now()
         if (delta.total_seconds()*1000) > self._cooldown:
+            print "cooldown not reached"
             return
-        
         # Update counter
         self._lastupdate =   datetime.now()
-        
         # Perform action described in individual class
         self.act(value)
     
@@ -181,12 +179,20 @@ class __analog():
     def read(self):
         """Read from hardware"""
         self.value = int(self._arduino.analogRead(self.pin))
+        
+        if self._invert:
+            self.value = self._max - self.value
+        
         return self.value
         
     def write(self, value):
         """Write to hardware"""
         if value:
             self.value = int(value)
+            
+            if self._invert:
+                self.value = self._max - self.value
+            
             self._arduino.analogWrite(self.pin, self.value)
 
 class __digital():
@@ -195,12 +201,31 @@ class __digital():
     def read(self):
         """Read from hardware"""
         self.value = int(self._arduino.digitalRead(self.pin))
+        
+        if self._invert:
+            if self.value == 0:
+                self.value = 1
+            elif self.value == 1:
+                self.value = 0
+            else:
+                print "Unexpected value"
+            
         return self.value
         
     def write(self, value):
         """Write to hardware"""
-        if value:
+        
+        if value is not None:
             self.value = int(value)
+            
+            if self._invert:
+                if self.value == 0:
+                    self.value = 1
+                elif self.value == 1:
+                    self.value = 0
+                else:
+                    print "Unexpected value"
+            
             self._arduino.digitalWrite(self.pin, self.value)
         
 class analogIn(__analog, __input):

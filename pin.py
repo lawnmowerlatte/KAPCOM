@@ -31,10 +31,11 @@ class pin(object):
         self.pin            =   pin
         
         # Pre-set extra attributes
-        self._cooldown       =   500
-        self._invert         =   False
-        self._format         =   "value"
-        self._max            =   1024
+        self._cooldown      =   500
+        self._invert        =   False
+        self._format        =   "value"
+        self._max           =   1024
+        self._deadzone      =   0
         
         # Override defaults with passed values
         if options:
@@ -182,6 +183,11 @@ class __analog():
         
         if self._invert:
             self.value = self._max - self.value
+        
+        if self.value < self._max * self._deadzone:
+            self.value = 0
+        elif self.value > self._max * (1-self._deadzone):
+            self.value = self._max
         
         return self.value
         

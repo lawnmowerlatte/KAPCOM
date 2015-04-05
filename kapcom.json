@@ -38,13 +38,15 @@
             "y": 161,
             "x": 160,
             "z": 162,
-            "options": null
+            "options": {
+            	"invertZ": "True"
+            }
         },
         {
             "name": "Joy1",
             "button": 167,
-            "y": 165,
-            "x": 164,
+            "x": 165,
+            "y": 164,
             "z": 166,
             "options": null
         }
@@ -120,7 +122,8 @@
             "name": "Throttle",
             "pin": 168,
 			"options": {
-				"format": "floatpoint"
+				"format": "floatpoint",
+				"deadzone": 0.05
 			}
         },
         {

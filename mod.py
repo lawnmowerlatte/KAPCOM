@@ -12,10 +12,25 @@ class mod(object):
         indicator   =   pin[1]
         button      =   pin[2]
         
+        try:
+            modifierOptions     =   options['modifier']
+        except:
+            modifierOptions     =   None
+        
+        try:
+            indicatorOptions    =   options['indicator']
+        except:
+            indicatorOptions    =   None
+            
+        try:
+            buttonOptions       =   options['button']
+        except:
+            buttonOptions       =   None
+        
         # Set core attributes
-        self.mod            = digitalIn(arduino, name + " Modifier", "", modifier)
-        self.indicator      = digitalOut(arduino, name + " Indicator", "", indicator)
-        self.button         = digitalIn(arduino, name + " Button", "", button)
+        self.mod            = digitalIn(arduino, name + " Modifier", "", modifier, modifierOptions)
+        self.indicator      = digitalOut(arduino, name + " Indicator", "", indicator, indicatorOptions)
+        self.button         = digitalIn(arduino, name + " Button", "", button, buttonOptions)
         
         self.name           =   name
         self.api            =   api

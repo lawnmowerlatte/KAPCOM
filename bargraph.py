@@ -1,7 +1,6 @@
 #!/usr/bin/python
 
 from datetime import datetime
-from termcolor import colored
 from arduino import arduino
 
 class bargraph(object):
@@ -43,6 +42,13 @@ class bargraph(object):
         # Run initial update
         self.update()
         
+    def _color(self, character, color):
+        try:
+            from termcolor import colored
+            return colored(character, color)
+        except:
+            return character
+
     def set(self, value):
         self._lastvalue     =   self.value
         self._delta         =   datetime.now() - self._lastupdate
@@ -68,11 +74,11 @@ class bargraph(object):
         
         for i in range(0, 24):
             if self.red[i] and self.green[i]:
-                c    =   colored(char, "yellow")
+                c    =   self._color(char, "yellow")
             elif self.red[i]:
-                c    =   colored(char, "red")
+                c    =   self._color(char, "red")
             elif self.green[i]:
-                c    =   colored(char, "green")
+                c    =   self._color(char, "green")
             else:
                 c    =   " "
             
@@ -161,7 +167,6 @@ class bargraph(object):
         
         
     def write(self):
-        # breakpoint()
         if cmp(self.red, self._lastred) == 0 and cmp(self.green, self._lastgreen) == 0:
             pass
         else:
@@ -202,7 +207,7 @@ def main():
     
     a = arduino()
     
-    bar0 = bargraph(a, "Test", "test", 0)
+    bar0 = bargraph(a, "Test", "test", 1)
     # bar1 = bargraph(a, "Test", "test", 1)
     # bar2 = bargraph(a, "Test", "test", 2)
     # bar3 = bargraph(a, "Test", "test", 3)
@@ -226,7 +231,7 @@ def main():
         # bar4.set(i)
         
         print bar0.toString()
-        time.sleep(.02)
+        time.sleep(.25)
         
     for i in range(101, -1, -1):
         bar0.set(i)
@@ -236,7 +241,7 @@ def main():
         # bar4.set(i)
         
         print bar0.toString()
-        time.sleep(.02)
+        time.sleep(.25)
         
 
 if __name__ == "__main__":    

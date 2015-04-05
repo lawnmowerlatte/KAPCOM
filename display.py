@@ -1,7 +1,6 @@
 #!/usr/bin/python
 
 from arduino import arduino
-from termcolor import colored
 
 class display(object):
     def __init__(self, arduino, name, api, device, options=None):
@@ -31,6 +30,13 @@ class display(object):
         # Run initial update
         self.update()
 
+    def _color(self, character, color):
+        try:
+            from termcolor import colored
+            return colored(character, color)
+        except:
+            return character
+
     def set(self, value):
         self._lastvalue     =   self.value;
         
@@ -50,7 +56,7 @@ class display(object):
         print self.toString()
         
     def toString(self):
-        return "[" + colored(self.value, "green") + "]"
+        return "[" + self._color(self.value, "green") + "]"
         
     def format(self):
         # Take the value passed and format it for the 8 digit seven-segment display
@@ -124,7 +130,7 @@ class display(object):
         self.value = formatted
 
     def write(self):
-        if self.value != self.lastvalue:
+        if self.value != self._lastvalue:
             self._arduino.displayWrite(self.device, self.value)
 
 

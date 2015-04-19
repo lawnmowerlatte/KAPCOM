@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+import os
 from abc import ABCMeta, abstractmethod
 from datetime import datetime
 from arduino import arduino
@@ -36,6 +37,7 @@ class pin(object):
         self._format        =   "value"
         self._max           =   1024
         self._deadzone      =   0
+        self._initial       =   0
         
         # Override defaults with passed values
         if options:
@@ -46,8 +48,8 @@ class pin(object):
         self.init()
         
         # Set ephemeral values
-        self.value          =   0
-        self._lastvalue     =   0
+        self.value          =   self._initial
+        self._lastvalue     =   self.value
         self._lastupdate    =   datetime.now()
         
         # Run initial update
@@ -119,8 +121,10 @@ class pin(object):
         # Define function for pressing a key
         def key(x):
             """Press a key"""
-            keyCommand = "osascript -e 'tell application \"Kerbal Space Program\" to keystroke \""+self.key+"\"'"
-            os.system(keyCommand)
+            keyCommand = "osascript -e 'tell application \"Kerbal Space Program\" to keystroke \""+self._key+"\"'"
+            if x is 1:
+                print keyCommand
+                #os.system(keyCommand)
         
         # Try to run the lambda/function specified by _format
         f = locals().get(self._format)

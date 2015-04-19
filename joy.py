@@ -80,9 +80,9 @@ class joy(object):
             self.centered = False
             
         if self.button.get() is 0:
-            self.X /= self.scale
-            self.Y /= self.scale
-            self.Z /= self.scale
+            self.X = (self.X*1.0)/self.scale
+            self.Y = (self.Y*1.0)/self.scale
+            self.Z = (self.Z*1.0)/self.scale
    
     def centered(self):
         return self.center

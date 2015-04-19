@@ -1,0 +1,212 @@
+{
+    "displays": [
+        {
+            "api": "vessel_altitude",
+            "type": "display",
+            "name": "ALT",
+            "device": 0
+        },
+        {
+            "api": "vessel_velocity",
+            "type": "display",
+            "name": "VEL",
+            "device": 1
+        },
+        {
+            "api": "vessel_apoapsis",
+            "type": "display",
+            "name": "AP",
+            "device": 2
+        },
+        {
+            "api": "vessel_periapsis",
+            "type": "display",
+            "name": "PE",
+            "device": 3
+        },
+        {
+            "api": "vessel_asl_height",
+            "type": "display",
+            "name": "RAD",
+            "device": 4
+        }
+    ],
+    "joys": [
+        {
+            "name": "Joy0",
+            "button": 163,
+            "y": 161,
+            "x": 160,
+            "z": 162,
+            "options": {
+            	"invertZ": "True"
+            }
+        },
+        {
+            "name": "Joy1",
+            "button": 167,
+            "x": 165,
+            "y": 164,
+            "z": 166,
+            "options": null
+        }
+    ],
+    "bargraphs": [
+        {
+            "api": "resource_lf_current",
+            "type": "bargraph",
+            "name": "LF",
+            "device": 0
+        },
+        {
+            "api": "resource_ox_current",
+            "type": "bargraph",
+            "name": "OX",
+            "device": 1
+        },
+        {
+            "api": "resource_ec_current",
+            "type": "bargraph",
+            "name": "EL",
+            "device": 2
+        },
+        {
+            "api": "resource_mp_current",
+            "type": "bargraph",
+            "name": "MP",
+            "device": 3
+        },
+        {
+            "api": "resource_sf_current",
+            "type": "bargraph",
+            "name": "SF",
+            "device": 4
+        }
+    ],
+    "outputs": [
+        {
+            "api": "rcs_status",
+            "type": "digitalOut",
+            "name": "RCS Status",
+            "pin": 2
+        },
+		{
+            "api": "sas_status",
+            "type": "digitalOut",
+            "name": "SAS Status",
+            "pin": 4
+        },
+        {
+            "api": "action_group_light",
+            "type": "digitalOut",
+            "name": "Light Status",
+            "pin": 18
+        },
+        {
+            "api": "action_group_gear",
+            "type": "digitalOut",
+            "name": "Gear Status",
+            "pin": 17
+        },
+        {
+            "api": "action_group_brake",
+            "type": "digitalOut",
+            "name": "Brake Status",
+            "pin": 15
+        }
+    ],
+    "inputs": [
+        {
+            "api": "set_throttle",
+            "type": "analogIn",
+            "name": "Throttle",
+            "pin": 168,
+			"options": {
+				"format": "floatpoint",
+				"deadzone": 0.05
+			}
+        },
+        {
+            "api": "abort",
+            "type": "mod",
+            "name": "Abort",
+            "pin": [
+                172,
+                174,
+                173
+            ],
+			"options": {
+				"format": "true",
+				"button": {
+					"invert" : "True"
+				}
+			} 
+        },
+        {
+            "api": "stage",
+            "type": "mod",
+            "name": "Stage",
+            "pin": [
+                169,
+                171,
+                170
+            ],
+			"options": {
+				"format": "true",
+				"button": {
+					"invert" : "True"
+				}
+			}
+        },
+        {
+            "api": "rcs",
+            "type": "digitalIn",
+            "name": "RCS",
+            "pin": 175,
+			"options": {
+				"invert": "True",
+				"format": "toggle"
+			}
+        },
+        {
+            "api": "sas",
+            "type": "digitalIn",
+            "name": "SAS",
+            "pin": 3,
+			"options": {
+				"invert": "True",
+				"format": "toggle"
+			}
+        },
+        {
+            "api": "light",
+            "type": "digitalIn",
+            "name": "Light",
+            "pin": 19,
+			"options": {
+				"invert": "True",
+				"format": "toggle"
+			}
+        },
+        {
+            "api": "gear",
+            "type": "digitalIn",
+            "name": "Gear",
+            "pin": 16,
+			"options": {
+				"invert": "True",
+				"format": "toggle"
+			}
+        },
+        {
+            "api": "brake",
+            "type": "digitalIn",
+            "name": "Brake",
+            "pin": 14,
+			"options": {
+				"invert": "True",
+				"format": "toggle"
+			}
+        }
+    ]
+}

@@ -37,6 +37,7 @@ class mod(object):
         
         # Pre-set extra attributes
         self._format        =   "value"
+        self._initial       =   0
         
         # Override defaults with passed values
         if options:
@@ -44,8 +45,8 @@ class mod(object):
                 setattr(self, "_" + key, options[key])
         
         # Set ephemeral values
-        self.value          =   0
-        self._lastvalue     =   0
+        self.value          =   self._initial
+        self._lastvalue     =   self.value
         self._lastupdate    =   datetime.now()
         
         # Run initial update

@@ -11,9 +11,9 @@ int analogOffset = A0;
 
 String v = "KAPCOM v0.1";
 
-int DIN=14;
-int LOAD=15;
-int CLK=16;
+int DIN=7;
+int LOAD=6;
+int CLK=5;
 int DISPLAY_COUNT=5;
 LedControl displays=LedControl(DIN,CLK,LOAD,DISPLAY_COUNT);
 
@@ -180,6 +180,7 @@ void pinModify(int pin, String data) {
 
 void getVersion() {
   Serial.println(v);
+  Serial.println();
 }
 
 void(* reset) (void) = 0;

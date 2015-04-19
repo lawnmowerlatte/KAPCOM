@@ -213,6 +213,7 @@ class kapcom(object):
             return False
         
         debug("All stations are go.", 1)
+        self.sendFlyByWire("toggle_fbw", "1")
         return True
         
     def configure(self):
@@ -348,12 +349,7 @@ class kapcom(object):
         self.joy0.update()
         self.joy1.update()
 
-        six_dof = self.joy0.toString() + "," + self.joy1.toString()
-        if six_dof != "0,0,0,0,0,0":
-            self.sendFlyByWire("toggle_fbw", "1")
-            self.sendFlyByWire("six_dof", six_dof)
-        else:
-            self.sendFlyByWire("toggle_fbw", "0")
+        self.sendFlyByWire("six_dof", self.joy0.toString() + "," + self.joy1.toString())
         
         # Iterate across inputs
         for i in self.inputs:
@@ -372,7 +368,6 @@ class kapcom(object):
             
         # Set the bargraphs
         for b in self.bargraphs:
-            b.setMax(self.getTelemetry(b._max_api))
             b.set(self.getTelemetry(b.api))
         
         # Set the displays
@@ -381,8 +376,7 @@ class kapcom(object):
         
     def getTelemetry(self, api):
         if not self.headless:
-            if len(api) > 0:
-                return self.vessel.get(api)
+            return self.vessel.get(api)
         else:
             return 0
     

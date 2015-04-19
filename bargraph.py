@@ -159,6 +159,11 @@ class bargraph(object):
                     self.green[i]   =   False
             
         clear()
+        
+        if self.value < 0 or self._max < 0:
+            self._arduino.bargraphWrite(self.device, self.red, self.green)
+            return
+        
         f = locals().get(self._type)
         if not f:
             debug("Unknown type: " + self._type)
@@ -207,17 +212,17 @@ def main():
     
     a = arduino()
     
-    bar0 = bargraph(a, "Test", "test", 1)
-    # bar1 = bargraph(a, "Test", "test", 1)
-    # bar2 = bargraph(a, "Test", "test", 2)
-    # bar3 = bargraph(a, "Test", "test", 3)
-    # bar4 = bargraph(a, "Test", "test", 4)
+    bar0 = bargraph(a, "Test", "test", 0)
+    bar1 = bargraph(a, "Test", "test", 1)
+    bar2 = bargraph(a, "Test", "test", 2)
+    bar3 = bargraph(a, "Test", "test", 3)
+    bar4 = bargraph(a, "Test", "test", 4)
     
     bar0.update()
-    # bar1.update()
-    # bar2.update()
-    # bar3.update()
-    # bar4.update()
+    bar1.update()
+    bar2.update()
+    bar3.update()
+    bar4.update()
     
     bar0.printout()
     
@@ -225,20 +230,20 @@ def main():
     
     for i in range(0, 101):
         bar0.set(i)
-        # bar1.set(i)
-        # bar2.set(i)
-        # bar3.set(i)
-        # bar4.set(i)
+        bar1.set(i)
+        bar2.set(i)
+        bar3.set(i)
+        bar4.set(i)
         
         print bar0.toString()
         time.sleep(.25)
         
     for i in range(101, -1, -1):
         bar0.set(i)
-        # bar1.set(i)
-        # bar2.set(i)
-        # bar3.set(i)
-        # bar4.set(i)
+        bar1.set(i)
+        bar2.set(i)
+        bar3.set(i)
+        bar4.set(i)
         
         print bar0.toString()
         time.sleep(.25)

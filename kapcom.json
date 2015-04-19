@@ -56,64 +56,143 @@
             "api": "resource_lf_current",
             "type": "bargraph",
             "name": "LF",
-            "device": 0
+            "device": 0,
+			"options": {
+				"max_api": "resource_lf_max"
+			}
         },
         {
             "api": "resource_ox_current",
             "type": "bargraph",
             "name": "OX",
-            "device": 1
+            "device": 1,
+			"options": {
+				"max_api": "resource_ox_max"
+			}
         },
         {
             "api": "resource_ec_current",
             "type": "bargraph",
             "name": "EL",
-            "device": 2
+            "device": 2,
+			"options": {
+				"max_api": "resource_ec_max"
+			}
         },
         {
             "api": "resource_mp_current",
             "type": "bargraph",
             "name": "MP",
-            "device": 3
+            "device": 3,
+			"options": {
+				"max_api": "resource_mp_max"
+			}
         },
         {
             "api": "resource_sf_current",
             "type": "bargraph",
             "name": "SF",
-            "device": 4
+            "device": 4,
+			"options": {
+				"max_api": "resource_sf_max"
+			}
         }
     ],
     "outputs": [
-        {
-            "api": "rcs_status",
-            "type": "digitalOut",
-            "name": "RCS Status",
-            "pin": 2
-        },
 		{
             "api": "sas_status",
             "type": "digitalOut",
             "name": "SAS Status",
-            "pin": 4
+            "pin": 33
         },
         {
+            "api": "rcs_status",
+            "type": "digitalOut",
+            "name": "RCS Status",
+            "pin": 31
+        },
+		{
             "api": "action_group_light",
             "type": "digitalOut",
             "name": "Light Status",
-            "pin": 18
+            "pin": 29
         },
         {
             "api": "action_group_gear",
             "type": "digitalOut",
             "name": "Gear Status",
-            "pin": 17
+            "pin": 27
+        },
+		{
+            "api": "",
+            "type": "digitalOut",
+            "name": "Map Lamp",
+            "pin": 25
         },
         {
             "api": "action_group_brake",
             "type": "digitalOut",
             "name": "Brake Status",
-            "pin": 15
+            "pin": 23
+        },
+		
+        {
+            "api": "",
+            "type": "digitalOut",
+            "name": "Last Warp Lamp",
+            "pin": 35,
+			"options": {
+				"initial": 1
+			}
+        },
+        {
+            "api": "",
+            "type": "digitalOut",
+            "name": "Next Warp Lamp",
+            "pin": 37,
+			"options": {
+				"initial": 1
+			}
+        },
+        {
+            "api": "",
+            "type": "digitalOut",
+            "name": "Last Ship Lamp",
+            "pin": 39,
+			"options": {
+				"initial": 1
+			}
+        },
+        {
+            "api": "",
+            "type": "digitalOut",
+            "name": "Next Ship Lamp",
+            "pin": 41,
+			"options": {
+				"initial": 1
+			}
+        },
+        {
+            "api": "",
+            "type": "digitalOut",
+            "name": "Last Camera Lamp",
+            "pin": 43,
+			"options": {
+				"initial": 1
+			}
+        },
+        {
+            "api": "",
+            "type": "digitalOut",
+            "name": "Next Camera Lamp",
+            "pin": 45,
+			"options": {
+				"initial": 1
+			}
         }
+		
+		
+		
     ],
     "inputs": [
         {
@@ -123,7 +202,24 @@
             "pin": 168,
 			"options": {
 				"format": "floatpoint",
-				"deadzone": 0.05
+				"deadzone": 0.05,
+				"invert": "True"
+			}
+        },
+        {
+            "api": "stage",
+            "type": "mod",
+            "name": "Stage",
+            "pin": [
+                169,
+                171,
+                170
+            ],
+			"options": {
+				"format": "true",
+				"button": {
+					"invert" : "True"
+				}
 			}
         },
         {
@@ -143,36 +239,20 @@
 			} 
         },
         {
-            "api": "stage",
-            "type": "mod",
-            "name": "Stage",
-            "pin": [
-                169,
-                171,
-                170
-            ],
-			"options": {
-				"format": "true",
-				"button": {
-					"invert" : "True"
-				}
-			}
-        },
-        {
-            "api": "rcs",
+            "api": "sas",
             "type": "digitalIn",
-            "name": "RCS",
-            "pin": 175,
+            "name": "SAS",
+            "pin": 32,
 			"options": {
 				"invert": "True",
 				"format": "toggle"
 			}
         },
         {
-            "api": "sas",
+            "api": "rcs",
             "type": "digitalIn",
-            "name": "SAS",
-            "pin": 3,
+            "name": "RCS",
+            "pin": 30,
 			"options": {
 				"invert": "True",
 				"format": "toggle"
@@ -182,7 +262,7 @@
             "api": "light",
             "type": "digitalIn",
             "name": "Light",
-            "pin": 19,
+            "pin": 28,
 			"options": {
 				"invert": "True",
 				"format": "toggle"
@@ -192,7 +272,17 @@
             "api": "gear",
             "type": "digitalIn",
             "name": "Gear",
-            "pin": 16,
+            "pin": 26,
+			"options": {
+				"invert": "True",
+				"format": "toggle"
+			}
+        },
+        {
+            "api": "toggle_map",
+            "type": "digitalIn",
+            "name": "Map",
+            "pin": 24,
 			"options": {
 				"invert": "True",
 				"format": "toggle"
@@ -202,7 +292,175 @@
             "api": "brake",
             "type": "digitalIn",
             "name": "Brake",
-            "pin": 14,
+            "pin": 22,
+			"options": {
+				"invert": "True",
+				"format": "toggle"
+			}
+        },
+		
+        {
+            "api": "",
+            "type": "digitalIn",
+            "name": "Last Warp",
+            "pin": 34,
+			"options": {
+				"invert": "True",
+				"format": "key",
+				"key":	","
+			}
+        },
+        {
+            "api": "",
+            "type": "digitalIn",
+            "name": "Next Warp",
+            "pin": 36,
+			"options": {
+				"invert": "True",
+				"format": "key",
+				"key":	"."
+			}
+        },
+        {
+            "api": "",
+            "type": "digitalIn",
+            "name": "Last Ship",
+            "pin": 38,
+			"options": {
+				"invert": "True",
+				"format": "key",
+				"key":	"["
+			}
+        },
+        {
+            "api": "",
+            "type": "digitalIn",
+            "name": "Next Ship",
+            "pin": 40,
+			"options": {
+				"invert": "True",
+				"format": "key",
+				"key":	"]"
+			}
+        },
+        {
+            "api": "",
+            "type": "digitalIn",
+            "name": "Last Camera",
+            "pin": 42,
+			"options": {
+				"invert": "True",
+				"format": "key",
+				"key":	"-"
+			}
+        },
+        {
+            "api": "",
+            "type": "digitalIn",
+            "name": "Next Camera",
+            "pin": 44,
+			"options": {
+				"invert": "True",
+				"format": "key",
+				"key":	"="
+			}
+        },
+		
+        {
+            "api": "action_group_1",
+            "type": "digitalIn",
+            "name": "Action Group 1",
+            "pin": 2,
+			"options": {
+				"invert": "True",
+				"format": "toggle"
+			}
+        },
+        {
+            "api": "action_group_2",
+            "type": "digitalIn",
+            "name": "Action Group 2",
+            "pin": 3,
+			"options": {
+				"invert": "True",
+				"format": "toggle"
+			}
+        },
+        {
+            "api": "action_group_3",
+            "type": "digitalIn",
+            "name": "Action Group 3",
+            "pin": 4,
+			"options": {
+				"invert": "True",
+				"format": "toggle"
+			}
+        },
+        {
+            "api": "action_group_4",
+            "type": "digitalIn",
+            "name": "Action Group 4",
+            "pin": 5,
+			"options": {
+				"invert": "True",
+				"format": "toggle"
+			}
+        },
+        {
+            "api": "action_group_5",
+            "type": "digitalIn",
+            "name": "Action Group 5",
+            "pin": 6,
+			"options": {
+				"invert": "True",
+				"format": "toggle"
+			}
+        },
+        {
+            "api": "action_group_6",
+            "type": "digitalIn",
+            "name": "Action Group 6",
+            "pin": 7,
+			"options": {
+				"invert": "True",
+				"format": "toggle"
+			}
+        },
+        {
+            "api": "action_group_7",
+            "type": "digitalIn",
+            "name": "Action Group 7",
+            "pin": 8,
+			"options": {
+				"invert": "True",
+				"format": "toggle"
+			}
+        },
+        {
+            "api": "action_group_8",
+            "type": "digitalIn",
+            "name": "Action Group 8",
+            "pin": 9,
+			"options": {
+				"invert": "True",
+				"format": "toggle"
+			}
+        },
+        {
+            "api": "action_group_9",
+            "type": "digitalIn",
+            "name": "Action Group 9",
+            "pin": 10,
+			"options": {
+				"invert": "True",
+				"format": "toggle"
+			}
+        },
+        {
+            "api": "action_group_10",
+            "type": "digitalIn",
+            "name": "Action Group 10",
+            "pin": 11,
 			"options": {
 				"invert": "True",
 				"format": "toggle"

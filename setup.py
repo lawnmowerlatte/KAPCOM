@@ -71,7 +71,7 @@ try:
     tryinstall = True
     ok()
 except:
-    fail("Not found", False)
+    fail(end=False)
     debug("Setup will continue, but will not be able to install packages automatically. Setup will fail if packages are missing.")
     
 # Opporunistically use termcolor if available
@@ -82,12 +82,12 @@ if platform.system() != 'Windows':
         usecolor = True
         ok()
     except:
-        fail("Not found", False)
+        fail(end=False)
         
         if tryinstall:
             debug("Installing termcolor: ", newline=False)
             try:
-                pip.main("install", "termcolor")
+                pip.main(["install", "termcolor"])
                 import termcolor
                 ok()
             except:
@@ -101,12 +101,12 @@ try:
     import serial
     ok()
 except:
-    fail("Not found", False)
+    fail(end=False)
     
     if tryinstall:
         debug("Installing PySerial: ", newline=False)
         try:
-            pip.main("install", "pyserial")
+            pip.main(["install", "pyserial"])
             import serial
             ok()
         except:
@@ -126,8 +126,8 @@ if platform.system() == 'Windows':
         if tryinstall:
             debug("Installing winreg and itertools: ", newline=False)
             try:
-                pip.main("install", "winreg")
-                pip.main("install", "itertools")
+                pip.main(["install", "winreg"])
+                pip.main(["install", "itertools"])
                 import _winreg as winreg
                 import itertools
                 ok()
@@ -152,7 +152,7 @@ else:
         if tryinstall:
             debug("Installing glob: ", newline=False)
             try:
-                pip.main("install", "glob")
+                pip.main(["install", "glob"])
                 import glob
                 ok()
             except:

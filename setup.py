@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-pyksp_git="https://github.com/602p/pyksp.git"
+pyksp_git="https://github.com/lawnmowerlatte/pyksp.git"
 
 try:
     import sys
@@ -182,8 +182,9 @@ except:
         except:
             fail("Installation failed", False)
     else:
-        fail("Please install pyksp within the KAPCOM directory using git", False)
-        fail("git clone -q " + pyksp_git)
+        debug("Please install pyksp within the KAPCOM directory using git", False)
+        debug("git clone -q " + pyksp_git)
+        end()
     
 debug()
 debug("Prerequisites met. Please run configure.py", color="green")

@@ -65,7 +65,7 @@ else:
     fail("Please use Python 2.7")
 
 # Check for pip
-debug("Importing pip: ", newline=False)
+debug("Checking for pip: ", newline=False)
 try:
     import pip
     tryinstall = True

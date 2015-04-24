@@ -184,7 +184,7 @@ except:
     else:
         debug("Please install pyksp within the KAPCOM directory using git", False)
         debug("git clone -q " + pyksp_git)
-        end()
+        exit()
     
 debug()
 debug("Prerequisites met. Please run configure.py", color="green")

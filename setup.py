@@ -122,7 +122,7 @@ if platform.system() == 'Windows':
         import itertools
         ok()
     except:
-        fail("Not found", False)
+        fail(end=False)
         if tryinstall:
             debug("Installing winreg and itertools: ", newline=False)
             try:
@@ -148,7 +148,7 @@ else:
         import glob
         ok()
     except:
-        fail("Not found", False)
+        fail(end=False)
         if tryinstall:
             debug("Installing glob: ", newline=False)
             try:
@@ -166,7 +166,7 @@ try:
     import pyksp
     ok()
 except:
-    fail("Not found")
+    fail(end=False)
     if platform.system() != "Windows":
         debug("Trying to install pyksp: ", newline=False)
         try:

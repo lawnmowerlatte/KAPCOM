@@ -87,7 +87,7 @@ if platform.system() != 'Windows':
         if tryinstall:
             debug("Installing termcolor: ", newline=False)
             try:
-                pip.main(["install", "termcolor"])
+                pip.main(["install", "-q", "termcolor"])
                 import termcolor
                 ok()
             except:
@@ -106,7 +106,7 @@ except:
     if tryinstall:
         debug("Installing PySerial: ", newline=False)
         try:
-            pip.main(["install", "pyserial"])
+            pip.main(["install", "-q", "pyserial"])
             import serial
             ok()
         except:
@@ -126,8 +126,8 @@ if platform.system() == 'Windows':
         if tryinstall:
             debug("Installing winreg and itertools: ", newline=False)
             try:
-                pip.main(["install", "winreg"])
-                pip.main(["install", "itertools"])
+                pip.main(["install", "-q", "winreg"])
+                pip.main(["install", "-q", "itertools"])
                 import _winreg as winreg
                 import itertools
                 ok()
@@ -152,7 +152,7 @@ else:
         if tryinstall:
             debug("Installing glob: ", newline=False)
             try:
-                pip.main(["install", "glob"])
+                pip.main(["install", "-q", "glob"])
                 import glob
                 ok()
             except:

@@ -110,8 +110,7 @@ except:
             import serial
             ok()
         except:
-            fail("Installation failed", False)
-            fail("Please install pyserial using pip.")
+            fail("Installation failed, please install pyserial using pip.")
     else:
         fail("Please install pyserial using pip.")
 
@@ -133,8 +132,7 @@ if platform.system() == 'Windows':
                 import itertools
                 ok()
             except:
-                fail("Installation failed", False)
-                fail("Please install winreg and itertools using pip.")
+                fail("Installation failed, please install winreg and itertools using pip.")
         else:
             fail("Please install winreg and itertools using pip.")
 
@@ -143,8 +141,7 @@ elif platform.system() == 'Darwin':
         from serial.tools import list_ports
         ok()
     except:
-        fail("Not found", False)
-        fail("Please install serial.tools using pip.")
+        fail("Not found, please install serial.tools using pip.")
 
 else:
     try:
@@ -159,8 +156,7 @@ else:
                 import glob
                 ok()
             except:
-                fail("Installation failed", False)
-                fail("Please install winreg and itertools using pip.")
+                fail("Installation failed, please install glob using pip.")
         else:
             fail("Please install glob using pip.")
         

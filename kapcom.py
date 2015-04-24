@@ -12,7 +12,7 @@ import time
 import atexit
 import json
 
-# sys.path.append("./pyksp")
+sys.path.append("./pyksp")
 import pyksp
 
 from arduino import arduino

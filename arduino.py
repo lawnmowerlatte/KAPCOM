@@ -70,10 +70,12 @@ class arduino(object):
                 debug(str(e), 4)
                 continue
                 
-            time.sleep(2)
-            
             # Check if the connected device is compatible
             v = self.getVersion(s)
+            
+            # Retry once in case we missed it
+            if v == "":
+                v = self.getVersion(s)
             
             # If not correct, continue search
             if v != self.version:

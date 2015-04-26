@@ -115,6 +115,9 @@ class kapcom(object):
         'baud'  :   115200,
         'host'  :   "127.0.0.1",
         'sock'  :   8085    }
+        
+    joy0 = None
+    joy1 = None
     
     def __init__(self, port=None, baud=None, host=None, sock=None):
         """Takes serial port, baudrate and socket information and creates the KAPCOM object."""
@@ -148,7 +151,7 @@ class kapcom(object):
         file.close()
         
         if not self.headless:
-            self.vessel = pyksp.ActiveVessel()
+            self.vessel = pyksp.ActiveVessel(url=self.host + ":" + str(self.sock))
             for subscription in self.subscriptions:
                 self.vessel.subscribe(subscription)
         else:
@@ -168,17 +171,12 @@ class kapcom(object):
             time.sleep(1)
         
         debug("Fly by wire...", 2, False)
-        for i in range(1, 20):
-            try:
-                self.arduino = arduino(self.port, self.baud)
-            except:
-                wait()
-            else:
-                debug("Go", 2)
-                break
+        try:
+            self.arduino = arduino(self.port, self.baud)
+        except:
+            hold("Hardware failed to initialize.")
         else:
-            hold("Timeout while waiting for hardware.")
-            return False
+            debug("Go", 2)
         
         debug("Configuration...", 2, False)
         try:
@@ -344,16 +342,17 @@ class kapcom(object):
         
 
     def update(self):
-        # Update joysticks and send data
-        self.joy0.update()
-        self.joy1.update()
+        if self.joy0 is not None and self.joy1 is not None:
+            # Update joysticks and send data
+            self.joy0.update()
+            self.joy1.update()
 
-        six_dof = self.joy0.toString() + "," + self.joy1.toString()
-        if six_dof != "0,0,0,0,0,0":
-            self.sendFlyByWire("toggle_fbw", "1")
-            self.sendFlyByWire("six_dof", six_dof)
-        else:
-            self.sendFlyByWire("toggle_fbw", "0")
+            six_dof = self.joy0.toString() + "," + self.joy1.toString()
+            if six_dof != "0,0,0,0,0,0":
+                self.sendFlyByWire("toggle_fbw", "1")
+                self.sendFlyByWire("six_dof", six_dof)
+            else:
+                self.sendFlyByWire("toggle_fbw", "0")
         
         # Iterate across inputs
         for i in self.inputs:

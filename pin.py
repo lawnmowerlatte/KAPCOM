@@ -3,6 +3,7 @@
 import os
 from abc import ABCMeta, abstractmethod
 from datetime import datetime
+import pyautogui
 from arduino import arduino
 
 class pin(object):
@@ -117,15 +118,8 @@ class pin(object):
         one         = lambda x: ("1", "")[x]
         floatpoint  = lambda x: str(float(x)/self._max)
         percent     = lambda x: str(float(x)/self._max*100)
-        
-        # Define function for pressing a key
-        def key(x):
-            """Press a key"""
-            keyCommand = "osascript -e 'tell application \"Kerbal Space Program\" to keystroke \""+self._key+"\"'"
-            if x is 1:
-                print keyCommand
-                #os.system(keyCommand)
-        
+        key         = lambda x: pyautogui.press(x) if x == 1 else False
+
         # Try to run the lambda/function specified by _format
         f = locals().get(self._format)
         try:
@@ -226,7 +220,10 @@ class __digital():
         """Write to hardware"""
         
         if value is not None:
-            self.value = int(value)
+            try:
+                self.value = int(value)
+            except ValueError:
+                print "Unparsable value: " + value
             
             if self._invert:
                 if self.value == 0:
@@ -234,7 +231,7 @@ class __digital():
                 elif self.value == 1:
                     self.value = 0
                 else:
-                    print "Unexpected value"
+                    print "Unexpected value: " + value
             
             self._arduino.digitalWrite(self.pin, self.value)
         

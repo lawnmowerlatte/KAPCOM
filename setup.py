@@ -74,7 +74,7 @@ except:
     fail(end=False)
     debug("Setup will continue, but will not be able to install packages automatically. Setup will fail if packages are missing.")
     
-# Opporunistically use termcolor if available
+# Opportunistically use termcolor if available
 if platform.system() != 'Windows':
     debug("Checking for termcolor: ", newline=False)
     try:
@@ -159,7 +159,24 @@ else:
                 fail("Installation failed, please install glob using pip.")
         else:
             fail("Please install glob using pip.")
-        
+
+debug("Checking for PyAutoGUI", newline=False)
+try:
+    import pyautogui
+    ok()
+except:
+    fail(end=False)
+    if tryinstall:
+        debug("Installing pyautogui: ", newline=False)
+        try:
+            pip.main(["install", "-q", "pyautogui"])
+            import pyautogui
+            ok()
+        except:
+            fail("Installation failed, please install pyautogui using pip."
+    else:
+            fail("Please install pyautogui using pip.")
+
 debug("Checking for pyksp: ", newline=False)
 try:
     sys.path.append("./pyksp")

@@ -50,6 +50,11 @@ class bargraph(object):
             return character
 
     def set(self, value):
+        try:
+            value = int(value)
+        except ValueError:
+            print "Unexpected value: " + value + ". Ignoring."
+
         self._lastvalue     =   self.value
         self._delta         =   datetime.now() - self._lastupdate
         self._lastupdate    =   datetime.now()

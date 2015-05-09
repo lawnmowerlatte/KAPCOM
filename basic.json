@@ -6,7 +6,7 @@
     "outputs": [
 		{
             "api": "sas_status",
-            "type": "digitalOut",
+            "type": "DigitalOut",
             "name": "SAS Status",
             "pin": 2
         }		
@@ -14,7 +14,7 @@
     "inputs": [
         {
             "api": "set_throttle",
-            "type": "analogIn",
+            "type": "AnalogIn",
             "name": "Throttle",
             "pin": 165,
 			"options": {
@@ -25,7 +25,7 @@
         },
         {
             "api": "stage",
-            "type": "digitalIn",
+            "type": "DigitalIn",
             "name": "Stage",
             "pin": 3,
 			"options": {
@@ -35,7 +35,7 @@
         },
         {
             "api": "sas",
-            "type": "digitalIn",
+            "type": "DigitalIn",
             "name": "SAS",
             "pin": 4,
 			"options": {

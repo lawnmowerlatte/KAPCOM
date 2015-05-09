@@ -51,7 +51,7 @@
             "options": null
         }
     ],
-    "bargraphs": [
+    "Bargraphs": [
         {
             "api": "resource_lf_current",
             "type": "bargraph",
@@ -101,44 +101,44 @@
     "outputs": [
 		{
             "api": "sas_status",
-            "type": "digitalOut",
+            "type": "DigitalOut",
             "name": "SAS Status",
             "pin": 33
         },
         {
             "api": "rcs_status",
-            "type": "digitalOut",
+            "type": "DigitalOut",
             "name": "RCS Status",
             "pin": 31
         },
 		{
             "api": "action_group_light",
-            "type": "digitalOut",
+            "type": "DigitalOut",
             "name": "Light Status",
             "pin": 29
         },
         {
             "api": "action_group_gear",
-            "type": "digitalOut",
+            "type": "DigitalOut",
             "name": "Gear Status",
             "pin": 27
         },
 		{
             "api": "",
-            "type": "digitalOut",
+            "type": "DigitalOut",
             "name": "Map Lamp",
             "pin": 25
         },
         {
             "api": "action_group_brake",
-            "type": "digitalOut",
+            "type": "DigitalOut",
             "name": "Brake Status",
             "pin": 23
         },
 		
         {
             "api": "",
-            "type": "digitalOut",
+            "type": "DigitalOut",
             "name": "Last Warp Lamp",
             "pin": 35,
 			"options": {
@@ -147,7 +147,7 @@
         },
         {
             "api": "",
-            "type": "digitalOut",
+            "type": "DigitalOut",
             "name": "Next Warp Lamp",
             "pin": 37,
 			"options": {
@@ -156,7 +156,7 @@
         },
         {
             "api": "",
-            "type": "digitalOut",
+            "type": "DigitalOut",
             "name": "Last Ship Lamp",
             "pin": 39,
 			"options": {
@@ -165,7 +165,7 @@
         },
         {
             "api": "",
-            "type": "digitalOut",
+            "type": "DigitalOut",
             "name": "Next Ship Lamp",
             "pin": 41,
 			"options": {
@@ -174,7 +174,7 @@
         },
         {
             "api": "",
-            "type": "digitalOut",
+            "type": "DigitalOut",
             "name": "Last Camera Lamp",
             "pin": 43,
 			"options": {
@@ -183,7 +183,7 @@
         },
         {
             "api": "",
-            "type": "digitalOut",
+            "type": "DigitalOut",
             "name": "Next Camera Lamp",
             "pin": 45,
 			"options": {
@@ -197,7 +197,7 @@
     "inputs": [
         {
             "api": "set_throttle",
-            "type": "analogIn",
+            "type": "AnalogIn",
             "name": "Throttle",
             "pin": 168,
 			"options": {
@@ -240,7 +240,7 @@
         },
         {
             "api": "sas",
-            "type": "digitalIn",
+            "type": "DigitalIn",
             "name": "SAS",
             "pin": 32,
 			"options": {
@@ -250,7 +250,7 @@
         },
         {
             "api": "rcs",
-            "type": "digitalIn",
+            "type": "DigitalIn",
             "name": "RCS",
             "pin": 30,
 			"options": {
@@ -260,7 +260,7 @@
         },
         {
             "api": "light",
-            "type": "digitalIn",
+            "type": "DigitalIn",
             "name": "Light",
             "pin": 28,
 			"options": {
@@ -270,7 +270,7 @@
         },
         {
             "api": "gear",
-            "type": "digitalIn",
+            "type": "DigitalIn",
             "name": "Gear",
             "pin": 26,
 			"options": {
@@ -280,7 +280,7 @@
         },
         {
             "api": "toggle_map",
-            "type": "digitalIn",
+            "type": "DigitalIn",
             "name": "Map",
             "pin": 24,
 			"options": {
@@ -290,7 +290,7 @@
         },
         {
             "api": "brake",
-            "type": "digitalIn",
+            "type": "DigitalIn",
             "name": "Brake",
             "pin": 22,
 			"options": {
@@ -301,7 +301,7 @@
 		
         {
             "api": "",
-            "type": "digitalIn",
+            "type": "DigitalIn",
             "name": "Last Warp",
             "pin": 34,
 			"options": {
@@ -312,7 +312,7 @@
         },
         {
             "api": "",
-            "type": "digitalIn",
+            "type": "DigitalIn",
             "name": "Next Warp",
             "pin": 36,
 			"options": {
@@ -323,7 +323,7 @@
         },
         {
             "api": "",
-            "type": "digitalIn",
+            "type": "DigitalIn",
             "name": "Last Ship",
             "pin": 38,
 			"options": {
@@ -334,7 +334,7 @@
         },
         {
             "api": "",
-            "type": "digitalIn",
+            "type": "DigitalIn",
             "name": "Next Ship",
             "pin": 40,
 			"options": {
@@ -345,7 +345,7 @@
         },
         {
             "api": "",
-            "type": "digitalIn",
+            "type": "DigitalIn",
             "name": "Last Camera",
             "pin": 42,
 			"options": {
@@ -356,7 +356,7 @@
         },
         {
             "api": "",
-            "type": "digitalIn",
+            "type": "DigitalIn",
             "name": "Next Camera",
             "pin": 44,
 			"options": {
@@ -368,7 +368,7 @@
 		
         {
             "api": "action_group_1",
-            "type": "digitalIn",
+            "type": "DigitalIn",
             "name": "Action Group 1",
             "pin": 2,
 			"options": {
@@ -378,7 +378,7 @@
         },
         {
             "api": "action_group_2",
-            "type": "digitalIn",
+            "type": "DigitalIn",
             "name": "Action Group 2",
             "pin": 3,
 			"options": {
@@ -388,7 +388,7 @@
         },
         {
             "api": "action_group_3",
-            "type": "digitalIn",
+            "type": "DigitalIn",
             "name": "Action Group 3",
             "pin": 4,
 			"options": {
@@ -398,7 +398,7 @@
         },
         {
             "api": "action_group_4",
-            "type": "digitalIn",
+            "type": "DigitalIn",
             "name": "Action Group 4",
             "pin": 5,
 			"options": {
@@ -408,7 +408,7 @@
         },
         {
             "api": "action_group_5",
-            "type": "digitalIn",
+            "type": "DigitalIn",
             "name": "Action Group 5",
             "pin": 6,
 			"options": {
@@ -418,7 +418,7 @@
         },
         {
             "api": "action_group_6",
-            "type": "digitalIn",
+            "type": "DigitalIn",
             "name": "Action Group 6",
             "pin": 7,
 			"options": {
@@ -428,7 +428,7 @@
         },
         {
             "api": "action_group_7",
-            "type": "digitalIn",
+            "type": "DigitalIn",
             "name": "Action Group 7",
             "pin": 8,
 			"options": {
@@ -438,7 +438,7 @@
         },
         {
             "api": "action_group_8",
-            "type": "digitalIn",
+            "type": "DigitalIn",
             "name": "Action Group 8",
             "pin": 9,
 			"options": {
@@ -448,7 +448,7 @@
         },
         {
             "api": "action_group_9",
-            "type": "digitalIn",
+            "type": "DigitalIn",
             "name": "Action Group 9",
             "pin": 10,
 			"options": {
@@ -458,7 +458,7 @@
         },
         {
             "api": "action_group_10",
-            "type": "digitalIn",
+            "type": "DigitalIn",
             "name": "Action Group 10",
             "pin": 11,
 			"options": {

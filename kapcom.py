@@ -13,31 +13,37 @@ import socket
 import time
 import atexit
 import json
+import logging
 
 sys.path.append(os.getcwd() + "/pyksp")
 import pyksp
 
-from arduino import arduino
+from arduino import Arduino
 from pin import *
 from mod import mod
 from joy import joy
-from bargraph import bargraph
+from bargraph import Bargraph
 from display import display
-
 
 _cycles = 0
 _duration = 0
-_debug = 6
 
+# Logging
+_name = "KAPCOM"
+_debug = logging.WARNING
+log = logging.getLogger(_name)
+log.setLevel(_debug)
 
-def debug(message, level=_debug, newline=True):
-    """Debugging log message"""
-    
-    if level <= _debug:
-        if newline:
-            print(message) 
-        else:
-            sys.stdout.write(message)
+longFormatter = logging.Formatter("%(asctime)s [%(threadName)-12.12s] [%(levelname)-10.10s]  %(message)s")
+shortFormatter = logging.Formatter("[%(levelname)-8.8s]  %(message)s")
+
+fileHandler = logging.FileHandler("logs/{0}/{1}.log".format("./", _name))
+fileHandler.setFormatter(longFormatter)
+log.addHandler(fileHandler)
+
+consoleHandler = logging.StreamHandler()
+consoleHandler.setFormatter(shortFormatter)
+log.addHandler(consoleHandler)
 
 
 def breakpoint():
@@ -46,7 +52,7 @@ def breakpoint():
     from code import InteractiveConsole
     from inspect import currentframe
     try:
-        import readline # noqa
+        import readline
     except ImportError:
         pass
 
@@ -65,7 +71,7 @@ def breakpoint():
     )
 
 
-class kapcom(object):
+class KAPCOM(object):
     """Creates an interface between the Arduino serial connection and Telemachus library."""
 
     # Define subscriptions for PyKSP to use
@@ -96,26 +102,6 @@ class kapcom(object):
         "action_group_brake"
     }
 
-    # Define empty lists for objects
-    joys        =   []
-    inputs      =   []
-    outputs     =   []
-    bargraphs   =   []
-    displays    =   []
-
-    # Define configuration options as blanks
-    conf        =   None
-    port        =   None
-    baud        =   None
-    host        =   None
-    sock        =   None
-    headless    =   None
-
-    # Define empty objects
-    arduino     =   None
-    joy0        =   None
-    joy1        =   None
-    
     # Set default values
     defaults = {
         'conf':     "kapcom.json",
@@ -125,31 +111,53 @@ class kapcom(object):
         'sock':     8085,
         'headless': False
     }
-    
+
     def __init__(self, conf=None, port=None, baud=None, host=None, sock=None, headless=False):
         """Takes serial port, baud rate and socket information and creates the KAPCOM object."""
 
-        def load_configuration(parameter_name, argument_value, configuration_value, default_value):
+        # Define configuration options as blanks
+        self.conf = None
+        self.port = None
+        self.baud = None
+        self.host = None
+        self.sock = None
+        self.headless = None
+
+        # Define empty objects
+        self.arduino = None
+        self.joy0 = None
+        self.joy1 = None
+
+        # Define empty lists for objects
+        self.joys = []
+        self.inputs = []
+        self.outputs = []
+        self.bargraphs = []
+        self.displays = []
+
+        self.flybywire = 0
+
+        def set_configuration(parameter_name, argument, configuration, default):
             """Loads the object configuration, taking into account arguments, the configuration file and defaults"""
 
             # If argument is set...
-            if argument_value is not None:
+            if argument is not None:
                 # Use the argument
-                setattr(self, parameter_name, argument_value)
-                debug("Using argument value '" + str(argument_value) + "' for " + parameter_name + ".", 6)
+                setattr(self, parameter_name, argument)
+                log.debug("Using argument value '" + str(argument) + "' for " + parameter_name + ".")
             else:
                 # Otherwise, if it's in the configuration file...
-                if configuration_value is not None:
+                if configuration is not None:
                     # Use the configuration value
-                    setattr(self, parameter_name, configuration_value)
-                    debug("Using configuration value '" + str(configuration_value) + "' for " + parameter_name + ".", 6)
+                    setattr(self, parameter_name, configuration)
+                    log.debug("Using configuration value '" + str(configuration) + "' for " + parameter_name + ".")
                 else:
                     # Otherwise, use the default
-                    setattr(self, parameter_name, default_value)
-                    debug("Using default value '" + str(default_value) + "' for " + parameter_name + ".", 6)
+                    setattr(self, parameter_name, default)
+                    log.debug("Using default value '" + str(default) + "' for " + parameter_name + ".")
 
         # Get the configuration file to use
-        load_configuration("conf", conf, None, self.defaults.get("conf"))
+        set_configuration("conf", conf, None, self.defaults.get("conf"))
 
         # Open the file and load the JSON data
         with open(self.conf, 'r') as config_file:
@@ -160,7 +168,7 @@ class kapcom(object):
                 argument_value = eval(parameter)
                 configuration_value = config_json.get(parameter)
 
-                load_configuration(parameter, argument_value, configuration_value, default_value)
+                set_configuration(parameter, argument_value, configuration_value, default_value)
 
         # Close the configuration file
         config_file.close()
@@ -173,42 +181,35 @@ class kapcom(object):
             for subscription in self.subscriptions:
                 self.vessel.subscribe(subscription)
         else:
-            debug("Using dummy telemetry", 3)
+            log.info("Using dummy telemetry")
+
+        while not self.initialize():
+            time.sleep(10)
+            log.info("Restarting countdown.")
     
     # Initialization and Readiness methods
     def initialize(self):
         """Attempt to connect to Arduino and Telemachus"""
-
-        # We hit an error, print a message and try again
-        def hold(message):
-            debug("We have a hold for launch.", 1)
-            debug(message, 2)
-
-        # We're waiting...
-        def wait():
-            debug(".", 3, False)
-            time.sleep(1)
-
         # Connect to Arduino
-        debug("Fly by wire...", 2, False)
-        self.arduino = arduino(self.port, self.baud)
+        log.info("Initializing fly-by-wire system")
+        self.arduino = Arduino(self.port, self.baud)
         if self.arduino is None:
-            hold("Hardware failed to initialize.")
+            log.error("Hardware failed to initialize.")
             return False
-        debug("Go", 2)
+        log.info("Fly-by-wire initialized")
 
         # Configure
-        debug("Configuration...", 2, False)
+        log.info("Reading configuration and creating objects")
         try:
             self.configure()
-        except:
-            hold("Failed to read configuration file.")
+        except IOError:
+            log.error("Failed to read configuration file.")
             return False
-        debug("Go", 2)
+        log.info("Configuration successful")
 
         # If we're not headless, connect
         if not self.headless:
-            debug("Telemetry...", 2, False)
+            log.info("Connecting to ship telemetry")
 
             # Connect to the Telemachus socket
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -218,20 +219,20 @@ class kapcom(object):
             if r == 0:
                 self.vessel.start()
             else:
-                hold("Unable to connect to telemetry")
+                log.error("Unable to connect to telemetry")
                 return False
 
         # Check that the connection is ready
         for i in range(1, 20):
             if self.ready():
-                debug("Go", 2)
+                log.info("Connected to telemetry")
                 break
-            wait()
+            time.sleep(1)
         else:
-            self.hold("Timeout while waiting for telemetry.")
+            log.error("Timeout while waiting for telemetry.")
             return False
         
-        debug("All stations are go.", 1)
+        log.info("All systems are go.")
         return True
         
     def configure(self):
@@ -243,49 +244,48 @@ class kapcom(object):
         def load_object(object_configuration, object_list):
             try:
                 object_type = globals().get(configuration['type'])
-                debug("Found type: " + configuration['type'], 6)
+                log.debug("Found type: " + configuration['type'])
             except AttributeError:
-                debug("Type not found in '" + object_configuration + "'", 4)
+                log.warn("Type not found in '" + object_configuration + "'")
                 return
 
             object_configuration.pop('type')
             if not object_configuration.get('options'):
                 object_configuration['options'] = None
-                debug("No options found, adding blank", 6)
+                log.debug("No options found, adding blank")
 
-            print object_configuration
+            log.debug(object_configuration)
             object_list.append(object_type(self.arduino, **object_configuration))
 
-        
         # Open the configuration file
-        with open(self.conf, 'r') as file:
-            j = json.load(file)
+        with open(self.conf, 'r') as f:
+            j = json.load(f)
         
         # Load the joysticks
         for joyIndex in j['joys']:
             if joyIndex['name'] == 'Joy0':
                 self.joy0 = joy(self.arduino, **joyIndex)
-                debug("Adding Joy0", 5)
+                log.info("Adding Joy0")
             elif joyIndex['name'] == 'Joy1':
                 self.joy1 = joy(self.arduino, **joyIndex)
-                debug("Adding Joy1", 5)
+                log.info("Adding Joy1")
             else:
-                debug("Unknown joystick: " + joyIndex['name'], 4)
+                log.warn("Unknown joystick: " + joyIndex['name'])
         
         # Load all the objects!
-        debug("Loading objects:", 3)
+        log.info("Loading objects from configuration")
         for key, value in {'inputs':       self.inputs,
                            'outputs':      self.outputs,
                            'bargraphs':    self.bargraphs,
                            'displays':     self.displays
-        }.iteritems():
-            debug("Loading " + key + ": ", 3)
+                           }.iteritems():
+            log.info("Loading objects from " + key)
             for configuration in j[key]:
-                debug("Loading object '" + configuration['name'] + "': ", 4)
+                log.debug("Loading object '" + configuration['name'] + "'")
                 load_object(configuration, value)
-                debug("Success!", 4)
+                log.debug("Object loaded successfully")
 
-        file.close()
+        f.close()
         
     def ready(self):
         """Attempt to connect to Telemachus."""
@@ -299,7 +299,7 @@ class kapcom(object):
             if r == 0:
                 # If there's a good connection, get
                 state = self.vessel.test_connection()
-                debug("Connection state: " + str(state), 5)
+                log.debug("Connection state: " + str(state))
         # Otherwise just return True
         else:
             state = True
@@ -311,6 +311,7 @@ class kapcom(object):
         states = ["Online", "Paused", "Antenna is unpowered", "Antenna is off", "No antenna found", "No vessel"]
 
         if not self.headless and self.ready():
+            state = None
             try:
                 state = self.vessel.get("pause_state")
                 state = int(state)
@@ -318,21 +319,21 @@ class kapcom(object):
                 if state is None:
                     state = 5
                 else:
-                    debug("Unhandled state: " + str(state), 3)
+                    log.error("Unhandled state: " + str(state))
+                    return
 
             if state > 5:
-                debug("Unhandled state: " + str(state), 3)
+                log.error("Unhandled state: " + str(state))
+                return
 
-            debug("Telemachus state: " + str(state) + ": " + states[int(state)], 5)
+            log.debug("Telemachus state: " + str(state) + ": " + states[int(state)])
         else:
             state = 0
 
         if state == 0:
             self.online()
         else:
-            while True:
-                if state != self.vessel.get("pause_state"):
-                    break
+            while state == self.vessel.get("pause_state"):
                 time.sleep(1)
     
     # Game state methods
@@ -342,7 +343,6 @@ class kapcom(object):
         global _duration
         
         start = time.time()
-        
         self.update()
         
         end = time.time()
@@ -358,21 +358,30 @@ class kapcom(object):
 
             six_dof = self.joy0.toString() + "," + self.joy1.toString()
             if six_dof != "0,0,0,0,0,0":
-                self.send_flybywire("toggle_fbw", "1")
+                # If fly-by-wire is disabled, enable it
+                if self.flybywire != 1:
+                    self.flybywire = 1
+                    log.info("Enabling fly-by-wire")
+                    self.send_flybywire("toggle_fbw", "1")
+
+                # Send fly-by-wire
                 self.send_flybywire("six_dof", six_dof)
             else:
-                self.send_flybywire("toggle_fbw", "0")
+                # If fly-by-wire is enabled, disable it
+                if self.flybywire != 0:
+                    self.flybywire = 0
+                    log.info("Disabling fly-by-wire")
+                    self.send_flybywire("toggle_fbw", "0")
         
         # Iterate across inputs
         for i in self.inputs:
             # Get the value from hardware
             i.update()
-            value = i.toString()
-            
+
             # If it had changed
             if i.changed():
                 # Send the update
-                self.send_flybywire(i.api, value)
+                self.send_flybywire(i.api, i.toString())
             
         # Set the outputs
         for o in self.outputs:
@@ -380,7 +389,7 @@ class kapcom(object):
             
         # Set the bargraphs
         for b in self.bargraphs:
-            b.setMax(self.get_telemetry(b._max_api))
+            b.set_max(self.get_telemetry(b._max_api))
             b.set(self.get_telemetry(b.api))
         
         # Set the displays
@@ -399,16 +408,18 @@ class kapcom(object):
         if api == "" or value == "":
             return
         
-        print api + "=" + str(value)
+        log.debug(api + "=" + str(value))
         
         # If we're connected, send the command
         if not self.headless:
             self.vessel.run_command(api, value)
-        
+
+
 def usage():
     """Print out a usage message"""
     
     print "%s [-h] [-d level|--debug=level] [-c file|--config=file]" % sys.argv[0]
+
 
 def main(argv):
     """Create KAPCOM object, initialize and run."""
@@ -416,31 +427,38 @@ def main(argv):
     filename = None
 
     try:
-        opts, args = getopt.getopt(argv, "hd:c:", ["help", "debug=", "config="] )
+        opts, args = getopt.getopt(argv, "hd:c:", ["help", "debug=", "config="])
     except getopt.GetoptError:
         usage()
         exit(2)
-    
+
     for opt, arg in opts:
         if opt in ("-h", "--help"):
             usage()
             exit()
         elif opt in ("-d", "--debug"):
-            global _debug
-            _debug = arg
+            try:
+                arg = int(arg)
+                log.debug("Debug level received: " + str(arg))
+            except ValueError:
+                log.warn("Invalid log level: " + arg)
+                continue
+
+            if 0 <= arg <= 5:
+                log.setLevel(60 - (arg*10))
+                log.critical("Log level changed to: " + str(logging.getLevelName(60 - (arg*10))))
+            else:
+                log.warn("Invalid log level: " + str(arg))
         elif opt in ("-c", "--config"):
             filename = arg
     
     if filename is None:
-        k = kapcom()
+        k = KAPCOM()
     else:
-        k = kapcom(filename)
-    
-    while not k.initialize():
-        time.sleep(10)
-        debug("Restarting countdown.", 1)
-    
-    debug("\nReady for input:", 2)
+        k = KAPCOM(filename)
+
+    log.info("Ready for input:")
+
     while 1:
         k.do()
 
@@ -454,11 +472,11 @@ def stats():
     print ""
     print ""
     print "=======[ Stats ]======="
-    print "Cycles:        %s"       % _cycles
+    print "Cycles:        %s" % _cycles
     
     if _cycles > 0:
-        print "Rate:          %.2fms"   % (float(_duration)*1000)
-        print "Frequency:     %.2fHz"   % (1/float(_duration))
+        print "Rate:          %.2fms" % (float(_duration)*1000)
+        print "Frequency:     %.2fHz" % (1/float(_duration))
 
 
 if __name__ == "__main__":    

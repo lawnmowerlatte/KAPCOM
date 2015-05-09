@@ -1,15 +1,36 @@
 #!/usr/bin/python
 
-import os
 from abc import ABCMeta, abstractmethod
 from datetime import datetime
+import sys
+import logging
 import pyautogui
-from arduino import arduino
+from arduino import Arduino
 
-class pin(object):
+# Logging
+_name = "Pin"
+_debug = logging.WARNING
+
+log = logging.getLogger(_name)
+if not len(log.handlers):
+    log.setLevel(_debug)
+
+    longFormatter = logging.Formatter("%(asctime)s [%(threadName)-12.12s] [%(levelname)-10.10s]  %(message)s")
+    shortFormatter = logging.Formatter("[%(levelname)-8.8s]  %(message)s")
+
+    fileHandler = logging.FileHandler("logs/{0}/{1}.log".format("./", _name))
+    fileHandler.setFormatter(longFormatter)
+    log.addHandler(fileHandler)
+
+    consoleHandler = logging.StreamHandler()
+    consoleHandler.setFormatter(shortFormatter)
+    log.addHandler(consoleHandler)
+
+
+class Pin(object):
     __metaclass__ = ABCMeta
-    
-    ## Core Class Members
+
+    # Core Class Members
     # name
     # api
     # pin
@@ -21,24 +42,24 @@ class pin(object):
     # _lastupdate
     # _lastvalue
     
-    ## Optional Class Members
+    # Optional Class Members
     # _max
     
     def __init__(self, arduino, name, api, pin, options=None):
         """Initialize pin with parameters"""
         # Set core attributes
-        self._arduino       =   arduino
-        self.name           =   name
-        self.api            =   api
-        self.pin            =   pin
+        self._arduino = arduino
+        self.name = name
+        self.api = api
+        self.pin = pin
         
         # Pre-set extra attributes
-        self._cooldown      =   500
-        self._invert        =   False
-        self._format        =   "value"
-        self._max           =   1024
-        self._deadzone      =   0
-        self._initial       =   0
+        self._cooldown = 500
+        self._invert = False
+        self._format = "value"
+        self._max = 1024
+        self._deadzone = 0
+        self._initial = 0
         
         # Override defaults with passed values
         if options:
@@ -49,9 +70,9 @@ class pin(object):
         self.init()
         
         # Set ephemeral values
-        self.value          =   self._initial
-        self._lastvalue     =   self.value
-        self._lastupdate    =   datetime.now()
+        self.value = self._initial
+        self._lastvalue = self.value
+        self._lastupdate = datetime.now()
         
         # Run initial update
         self.update()
@@ -67,21 +88,21 @@ class pin(object):
     def get(self):
         self.update()
         return self.value
-        
+
     def push(self, value):
         """Attempts to push the selected value and update"""
-    	if value == "1" or value == "True" or value == True:
+        if value == "1" or value == "True" or value is True:
             value = 1
-    	if value == "0" or value == "False" or value == False:
+        if value == "0" or value == "False" or value is False:
             value = 0
         
         return self.update(self, value)
         
     def set(self, value):
         """Set the value and update"""
-    	if value == "1" or value == "True" or value == True:
+        if value == "1" or value == "True" or value is True:
             value = 1
-    	if value == "0" or value == "False" or value == False:
+        if value == "0" or value == "False" or value is False:
             value = 0
         
         self.update(value)
@@ -91,22 +112,22 @@ class pin(object):
         # Check if cooldown has expired
         delta = self._lastupdate - datetime.now()
         if (delta.total_seconds()*1000) > self._cooldown:
-            print "cooldown not reached"
+            log.debug("Cooldown not reached")
             return
         # Update counter
-        self._lastupdate =   datetime.now()
+        self._lastupdate = datetime.now()
         # Perform action described in individual class
         self.act(value)
     
     def changed(self):
         """Check if value has changed since last check"""
-    	changed = (self._lastvalue != self.value);
-    	self._lastvalue = self.value;
-    	return changed
+        changed = (self._lastvalue != self.value)
+        self._lastvalue = self.value
+        return changed
     
     def printout(self):
-        print  "{0} ({1})={2}".format(self.name, self.api, self.value)
-        
+        print "{0} ({1})={2}".format(self.name, self.api, self.value)
+
     def toString(self):
         # Define lambdas for selecting value based on format
         value       = lambda x: str(x)
@@ -118,18 +139,19 @@ class pin(object):
         one         = lambda x: ("1", "")[x]
         floatpoint  = lambda x: str(float(x)/self._max)
         percent     = lambda x: str(float(x)/self._max*100)
-        key         = lambda x: pyautogui.press(x) if x == 1 else False
+        key         = lambda x: pyautogui.press(self._key) if x == 1 else False
 
         # Try to run the lambda/function specified by _format
         f = locals().get(self._format)
         try:
             return f(self.value)
         except AttributeError:
-            print 'Format not found "%s"' % (self._format)
+            print 'Format not found "%s"' % self._format
         
         return ""
-    
-class __input(pin):
+
+
+class __input(Pin):
     __metaclass__ = ABCMeta
     
     def init(self):
@@ -140,7 +162,8 @@ class __input(pin):
         if value is None:
             return self.read()
 
-class __output(pin):
+
+class __output(Pin):
     __metaclass__ = ABCMeta
     
     def init(self):
@@ -148,29 +171,30 @@ class __output(pin):
         self._arduino.pinMode(self.pin, "OUTPUT")
         self._cooldown = 0
         pass
-    
+
     def act(self, value):
         """Write the value"""
         self.write(value)
-        
+
+
 class __analog():
     __metaclass__ = ABCMeta
     
-    def setMax(self, max):
+    def set_max(self, new):
         """Set the maximum value"""
-        self._max = max
+        self._max = new
         
-    def getFloat(self):
+    def get_float(self):
         """Update the hardware and return latest value"""
         self.update()
-        return (float(self.value)/self._max)
+        return float(self.value)/self._max
     
     def changed(self):
         """Check if value has changed significantly since last check"""
-    	changed = float(self._lastvalue - self.value)/self._max*100;
+        changed = float(self._lastvalue - self.value)/self._max*100
         
         if abs(changed) > 1:
-            self._lastvalue = self.value;
+            self._lastvalue = self.value
             return True
         else:
             return False
@@ -198,6 +222,7 @@ class __analog():
                 self.value = self._max - self.value
             
             self._arduino.analogWrite(self.pin, self.value)
+
 
 class __digital():
     __metaclass__ = ABCMeta
@@ -234,22 +259,27 @@ class __digital():
                     print "Unexpected value: " + value
             
             self._arduino.digitalWrite(self.pin, self.value)
-        
-class analogIn(__analog, __input):
+
+
+class AnalogIn(__analog, __input):
     pass
-    
-class analogOut(__analog, __output):
+
+
+class AnalogOut(__analog, __output):
     pass
-    
-class digitalIn(__digital, __input):
+
+
+class DigitalIn(__digital, __input):
     pass
-    
-class digitalOut(__digital, __output):
+
+
+class DigitalOut(__digital, __output):
     pass
 
 # #####################################
 # ########## Testing Methods ##########
 # #####################################
+
 
 def breakpoint():
     """Python debug breakpoint."""
@@ -257,7 +287,7 @@ def breakpoint():
     from code import InteractiveConsole
     from inspect import currentframe
     try:
-        import readline # noqa
+        import readline
     except ImportError:
         pass
 
@@ -275,13 +305,14 @@ def breakpoint():
         )
     )
 
+
 def main():
-    a = arduino()
-    #a = arduino("/dev/cu.usbmodem1411")
-    aI = analogIn(a, "Throttle", "throttle", 0xA8)
-    aO = analogOut(a, "Dimmer", "dimmer", 0x08)
-    dI = digitalIn(a, "SAS", "sas", 0x0A)
-    dO = digitalOut(a, "SAS Status", "sas_status", 0x0B)
+    a = Arduino()
+
+    ai = AnalogIn(a, "Throttle", "throttle", 0xA8)
+    ao = AnalogOut(a, "Dimmer", "dimmer", 0x08)
+    di = DigitalIn(a, "SAS", "sas", 0x0A)
+    do = DigitalOut(a, "SAS Status", "sas_status", 0x0B)
     
     breakpoint()
 

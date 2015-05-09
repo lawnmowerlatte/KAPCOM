@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 from pin import *
-from arduino import arduino
+from arduino import Arduino
 
 class mod(object):
     def __init__(self, arduino, name, api, pin, options=None):
@@ -28,9 +28,9 @@ class mod(object):
             buttonOptions       =   None
         
         # Set core attributes
-        self.mod            = digitalIn(arduino, name + " Modifier", "", modifier, modifierOptions)
-        self.indicator      = digitalOut(arduino, name + " Indicator", "", indicator, indicatorOptions)
-        self.button         = digitalIn(arduino, name + " Button", "", button, buttonOptions)
+        self.mod            = DigitalIn(arduino, name + " Modifier", "", modifier, modifierOptions)
+        self.indicator      = DigitalOut(arduino, name + " Indicator", "", indicator, indicatorOptions)
+        self.button         = DigitalIn(arduino, name + " Button", "", button, buttonOptions)
         
         self.name           =   name
         self.api            =   api
@@ -131,7 +131,7 @@ def breakpoint():
 
 
 def main():
-    a = arduino()
+    a = Arduino()
     
     abort = mod(a, "Abort", "abort", 0xA9, 0xAB, 0xAA)
     stage = mod(a, "Stage", "stage", 0xAC, 0xAE, 0xAD)

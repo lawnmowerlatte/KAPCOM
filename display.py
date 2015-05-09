@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-from arduino import arduino
+from arduino import Arduino
 
 class display(object):
     def __init__(self, arduino, name, api, device, options=None):
@@ -165,7 +165,7 @@ def breakpoint():
 
 
 def main():
-    a = arduino()
+    a = Arduino()
     d0 = display(a, "Test", "test", 0)
     d1 = display(a, "Test", "test", 1)
     d2 = display(a, "Test", "test", 2)

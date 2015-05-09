@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 from pin import *
-from arduino import arduino
+from arduino import Arduino
 
 class joy(object):
     
@@ -34,10 +34,10 @@ class joy(object):
             pass
         
         # Set core attributes
-        self.x              =   analogIn(arduino, name + ":X", "", x, xOptions)
-        self.y              =   analogIn(arduino, name + ":Y", "", y, yOptions)
-        self.z              =   analogIn(arduino, name + ":Z", "", z, zOptions)
-        self.button         =   digitalIn(arduino, name + " Button", "", button)
+        self.x              =   AnalogIn(arduino, name + ":X", "", x, xOptions)
+        self.y              =   AnalogIn(arduino, name + ":Y", "", y, yOptions)
+        self.z              =   AnalogIn(arduino, name + ":Z", "", z, zOptions)
+        self.button         =   DigitalIn(arduino, name + " Button", "", button)
         
         self.name           =   name
 
@@ -64,9 +64,9 @@ class joy(object):
             return value
         
         # Get floating point values of all axes
-        self.X = (self.x.getFloat()*2.0)-1.0
-        self.Y = (self.y.getFloat()*2.0)-1.0
-        self.Z = (self.z.getFloat()*2.0)-1.0
+        self.X = (self.x.get_float()*2.0)-1.0
+        self.Y = (self.y.get_float()*2.0)-1.0
+        self.Z = (self.z.get_float()*2.0)-1.0
         
         # Check for deadzones
         self.X = deadzones(self.X)
@@ -129,7 +129,7 @@ def breakpoint():
 
 
 def main():
-    a = arduino()
+    a = Arduino()
     
     j0 = joy(a, "J0", 0xA0, 0xA1, 0xA2, 0xA3)
     j1 = joy(a, "J0", 0xA4, 0xA5, 0xA6, 0xA7)

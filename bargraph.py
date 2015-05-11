@@ -70,7 +70,10 @@ class Bargraph(object):
         except ImportError:
             return character
 
-    def set(self, value):
+    def set(self, value, new_max=None):
+        if new_max is not None:
+            self._max = new_max
+
         try:
             value = int(value)
         except ValueError:
@@ -81,9 +84,6 @@ class Bargraph(object):
         self._lastupdate = datetime.now()
         self.value = value
         self.update()
-        
-    def set_max(self, new):
-        self._max = new
 
     def update(self):
         self.format()

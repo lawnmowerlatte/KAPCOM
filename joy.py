@@ -3,89 +3,89 @@
 from pin import *
 from arduino import Arduino
 
-class joy(object):
-    
+
+class Joy(object):
     def __init__(self, arduino, name, x, y, z, button, options=None):
-        allOptions = {'format':'floatpoint'}
-        
+        all_options = {'format': 'floatpoint'}
+        button_options = {'format': 'value'}
+
         try:
-            buttonOptions = {'format':'value'}
-            buttonInvert = options['invertButton']
-            buttonOptions['invert'] = buttonInvert
-        except:
+            invert_button = options['invertButton']
+            button_options['invert'] = invert_button
+        except KeyError:
             pass
+
         try:
-            xOptions = allOptions.copy()
-            xInvert = options['invertX']
-            xOptions['invert'] = xInvert
-        except:
+            x_options = all_options.copy()
+            invert_x = options['invertX']
+            x_options['invert'] = invert_x
+        except KeyError:
             pass
+
         try:
-            yOptions = allOptions.copy()
-            yInvert = options['invertY']
-            yOptions['invert'] = yInvert
-        except:
+            y_options = all_options.copy()
+            invert_y = options['invertY']
+            y_options['invert'] = invert_y
+        except KeyError:
             pass
+
         try:
-            zOptions = allOptions.copy()
-            zInvert = options['invertZ']
-            zOptions['invert'] = zInvert
-        except:
+            z_options = all_options.copy()
+            invert_z = options['invertZ']
+            z_options['invert'] = invert_z
+        except KeyError:
             pass
-        
+
         # Set core attributes
-        self.x              =   AnalogIn(arduino, name + ":X", "", x, xOptions)
-        self.y              =   AnalogIn(arduino, name + ":Y", "", y, yOptions)
-        self.z              =   AnalogIn(arduino, name + ":Z", "", z, zOptions)
-        self.button         =   DigitalIn(arduino, name + " Button", "", button)
-        
-        self.name           =   name
+        self.x = AnalogIn(arduino, name + ":X", "", x, x_options)
+        self.y = AnalogIn(arduino, name + ":Y", "", y, y_options)
+        self.z = AnalogIn(arduino, name + ":Z", "", z, z_options)
+        self.button = DigitalIn(arduino, name + " Button", "", button)
+
+        self.name = name
 
         # Pre-set extra attributes
-        self.scale          =   2
-        
+        self.scale = 2
+
         # Set ephemeral values
-        self.centered       =   True
-        self.X              =   0
-        self.Y              =   0
-        self.Z              =   0
-        
+        self.centered = True
+        self.X = 0
+        self.Y = 0
+        self.Z = 0
+
         # Run initial update
         self.update()
-        
+
     def update(self):
         def deadzones(value, deadzone=.05):
-            if value >= -1 * deadzone and value <= deadzone:
+            if deadzone >= value >= -1 * deadzone:
                 return 0
             if value < -1 + deadzone:
                 return -1
             if value > 1 - deadzone:
                 return 1
             return value
-        
+
         # Get floating point values of all axes
-        self.X = (self.x.get_float()*2.0)-1.0
-        self.Y = (self.y.get_float()*2.0)-1.0
-        self.Z = (self.z.get_float()*2.0)-1.0
-        
+        self.X = (self.x.get_float() * 2.0) - 1.0
+        self.Y = (self.y.get_float() * 2.0) - 1.0
+        self.Z = (self.z.get_float() * 2.0) - 1.0
+
         # Check for deadzones
         self.X = deadzones(self.X)
         self.Y = deadzones(self.Y)
         self.Z = deadzones(self.Z, .1)
-        
+
         # Check for center
         if self.X == 0 and self.Y == 0 and self.Z == 0:
             self.centered = True
         else:
             self.centered = False
-            
+
         if self.button.get() is 0:
-            self.X = (self.X*1.0)/self.scale
-            self.Y = (self.Y*1.0)/self.scale
-            self.Z = (self.Z*1.0)/self.scale
-   
-    def centered(self):
-        return self.center
+            self.X = (self.X * 1.0) / self.scale
+            self.Y = (self.Y * 1.0) / self.scale
+            self.Z = (self.Z * 1.0) / self.scale
 
     def printout(self):
         print self.name + ": " + self.toString()
@@ -105,11 +105,12 @@ class joy(object):
 
 def breakpoint():
     """Python debug breakpoint."""
-    
+
     from code import InteractiveConsole
     from inspect import currentframe
+
     try:
-        import readline # noqa
+        import readline  # noqa
     except ImportError:
         pass
 
@@ -130,26 +131,27 @@ def breakpoint():
 
 def main():
     a = Arduino()
-    
-    j0 = joy(a, "J0", 0xA0, 0xA1, 0xA2, 0xA3)
-    j1 = joy(a, "J0", 0xA4, 0xA5, 0xA6, 0xA7)
-    
+
+    j0 = Joy(a, "J0", 0xA0, 0xA1, 0xA2, 0xA3)
+    j1 = Joy(a, "J0", 0xA4, 0xA5, 0xA6, 0xA7)
+
     import time
+
     while True:
         j0.update()
         j1.update()
         print j0.toString() + "," + j1.toString()
         time.sleep(1)
-    
-    
+
     breakpoint()
 
-if __name__ == "__main__":    
+
+if __name__ == "__main__":
     try:
         main()
     except KeyboardInterrupt:
         sys.exit(0)
     except EOFError:
         sys.exit(0)
-    # except:
-    #     sys.exit(0)
+        # except:
+        # sys.exit(0)

@@ -26,7 +26,6 @@ if not len(log.handlers):
 
 
 class Bargraph(object):
-    
     def __init__(self, arduino, name, api, device, options=None):
         """Initialize pin with parameters"""
         # Set core attributes

@@ -19,11 +19,12 @@ sys.path.append(os.getcwd() + "/pyksp")
 import pyksp
 
 from arduino import Arduino
-from pin import *
+# from pin import *
+import pin
 from mod import mod
-from joy import joy
+from joy import Joy
 from bargraph import Bargraph
-from display import display
+from sevensegment import SevenSegment
 
 _cycles = 0
 _duration = 0
@@ -264,10 +265,10 @@ class KAPCOM(object):
         # Load the joysticks
         for joyIndex in j['joys']:
             if joyIndex['name'] == 'Joy0':
-                self.joy0 = joy(self.arduino, **joyIndex)
+                self.joy0 = Joy(self.arduino, **joyIndex)
                 log.info("Adding Joy0")
             elif joyIndex['name'] == 'Joy1':
-                self.joy1 = joy(self.arduino, **joyIndex)
+                self.joy1 = Joy(self.arduino, **joyIndex)
                 log.info("Adding Joy1")
             else:
                 log.warn("Unknown joystick: " + joyIndex['name'])
@@ -373,7 +374,36 @@ class KAPCOM(object):
                     log.info("Disabling fly-by-wire")
                     self.send_flybywire("toggle_fbw", "0")
         
-        # Iterate across inputs
+        # Iterate across devices
+        for device in self.devices:
+            if device.name in self.configuration['devices']:
+                if issubclass(type(device), pin.__output):
+                    device.set(self.get_telemetry(device.api))
+
+                elif issubclass(type(device), pin.__input):
+                    # Get the value from hardware
+                    device.update()
+
+                    # If it had changed
+                    if device.changed():
+                        # Send the update
+                        self.send_flybywire(device.api, device.toString())
+                else:
+                    log.error("Unhandled type" + str(type(device)) + " for device " + device.name)
+
+        # Iterate across displays
+        for display in self.displays:
+            if display.name in self.configuration['displays']:
+                if issubclass(type(display), Bargraph):
+                    display.set(self.get_telemetry(display.api), self.get_telemetry(display._max_api))
+
+                elif issubclass(type(display), SevenSegment):
+                    display.set(self.get_telemetry(display.api))
+
+                else:
+                    log.error("Unhandled type" + str(type(device)) + " for display " + device.name)
+
+
         for i in self.inputs:
             # Get the value from hardware
             i.update()
@@ -389,8 +419,7 @@ class KAPCOM(object):
             
         # Set the bargraphs
         for b in self.bargraphs:
-            b.set_max(self.get_telemetry(b._max_api))
-            b.set(self.get_telemetry(b.api))
+            b.set(self.get_telemetry(b.api), self.get_telemetry(b._max_api))
         
         # Set the displays
         for d in self.displays:

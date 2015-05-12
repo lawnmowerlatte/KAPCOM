@@ -1,75 +1,98 @@
 #!/usr/bin/python
 
+import sys
+import logging
+import pyautogui
 from arduino import Arduino
 
-class display(object):
+# Logging
+_name = "SevenSegment"
+_debug = logging.WARNING
+
+log = logging.getLogger(_name)
+if not len(log.handlers):
+    log.setLevel(_debug)
+
+    longFormatter = logging.Formatter("%(asctime)s [%(threadName)-12.12s] [%(levelname)-10.10s]  %(message)s")
+    shortFormatter = logging.Formatter("[%(levelname)-8.8s]  %(message)s")
+
+    fileHandler = logging.FileHandler("logs/{0}/{1}.log".format("./", _name))
+    fileHandler.setFormatter(longFormatter)
+    log.addHandler(fileHandler)
+
+    consoleHandler = logging.StreamHandler()
+    consoleHandler.setFormatter(shortFormatter)
+    log.addHandler(consoleHandler)
+
+
+class SevenSegment(object):
     def __init__(self, arduino, name, api, device, options=None):
         """Initialize pin with parameters"""
         # Set core attributes
-        self._arduino       =   arduino
-        self.name           =   name
-        self.api            =   api
-        self.device         =   device
-        
+        self._arduino = arduino
+        self.name = name
+        self.api = api
+        self.device = device
+
         # Pre-set extra attributes
-        self._type          =   "default"
-        self._length        =   8
-        self._offset        =   0
-        self._decimals      =   3
-        self._pad           =   " "
-        
+        self._type = "default"
+        self._length = 8
+        self._offset = 0
+        self._decimals = 3
+        self._pad = " "
+
         # Override defaults with passed values
         if options:
             for key in options:
                 setattr(self, "_" + key, options[key])
-        
+
         # Set ephemeral values
-        self.value          =   "-" * self._length
-        self._lastvalue     =   "-" * self._length
-        
+        self.value = "-" * self._length
+        self._lastvalue = "-" * self._length
+
         # Run initial update
         self.update()
 
     def _color(self, character, color):
         try:
             from termcolor import colored
+
             return colored(character, color)
-        except:
+        except ImportError:
             return character
 
     def set(self, value):
-        self._lastvalue     =   self.value;
-        
+        self._lastvalue = self.value
+
         if isinstance(value, str):
-            self.value      = float(value)
+            self.value = float(value)
         else:
-            self.value      = value
-        
+            self.value = value
+
         self.format()
         self.update()
-        
+
     def update(self):
         self.write()
-        
+
     def printout(self):
         print "Display " + self.name
         print self.toString()
-        
+
     def toString(self):
         return "[" + self._color(self.value, "green") + "]"
-        
+
     def format(self):
         # Take the value passed and format it for the 8 digit seven-segment display
-        
+
         # Counter for exponents when using scientific notation
-        E           =   ""
-        exponent    =   0
-     
+        exponent = 0
+
         # Break the value into integer and decimal portions
-        value       =   '{0:f}'.format(self.value)
-        integer     =   value[:value.index('.')]
-        decimal     =   value[value.index('.')+1:]
-        
+        value = '{0:f}'.format(self.value)
+        integer = value[:value.index('.')]
+        decimal = value[value.index('.') + 1:]
+
         if len(integer) > self._length:
             significant = len(integer)
 
@@ -78,55 +101,55 @@ class display(object):
             # print "New Value:   " + value
             # print "Significant: " + str(significant)
             # print "Calculating..."
-            
+
             while significant + len(str(exponent)) + 1 > self._length:
-                exponent+=3
+                exponent += 3
                 significant = len(integer) - exponent
-                 
+
             # print "Exponent:    " + str(exponent)
             # print "Significant: " + str(significant)
-            
+
             formatted = value[:significant] + "E" + str(exponent)
-            
+
             # print "Formatted:   " + formatted
             decimals = self._length - len(formatted)
             # print "Decimals:    " + str(decimals)
             if decimals > 0:
-                 formatted = value[:significant] + "." + value[significant:significant+decimals] + "E" + str(exponent)
-              
-            # print "Reformatted: " + formatted
-        
+                formatted = value[:significant] + "." + value[significant:significant + decimals] + "E" + str(exponent)
+
+                # print "Reformatted: " + formatted
+
         elif len(integer) < self._length:
             # Fewer integers than can be displayed
             # Attempt to fill with decimals
-          
+
             # Truncate the decimals to fit on the display
-            decimal = decimal[:self._length-len(integer)]
-          
+            decimal = decimal[:self._length - len(integer)]
+
             # Truncate the decimals according to maximum decimal length
-            if (len(decimal) > self._decimals): 
+            if len(decimal) > self._decimals:
                 decimal = decimal[:self._decimals]
-              
+
             # Create formatted string
             formatted = integer + "." + decimal
-          
+
         else:
             # Integers fill display
-            formatted = integer + ".";
-         
+            formatted = integer + "."
+
         # Pad string if it's too short
         if len(formatted.replace(".", "")) < self._length:
             for i in range(0, self._length - len(formatted.replace(".", ""))):
                 formatted = self._pad + formatted
-     
+
         # Final check for string length
         if len(formatted.replace(".", "")) != self._length:
             # Print a debug message
-            print("Something went wrong while formatting: " + str(self.value) + " >> " + formatted)
-              
+            log.warn("Something went wrong while formatting: " + str(self.value) + " >> " + formatted)
+
             # Set the display to dashes
-            formatted = "-" * self._length;
-        
+            formatted = "-" * self._length
+
         self.value = formatted
 
     def write(self):
@@ -141,11 +164,12 @@ class display(object):
 
 def breakpoint():
     """Python debug breakpoint."""
-    
+
     from code import InteractiveConsole
     from inspect import currentframe
+
     try:
-        import readline # noqa
+        import readline
     except ImportError:
         pass
 
@@ -166,36 +190,37 @@ def breakpoint():
 
 def main():
     a = Arduino()
-    d0 = display(a, "Test", "test", 0)
-    d1 = display(a, "Test", "test", 1)
-    d2 = display(a, "Test", "test", 2)
-    d3 = display(a, "Test", "test", 3)
-    d4 = display(a, "Test", "test", 4)
-    
+    d0 = SevenSegment(a, "Test", "test", 0)
+    d1 = SevenSegment(a, "Test", "test", 1)
+    d2 = SevenSegment(a, "Test", "test", 2)
+    d3 = SevenSegment(a, "Test", "test", 3)
+    d4 = SevenSegment(a, "Test", "test", 4)
+
     import time
-    
+
     value = .00000012345678
-    
-    for i in range(0,20):
+
+    for i in range(0, 20):
         d0.set(value)
         d1.set(value)
         d2.set(value)
         d3.set(value)
         d4.set(value)
-        
+
         print d0.toString()
-        
+
         value *= 10
         time.sleep(1)
-    
-    # breakpoint()
 
-if __name__ == "__main__":    
+        # breakpoint()
+
+
+if __name__ == "__main__":
     try:
         main()
     except KeyboardInterrupt:
         sys.exit(0)
     except EOFError:
         sys.exit(0)
-    # except:
-    #     sys.exit(0)
+        # except:
+        # sys.exit(0)

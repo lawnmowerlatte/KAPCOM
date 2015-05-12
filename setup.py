@@ -11,7 +11,7 @@ try:
     import socket
     import atexit
     import json
-except:
+except ImportError:
     print("Failed to import necessary core modules.")
     exit()
 
@@ -19,11 +19,12 @@ debugger = 6
 usecolor = False
 tryinstall = False
 
+
 def debug(message=None, level=debugger, newline=True, color=None):
     """Debugging log message"""
     
     if message is None:
-        message=""
+        message = ""
     
     if color is not None and usecolor is True:
         message = termcolor.colored(message, color)
@@ -34,10 +35,12 @@ def debug(message=None, level=debugger, newline=True, color=None):
         else:
             sys.stdout.write(message)
 
+
 def ok():
     """Print OK message"""
     debug("OK", color="green")
-    
+
+
 def fail(message=None, end=True):
     """Print fail message"""
     debug("Fail", color="red")
@@ -55,11 +58,11 @@ if platform.system() != 'Windows':
     try:
         import termcolor
         usecolor = True
-    except:
+    except ImportError:
         pass
 
 debug("Checking Python version: ", newline=False)
-if ("2.7" in sys.version.partition(' ')[0]):
+if "2.7" in sys.version.partition(' ')[0]:
     ok()
 else:
     fail("Please use Python 2.7")
@@ -70,7 +73,7 @@ try:
     import pip
     tryinstall = True
     ok()
-except:
+except ImportError:
     fail(end=False)
     debug("Setup will continue, but will not be able to install packages automatically. Setup will fail if packages are missing.")
     
@@ -81,7 +84,7 @@ if platform.system() != 'Windows':
         import termcolor
         usecolor = True
         ok()
-    except:
+    except ImportError:
         fail(end=False)
         
         if tryinstall:
@@ -90,7 +93,7 @@ if platform.system() != 'Windows':
                 pip.main(["install", "-q", "termcolor"])
                 import termcolor
                 ok()
-            except:
+            except ImportError:
                 fail("Not required, continuing.", False)
         else:
             debug("Termcolor is not required, continuing.")
@@ -100,7 +103,7 @@ debug("Checking for PySerial: ", newline=False)
 try:
     import serial
     ok()
-except:
+except ImportError:
     fail(end=False)
     
     if tryinstall:
@@ -121,7 +124,7 @@ if platform.system() == 'Windows':
         import _winreg as winreg
         import itertools
         ok()
-    except:
+    except ImportError:
         fail(end=False)
         if tryinstall:
             debug("Installing winreg and itertools: ", newline=False)
@@ -140,14 +143,14 @@ elif platform.system() == 'Darwin':
     try:
         from serial.tools import list_ports
         ok()
-    except:
+    except ImportError:
         fail("Not found, please install serial.tools using pip.")
 
 else:
     try:
         import glob
         ok()
-    except:
+    except ImportError:
         fail(end=False)
         if tryinstall:
             debug("Installing glob: ", newline=False)
@@ -164,7 +167,7 @@ debug("Checking for PyAutoGUI", newline=False)
 try:
     import pyautogui
     ok()
-except:
+except ImportError:
     fail(end=False)
     if tryinstall:
         debug("Installing pyautogui: ", newline=False)
@@ -173,16 +176,17 @@ except:
             import pyautogui
             ok()
         except:
-            fail("Installation failed, please install pyautogui using pip."
+            fail("Installation failed, please install pyautogui using pip.")
     else:
             fail("Please install pyautogui using pip.")
 
 debug("Checking for pyksp: ", newline=False)
+
 try:
     sys.path.append("./pyksp")
     import pyksp
     ok()
-except:
+except ImportError:
     fail(end=False)
     if platform.system() != "Windows":
         debug("Trying to install pyksp: ", newline=False)
@@ -205,4 +209,3 @@ except:
     
 debug()
 debug("Prerequisites met. Please run configure.py", color="green")
-    

@@ -19,9 +19,8 @@ sys.path.append(os.getcwd() + "/pyksp")
 import pyksp
 
 from arduino import Arduino
-# from pin import *
-import pin
-from mod import mod
+from pin import *
+from mod import Mod
 from joy import Joy
 from bargraph import Bargraph
 from sevensegment import SevenSegment
@@ -31,7 +30,7 @@ _duration = 0
 
 # Logging
 _name = "KAPCOM"
-_debug = logging.WARNING
+_debug = logging.INFO
 log = logging.getLogger(_name)
 log.setLevel(_debug)
 
@@ -82,6 +81,11 @@ class KAPCOM(object):
         "vessel_apoapsis",
         "vessel_periapsis",
         "vessel_velocity",
+        "vessel_orbital_velocity",
+        "vessel_surface_velocity",
+        "vessel_atmospheric_density",
+        "vessel_surface_speed",
+        "vessel_gee_force",
         "vessel_inclination",
         "vessel_asl_height",
         
@@ -95,6 +99,10 @@ class KAPCOM(object):
         "resource_mp_current",
         "resource_ec_max",
         "resource_ec_current",
+        "resource_ia_current",
+        "resource_ia_max",
+        "resource_xg_current",
+        "resource_xg_max",
         
         "sas_status",
         "rcs_status",
@@ -105,41 +113,48 @@ class KAPCOM(object):
 
     # Set default values
     defaults = {
-        'conf':     "kapcom.json",
-        'port':     None,
+        'file':     "kapcom.json",
         'baud':     115200,
         'host':     "127.0.0.1",
-        'sock':     8085,
+        'port':     8085,
         'headless': False
     }
 
-    def __init__(self, conf=None, port=None, baud=None, host=None, sock=None, headless=False):
-        """Takes serial port, baud rate and socket information and creates the KAPCOM object."""
+    def __init__(self, file=None, baud=None, host=None, port=None, headless=False):
+        """
+        Creates the KAPCOM object
+        Reads the configuration file and sets attributes
+        Runs initialization until successful
+        :param file: Configuration file
+        :param baud: Bitrate for Arduino devices
+        :param host: Telemachus host
+        :param port: Telemachus port
+        :param headless: True if we are using fake telemetry data
+        :return: KAPCOM object
+        """
 
         # Define configuration options as blanks
-        self.conf = None
-        self.port = None
+        self.file = None
         self.baud = None
         self.host = None
-        self.sock = None
+        self.port = None
         self.headless = None
 
-        # Define empty objects
-        self.arduino = None
-        self.joy0 = None
-        self.joy1 = None
-
         # Define empty lists for objects
-        self.joys = []
-        self.inputs = []
-        self.outputs = []
-        self.bargraphs = []
-        self.displays = []
+        self.configuration = None
+        self.arduino = {}
+        self.devices = {}
+        self.displays = {}
+        self.mode = {
+            "displays": "default",
+            "devices": "default"
+        }
 
-        self.flybywire = 0
+        # Set initial value of Fly-by-wire to off
+        self.flybywire = False
 
         def set_configuration(parameter_name, argument, configuration, default):
-            """Loads the object configuration, taking into account arguments, the configuration file and defaults"""
+            """Loads the object parameter, taking into account arguments, the configuration file and defaults"""
 
             # If argument is set...
             if argument is not None:
@@ -158,17 +173,19 @@ class KAPCOM(object):
                     log.debug("Using default value '" + str(default) + "' for " + parameter_name + ".")
 
         # Get the configuration file to use
-        set_configuration("conf", conf, None, self.defaults.get("conf"))
+        set_configuration("file", file, None, self.defaults.get("file"))
 
         # Open the file and load the JSON data
-        with open(self.conf, 'r') as config_file:
-            config_json = json.load(config_file)
+        with open(self.file, 'r') as config_file:
+            self.configuration = json.load(config_file)
 
-            # For the list of default
+            # For the list of default values
             for parameter, default_value in self.defaults.iteritems():
+                # Get the argument
                 argument_value = eval(parameter)
-                configuration_value = config_json.get(parameter)
-
+                # Get the configuration
+                configuration_value = self.configuration.get(parameter)
+                # Set object value
                 set_configuration(parameter, argument_value, configuration_value, default_value)
 
         # Close the configuration file
@@ -177,7 +194,7 @@ class KAPCOM(object):
         # If we are not headless, connect to Telemachus via PyKSP
         if not self.headless:
             # Connect
-            self.vessel = pyksp.ActiveVessel(url=self.host + ":" + str(self.sock))
+            self.vessel = pyksp.ActiveVessel(url=self.host + ":" + str(self.port))
             # Subscribe
             for subscription in self.subscriptions:
                 self.vessel.subscribe(subscription)
@@ -190,13 +207,41 @@ class KAPCOM(object):
     
     # Initialization and Readiness methods
     def initialize(self):
-        """Attempt to connect to Arduino and Telemachus"""
+        """
+        Attempt to connect to Arduino. Configure all devices. Preload devices. Attempt to connecto Telemachus.
+        :return: True if successful, False if failed
+        """
         # Connect to Arduino
         log.info("Initializing fly-by-wire system")
-        self.arduino = Arduino(self.port, self.baud)
-        if self.arduino is None:
-            log.error("Hardware failed to initialize.")
-            return False
+        self.arduino = {}
+        for key, details in self.configuration['arduino'].iteritems():
+            log.debug("Initializing Arduino: " + key)
+            self.arduino[key] = Arduino(details.get('uuid'), details.get('port'), details.get('baud') or self.baud)
+
+            if details.get('default') is True:
+                setattr(self.arduino[key], "default", True)
+            else:
+                setattr(self.arduino[key], "default", False)
+
+        defaults = len([val for (key, val) in self.arduino.iteritems() if val.default is True])
+        total = len(self.arduino)
+
+        if total == 0:
+            log.critical("No Arduino devices defined in configuration file.")
+            exit()
+
+        if defaults > 1:
+            log.warn("Multiple defaults set, clearing all")
+            for key, a in self.arduino.iteritems():
+                setattr(a, "default", False)
+            defaults = len([val for (key, val) in self.arduino.iteritems() if val.default is True])
+
+        if defaults == 0:
+            log.warn("No default set, using first device:")
+            for key, a in self.arduino.iteritems():
+                log.warn("Selecting Arduino '" + key + "' as default")
+                setattr(a, "default", True)
+                break
         log.info("Fly-by-wire initialized")
 
         # Configure
@@ -204,7 +249,7 @@ class KAPCOM(object):
         try:
             self.configure()
         except IOError:
-            log.error("Failed to read configuration file.")
+            log.error("Failed t o read configuration file.")
             return False
         log.info("Configuration successful")
 
@@ -214,7 +259,7 @@ class KAPCOM(object):
 
             # Connect to the Telemachus socket
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            r = s.connect_ex((self.host, self.sock))
+            r = s.connect_ex((self.host, self.port))
 
             # If we can connect, start the vessel
             if r == 0:
@@ -237,57 +282,100 @@ class KAPCOM(object):
         return True
         
     def configure(self):
-        self.inputs = []
-        self.outputs = []
-        self.bargraphs = []
-        self.displays = []
-        
-        def load_object(object_configuration, object_list):
+        """
+        Read the configuration file and create objects
+        :return: None
+        """
+
+        # Clear any previous configuration
+        self.devices = {}
+        self.displays = {}
+
+        def create_object(object_configuration):
             try:
                 object_type = globals().get(configuration['type'])
                 log.debug("Found type: " + configuration['type'])
+                object_configuration.pop('type')
             except AttributeError:
                 log.warn("Type not found in '" + object_configuration + "'")
                 return
 
-            object_configuration.pop('type')
             if not object_configuration.get('options'):
                 object_configuration['options'] = None
                 log.debug("No options found, adding blank")
 
-            log.debug(object_configuration)
-            object_list.append(object_type(self.arduino, **object_configuration))
+            try:
+                arduino_id = configuration.pop('arduino')
+            except KeyError:
+                log.warn("No Arduino specified, using default.")
+                arduino_id = [key for (key, val) in self.arduino.iteritems() if val.default is True][0]
 
-        # Open the configuration file
-        with open(self.conf, 'r') as f:
-            j = json.load(f)
-        
-        # Load the joysticks
-        for joyIndex in j['joys']:
-            if joyIndex['name'] == 'Joy0':
-                self.joy0 = Joy(self.arduino, **joyIndex)
-                log.info("Adding Joy0")
-            elif joyIndex['name'] == 'Joy1':
-                self.joy1 = Joy(self.arduino, **joyIndex)
-                log.info("Adding Joy1")
+            log.debug(object_configuration)
+
+            if object_type == SevenSegment or object_type == Bargraph:
+                return object_type(**object_configuration)
             else:
-                log.warn("Unknown joystick: " + joyIndex['name'])
-        
+                return object_type(self.arduino[arduino_id], **object_configuration)
+
+
         # Load all the objects!
         log.info("Loading objects from configuration")
-        for key, value in {'inputs':       self.inputs,
-                           'outputs':      self.outputs,
-                           'bargraphs':    self.bargraphs,
-                           'displays':     self.displays
-                           }.iteritems():
+        for key, device_list in {'devices':       self.devices,
+                                 'displays':      self.displays
+                                 }.iteritems():
             log.info("Loading objects from " + key)
-            for configuration in j[key]:
+            for configuration in self.configuration['configuration'][key]:
                 log.debug("Loading object '" + configuration['name'] + "'")
-                load_object(configuration, value)
+                device_list[configuration['name']] = create_object(configuration.copy())
                 log.debug("Object loaded successfully")
 
-        f.close()
-        
+        self.change_mode('displays', self.configuration['modes']['default']['displays'])
+        self.change_mode('devices', self.configuration['modes']['default']['devices'])
+
+
+    def change_mode(self, mode_type, mode):
+        """
+        Change the KAPCOM configuration based on a named configuration set.
+        :param mode_type: Type of configuration to change: Device or Display
+        :param mode: Named mode from configuration file
+        :return:
+        """
+
+        if mode == "default":
+            log.info("Setting default mode for " + mode_type)
+            self.change_mode(mode_type, self.configuration['modes']['default'][mode_type])
+            return
+
+        self.mode[mode_type] = mode
+        log.info("Setting mode " + mode + " for type" + mode_type)
+
+        if mode_type == "displays":
+            log.debug("Detatching all displays")
+
+            # Loop over displays
+            for display_name, display in self.displays.iteritems():
+                log.debug("Detatching display " + display_name)
+
+                # Detatch the display
+                display.detatch()
+
+                log.debug("Checking for reattachment")
+                # Loop over Arduinos
+                for arduino_name, arduino in self.arduino.iteritems():
+                    log.debug("Checking " + arduino_name)
+
+                    try:
+                        # If the display is present in the Arduino configuration
+                        index = self.configuration['modes']['displays'][self.mode['displays']][display.__class__.__name__].get(arduino_name)\
+                            .index(display.name)
+                        # Attach the display
+                        display.attach(arduino, index)
+                        log.info("Attached display " + display_name + " to Arduino " + arduino_name)
+                        break
+                    except (ValueError, AttributeError):
+                        log.debug("Did not find display " + display.name + " for Arduino " + arduino_name)
+
+
     def ready(self):
         """Attempt to connect to Telemachus."""
         
@@ -296,7 +384,7 @@ class KAPCOM(object):
         # If we're not headless, check the socket
         if not self.headless:
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            r = s.connect_ex((self.host, self.sock))
+            r = s.connect_ex((self.host, self.port))
             if r == 0:
                 # If there's a good connection, get
                 state = self.vessel.test_connection()
@@ -352,35 +440,45 @@ class KAPCOM(object):
         _cycles += 1
 
     def update(self):
-        if self.joy0 is not None and self.joy1 is not None:
-            # Update joysticks and send data
-            self.joy0.update()
-            self.joy1.update()
+        # Get list of joysticks currently configured
+        joys = {key: value for (key, value) in self.devices.iteritems() if type(value) is Joy \
+                and value.name in self.configuration['modes']['devices'][self.mode['devices']]}
 
-            six_dof = self.joy0.toString() + "," + self.joy1.toString()
-            if six_dof != "0,0,0,0,0,0":
-                # If fly-by-wire is disabled, enable it
-                if self.flybywire != 1:
-                    self.flybywire = 1
-                    log.info("Enabling fly-by-wire")
-                    self.send_flybywire("toggle_fbw", "1")
+        # Update all configured joysticks
+        for joy in joys:
+            log.debug("Updating Joystick: " + joy)
+            self.devices[joy].update()
 
-                # Send fly-by-wire
-                self.send_flybywire("six_dof", six_dof)
-            else:
-                # If fly-by-wire is enabled, disable it
-                if self.flybywire != 0:
-                    self.flybywire = 0
-                    log.info("Disabling fly-by-wire")
-                    self.send_flybywire("toggle_fbw", "0")
-        
+        # Get list of centered joysticks
+        joys_active = {key: value for (key, value) in joys.iteritems() if value.centered is False}
+        log.debug("Found " + str(len(joys)) + " in current mode, " + str(len(joys_active)) + " are active")
+
+        # If any joysticks are active
+        if len(joys_active) > 0:
+            # If fly-by-wire is disabled, enable it
+            if self.flybywire is False:
+                self.flybywire = True
+                log.info("Enabling fly-by-wire")
+                self.send_flybywire("toggle_fbw", "1")
+
+            # Send all active joysticks
+            for name, joy in joys_active.iteritems():
+                self.send_flybywire(joy.api, joy.toString())
+        else:
+            # If fly-by-wire is enabled, disable it
+            if self.flybywire is True:
+                self.flybywire = False
+                log.info("Disabling fly-by-wire")
+                self.send_flybywire("toggle_fbw", "0")
+
         # Iterate across devices
-        for device in self.devices:
-            if device.name in self.configuration['devices']:
-                if issubclass(type(device), pin.__output):
+        for (device_name, device) in {key: value for (key, value) in self.devices.iteritems() \
+                                      if type(value) is not Joy}.iteritems():
+            if device.name in self.configuration['modes']['devices'][self.mode['devices']]:
+                if type(device) == DigitalOut or type(device) == AnalogOut:
                     device.set(self.get_telemetry(device.api))
 
-                elif issubclass(type(device), pin.__input):
+                elif type(device) == DigitalIn or type(device) == AnalogIn or type(device) == Mod:
                     # Get the value from hardware
                     device.update()
 
@@ -388,42 +486,22 @@ class KAPCOM(object):
                     if device.changed():
                         # Send the update
                         self.send_flybywire(device.api, device.toString())
+
                 else:
-                    log.error("Unhandled type" + str(type(device)) + " for device " + device.name)
+                    log.error("Unhandled type: " + str(type(device)) + " for device " + device.name)
 
         # Iterate across displays
-        for display in self.displays:
-            if display.name in self.configuration['displays']:
-                if issubclass(type(display), Bargraph):
+        for display_name, display in self.displays.iteritems():
+            if display._arduino is not None:
+                if type(display) == Bargraph:
                     display.set(self.get_telemetry(display.api), self.get_telemetry(display._max_api))
 
-                elif issubclass(type(display), SevenSegment):
+                elif type(display) == SevenSegment:
                     display.set(self.get_telemetry(display.api))
 
                 else:
                     log.error("Unhandled type" + str(type(device)) + " for display " + device.name)
 
-
-        for i in self.inputs:
-            # Get the value from hardware
-            i.update()
-
-            # If it had changed
-            if i.changed():
-                # Send the update
-                self.send_flybywire(i.api, i.toString())
-            
-        # Set the outputs
-        for o in self.outputs:
-            o.set(self.get_telemetry(o.api))
-            
-        # Set the bargraphs
-        for b in self.bargraphs:
-            b.set(self.get_telemetry(b.api), self.get_telemetry(b._max_api))
-        
-        # Set the displays
-        for d in self.displays:
-            d.set(self.get_telemetry(d.api))
         
     def get_telemetry(self, api):
         if not self.headless:

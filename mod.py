@@ -5,7 +5,7 @@ from pin import *
 from arduino import Arduino
 
 # Logging
-_name = "SevenSegment"
+_name = "Mod"
 _debug = logging.WARNING
 
 log = logging.getLogger(_name)

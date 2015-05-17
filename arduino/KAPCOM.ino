@@ -12,7 +12,7 @@ String subscriptions;
 int analogOffset = A0;
 
 String v = "KAPCOM v0.1";
-String u = "6dd4170e-f7a6-11e4-a322-1697f925ec7b";
+String u = "d257503a-f0ff-4854-b2ab-e41e65d05cc2";
 
 int DIN=14;
 int LOAD=15;

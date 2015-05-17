@@ -14,7 +14,7 @@ else:
 
 # Logging
 _name = "Arduino"
-_debug = logging.WARNING
+_debug = logging.INFO
 
 log = logging.getLogger(_name)
 if not len(log.handlers):
@@ -33,14 +33,15 @@ if not len(log.handlers):
 
 
 class Arduino(object):
-    def __init__(self, port=None, baud=115200, timeout=2, s=None, silent=True):
+    def __init__(self, uuid=None, port=None, baud=115200, timeout=2, s=None, silent=True):
         """Initializes serial communication with Arduino"""
         
         self.connected = False
         self.version = "KAPCOM v0.1"
+        self.uuid = uuid
         self.silent = silent
         
-        if not s:
+        if s is None:
             if not port:
                 # No port specified, search for a port
                 self.s = self._find_port(baud, timeout)
@@ -50,8 +51,29 @@ class Arduino(object):
                     self.s = serial.Serial(port, baud, timeout=timeout)
                 except (serial.SerialException, OSError):
                     log.error("Specified port is not found.")
-                    self.s = None
-                
+                    return None
+
+                # Check if the connected device is compatible
+                v = self.getVersion(s)
+
+                # Retry once in case we missed it
+                if v == "":
+                    v = self.getVersion(s)
+
+                # If not correct, continue search
+                if v != self.version:
+                    log.error('Bad version "{0}". This is not a KAPCOM/Arduino!'.format(v))
+                    return None
+
+                # Check UUID if set
+                if self.s is not None and self.uuid is not None:
+                    u = self.getUUID(s)
+                    log.debug('Found UUID: ' + u)
+
+                    if self.uuid != u:
+                        log.error("Specified port does not match the UUID.")
+                        return None
+
             if not self.s:
                 log.warn("Using interactive mode.")
             else:
@@ -60,13 +82,13 @@ class Arduino(object):
             self.s = s
 
     def _find_port(self, baud, timeout):
-        """Find the first port that is connected to an arduino with a compatible sketch installed."""
+        """Find the first port that is connected to an Arduino with a compatible sketch installed."""
     
         # Get a list of serial ports depending on the platform
         if platform.system() == 'Windows':
             ports = self._enumerate_serial_ports()
         elif platform.system() == 'Darwin':
-            ports = [i[0] for i in list_ports.comports()]
+            ports = [i[0] for i in list_ports.comports() if 'Bluetooth' not in i[0]]
         else:
             ports = glob.glob("/dev/ttyUSB*") + glob.glob("/dev/ttyACM*")
         
@@ -93,8 +115,18 @@ class Arduino(object):
                 log.debug('Bad version "{0}". This is not a KAPCOM/Arduino!'.format(v))
                 s.close()
                 continue
-                
-            # Version matches    
+
+            # Check UUID if set
+            if self.uuid is not None:
+                u = self.getUUID(s)
+                log.debug('Found UUID: ' + u)
+
+                if self.uuid != u:
+                    log.debug('UUID did not match')
+                    s.close()
+                    continue
+
+            # Version and UUID matches
             log.info('Using port {0}.'.format(p))
             if s:
                 return s
@@ -182,8 +214,13 @@ class Arduino(object):
             s.flush()
         except serial.SerialException:
             pass
-            
-        return s.readline().replace("\r\n", "")
+
+        try:
+            return s.readline().replace("\r\n", "")
+        except serial.serialutil.SerialException:
+            log.critical("Terminal error while communicating with Arduino.")
+            return ""
+
 
     def _close(self):
         """Closes the serial connection"""
@@ -197,6 +234,11 @@ class Arduino(object):
         """Return the version of the connected Arduino"""
         
         return self._read(self._build_command("v"), s)
+
+    def getUUID(self, s=None):
+        """Return the UUID of the connected Arduino"""
+
+        return self._read(self._build_command("u"), s)
 
     def digitalWrite(self, pin, value):
         """Sends digitalWrite command to digital pin on Arduino"""

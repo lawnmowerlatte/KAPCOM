@@ -5,35 +5,35 @@ from arduino import Arduino
 
 
 class Joy(object):
-    def __init__(self, arduino, name, x, y, z, button, options=None):
+    def __init__(self, arduino, name, api, x, y, z, button, options=None):
         all_options = {'format': 'floatpoint'}
         button_options = {'format': 'value'}
 
         try:
             invert_button = options['invertButton']
             button_options['invert'] = invert_button
-        except KeyError:
+        except (KeyError, TypeError):
             pass
 
         try:
             x_options = all_options.copy()
             invert_x = options['invertX']
             x_options['invert'] = invert_x
-        except KeyError:
+        except (KeyError, TypeError):
             pass
 
         try:
             y_options = all_options.copy()
             invert_y = options['invertY']
             y_options['invert'] = invert_y
-        except KeyError:
+        except (KeyError, TypeError):
             pass
 
         try:
             z_options = all_options.copy()
             invert_z = options['invertZ']
             z_options['invert'] = invert_z
-        except KeyError:
+        except (KeyError, TypeError):
             pass
 
         # Set core attributes
@@ -43,6 +43,7 @@ class Joy(object):
         self.button = DigitalIn(arduino, name + " Button", "", button)
 
         self.name = name
+        self.api = api
 
         # Pre-set extra attributes
         self.scale = 2

@@ -163,7 +163,7 @@ else:
         else:
             fail("Please install glob using pip.")
 
-debug("Checking for PyAutoGUI", newline=False)
+debug("Checking for PyAutoGUI: ", newline=False)
 try:
     import pyautogui
     ok()

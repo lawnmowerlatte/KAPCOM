@@ -7,7 +7,7 @@ from arduino import Arduino
 
 # Logging
 _name = "SevenSegment"
-_debug = logging.WARNING
+_debug = logging.DEBUG
 
 log = logging.getLogger(_name)
 if not len(log.handlers):
@@ -26,13 +26,14 @@ if not len(log.handlers):
 
 
 class SevenSegment(object):
-    def __init__(self, arduino, name, api, device, options=None):
+    def __init__(self, name, api, options=None):
         """Initialize pin with parameters"""
         # Set core attributes
-        self._arduino = arduino
+        self.device = None
+        self._arduino = None
+
         self.name = name
         self.api = api
-        self.device = device
 
         # Pre-set extra attributes
         self._type = "default"
@@ -61,13 +62,23 @@ class SevenSegment(object):
         except ImportError:
             return character
 
+    def attach(self, arduino, device):
+        self._arduino = arduino
+        self.device = device
+
+    def detatch(self):
+        self._arduino = None
+        self.device = None
+
     def set(self, value):
+        log.debug("Setting seven-segment " + self.name + " " + str(value))
+
         self._lastvalue = self.value
 
         if isinstance(value, str):
             self.value = float(value)
         else:
-            self.value = value
+            self.value = int(value)
 
         self.format()
         self.update()

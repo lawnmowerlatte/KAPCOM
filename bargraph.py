@@ -7,7 +7,7 @@ from arduino import Arduino
 
 # Logging
 _name = "Bargraph"
-_debug = logging.WARNING
+_debug = logging.DEBUG
 
 log = logging.getLogger(_name)
 if not len(log.handlers):
@@ -26,13 +26,14 @@ if not len(log.handlers):
 
 
 class Bargraph(object):
-    def __init__(self, arduino, name, api, device, options=None):
+    def __init__(self, name, api, options=None):
         """Initialize pin with parameters"""
         # Set core attributes
-        self._arduino = arduino
+        self.device = None
+        self._arduino = None
+
         self.name = name
         self.api = api
-        self.device = device
         
         # Pre-set extra attributes
         self._type = "delta"
@@ -69,7 +70,17 @@ class Bargraph(object):
         except ImportError:
             return character
 
+    def attach(self, arduino, device):
+        self._arduino = arduino
+        self.device = device
+
+    def detatch(self):
+        self._arduino = None
+        self.device = None
+
     def set(self, value, new_max=None):
+        log.debug("Setting bargraph " + self.name + " " + str(value) + "/" + str(new_max))
+
         if new_max is not None:
             self._max = new_max
 

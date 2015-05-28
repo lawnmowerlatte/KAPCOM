@@ -1,47 +1,74 @@
 {
-	"host": "192.168.147.1",
-    "displays": [],
-    "joys": [],
-    "bargraphs": [],
-    "outputs": [
-		{
-            "api": "sas_status",
-            "type": "DigitalOut",
-            "name": "SAS Status",
-            "pin": 2
-        }		
-    ],
-    "inputs": [
-        {
-            "api": "set_throttle",
-            "type": "AnalogIn",
-            "name": "Throttle",
-            "pin": 165,
-			"options": {
-				"format": "floatpoint",
-				"deadzone": 0.05,
-				"invert": "True"
-			}
-        },
-        {
-            "api": "stage",
-            "type": "DigitalIn",
-            "name": "Stage",
-            "pin": 3,
-			"options": {
-				"format": "true",
-				"invert" : "True"
-			}
-        },
-        {
-            "api": "sas",
-            "type": "DigitalIn",
-            "name": "SAS",
-            "pin": 4,
-			"options": {
-				"invert": "True",
-				"format": "toggle"
-			}
+	"host": "Mac.local",
+    "arduino": {
+        "Primary": {
+            "default": true
         }
-    ]
+    },
+    "modes": {
+        "default": {
+            "displays": "Displays",
+            "devices": "Devices"
+        },
+        "displays": {
+            "Displays": {
+                "SevenSegment": {
+                    "Primary": []
+                },
+                "Bargraph": {
+                    "Primary": []
+                }
+            }
+        },
+        "devices": {
+            "Devices": [
+                "SAS Status",
+                "SAS",
+                "Throttle",
+                "Stage"
+            ]
+        }
+    },
+    "configuration": {
+        "displays": [],
+        "devices": [
+            {
+                "api": "sas_status",
+                "type": "DigitalOut",
+                "name": "SAS Status",
+                "pin": 2
+            },
+            {
+                "api": "set_throttle",
+                "type": "AnalogIn",
+                "name": "Throttle",
+                "pin": 165,
+                "options": {
+                    "format": "floatpoint",
+                    "deadzone": 0.05,
+                    "invert": "True"
+                }
+            },
+            {
+                "api": "stage",
+                "type": "DigitalIn",
+                "name": "Stage",
+                "pin": 3,
+                "options": {
+                    "format": "true",
+                    "invert" : "True"
+                }
+            },
+            {
+                "api": "sas",
+                "type": "DigitalIn",
+                "name": "SAS",
+                "pin": 4,
+                "options": {
+                    "invert": "True",
+                    "format": "toggle"
+                }
+            }
+        ]
+    }
 }

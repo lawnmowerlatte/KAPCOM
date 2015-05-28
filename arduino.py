@@ -33,9 +33,10 @@ if not len(log.handlers):
 
 
 class Arduino(object):
-    def __init__(self, uuid=None, port=None, baud=115200, timeout=2, s=None, silent=True):
+    def __init__(self, name, uuid=None, port=None, baud=115200, timeout=2, s=None, silent=True):
         """Initializes serial communication with Arduino"""
-        
+
+        self.name = name
         self.connected = False
         self.version = "KAPCOM v0.1"
         self.uuid = uuid

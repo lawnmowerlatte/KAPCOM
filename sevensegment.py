@@ -7,7 +7,7 @@ from arduino import Arduino
 
 # Logging
 _name = "SevenSegment"
-_debug = logging.DEBUG
+_debug = logging.WARN
 
 log = logging.getLogger(_name)
 if not len(log.handlers):
@@ -26,6 +26,11 @@ if not len(log.handlers):
 
 
 class SevenSegment(object):
+    formats = [
+        "default"
+    ]
+
+
     def __init__(self, name, api, options=None):
         """Initialize pin with parameters"""
         # Set core attributes

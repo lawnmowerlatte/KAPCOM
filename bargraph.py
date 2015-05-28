@@ -7,7 +7,7 @@ from arduino import Arduino
 
 # Logging
 _name = "Bargraph"
-_debug = logging.DEBUG
+_debug = logging.WARN
 
 log = logging.getLogger(_name)
 if not len(log.handlers):
@@ -26,6 +26,15 @@ if not len(log.handlers):
 
 
 class Bargraph(object):
+    formats = [
+        "default",
+        "red",
+        "yellow",
+        "green",
+        "rainbow",
+        "delta"
+    ]
+
     def __init__(self, name, api, options=None):
         """Initialize pin with parameters"""
         # Set core attributes
@@ -203,8 +212,11 @@ class Bargraph(object):
         if not f:
             log.error("Unknown type: " + self._type)
             return
-        
-        f()
+
+        try:
+            f()
+        except ZeroDivisionError:
+            pass
 
     def write(self):
         if cmp(self.red, self._lastred) == 0 and cmp(self.green, self._lastgreen) == 0:

@@ -2,41 +2,278 @@
 <html>
     <head>
         <title>Configuration</title>
-        <link href="{{ url_for('static', filename='css/configuration.css') }}" rel="stylesheet" type="text/css">
+        <link href="{{ url_for('static', filename='css/configure.css') }}" rel="stylesheet" type="text/css">
         <script src="{{ url_for('static', filename='js/jquery-2.1.4.js') }}"></script>
         <script src="{{ url_for('static', filename='js/chart-1.0.2.js') }}"></script>
         <script src="{{ url_for('static', filename='js/jquery-ui-1.11.4.js') }}"></script>
-        <script src="{{ url_for('static', filename='js/configuration.js') }}"></script>
+        <script src="{{ url_for('static', filename='js/configure.js') }}"></script>
     </head>
     <body>
         <div class="container" id="File-Manipulation">
-            <div class="module" id="File-Selector">
-
-
-            </div>
-
-            <div class="spacex" id="Status"></div>
-
-            <div class="spacex" id="Cycles">
-                <h4>Cycles</h4>
-                <canvas id="Cycles-Chart" width="200" height="200"></canvas>
-            </div>
-            <div class="spacex" id="Rate">
-                <h4>Rate</h4>
-                <canvas id="Rate-Chart" width="200" height="200"></canvas>
-            </div>
-            <div class="spacex" id="Frequency">
-                <h4>Frequency</h4>
-                <canvas id="Frequency-Chart" width="200" height="200"></canvas>
-            </div>
-
-            <div class="spacex" id="Bargraph"><img src="{{ url_for('static', filename='img/bargraph.png') }}" width="50px" /></div>
-
-            <div class="spacex" id="SevenSegment"><img src="{{ url_for('static', filename='img/sevensegment.png') }}" width="50px" /></div>
-
-            <div class="spacex" id="Display_Modes"></div>
-
-            <div class="spacex" id="Device_Modes"></div>
+            <div class="module narrow" id="File-Selector"></div>
+            <div class="module" id="General-Settings"></div>
         </div>
+        <div class="container" id="Arduino">
+            <div class="module narrow" id="Arduino-List">
+                <select size="10" class="list">
+                    <option>Primary</option>
+                    <option>Secondary</option>
+                    <option>Tertiary</option>
+                </select>
+
+                <input class="list-button" type="submit" value="Add" />
+                <input class="list-button" type="submit" value="Remove" />
+
+
+            </div>
+            <div class="module" id="Arduino-Details">
+                <label for="name">Name:</label>
+                <input name="name" />
+
+                <label for="uuid">UUID:</label>
+                <input name="uuid" />
+
+                <label for="bargraphs">Bargraphs:</label>
+                <select>
+                    <option>1</option>
+                    <option>2</option>
+                    <option>3</option>
+                    <option>4</option>
+                    <option>5</option>
+                </select>
+
+                <label for="sevensegment">Seven Segments:</label>
+                <select>
+                    <option>1</option>
+                    <option>2</option>
+                    <option>3</option>
+                    <option>4</option>
+                    <option>5</option>
+                </select>
+
+                <label for="default">Default:</label>
+                <input type="checkbox" name="default" />
+
+                <input class="update-button" type="submit" value="Update" />
+
+            </div>
+
+
+        </div>
+        <div class="container" id="Displays">
+            <div class="module narrow" id="Display-List">
+                <select size="10" class="list">
+                    <option>Apoapsis</option>
+                    <option>Periapsis</option>
+                    <option>Liquid Fuel</option>
+                    <option>Oxidizer</option>
+                </select>
+
+                <input class="list-button" type="submit" value="Add" />
+                <input class="list-button" type="submit" value="Remove" />
+
+
+            </div>
+            <div class="module" id="Display-Details">
+                <label for="name">Name:</label>
+                <input name="name" />
+
+                <label for="api">API:</label>
+                <input name="api" />
+
+                <label for="type">Type:</label>
+                <select>
+                    <option>Bargraph</option>
+                    <option>SevenSegment</option>
+                </select>
+
+                <label for="max_api">API for Max:</label>
+                <input name="max_api" />
+
+                <input class="update-button" type="submit" value="Update" />
+
+
+            </div>
+
+
+        </div>
+        <div class="container" id="Devices">
+            <div class="module narrow" id="Device-List">
+                <select size="10" class="list">
+                    <option>Joy 1</option>
+                    <option>Joy 2</option>
+                    <option>Button 1</option>
+                    <option>Button 2</option>
+                </select>
+
+                <input class="list-button" type="submit" value="Add" />
+                <input class="list-button" type="submit" value="Remove" />
+
+
+            </div>
+            <div class="module" id="Device-Details">
+                <label for="name">Name:</label>
+                <input name="name" />
+
+                <label for="api">API:</label>
+                <input name="api" />
+
+                <label for="type">Type:</label>
+                <select>
+                    <option>Digital Input</option>
+                    <option>Digital Output</option>
+                    <option>Analog Input</option>
+                    <option>Analog Output</option>
+                    <option>Modifier</option>
+                    <option>Joystick</option>
+                </select>
+
+
+                <label for="pin" class="default pin_list">Pin:</label>
+                <select id="default" class=" pin_list"></select>
+
+
+                <label for="x" class="joy pin_list">X:</label>
+                <select class="joy pin_list"></select>
+
+                <label for="y" class="joy pin_list">Y:</label>
+                <select name="y" class="joy pin_list"></select>
+
+                <label for="z" class="joy pin_list">Z:</label>
+                <select class="joy pin_list"></select>
+
+                <label for="joy-button" class="joy pin_list">Button:</label>
+                <select class="joy pin_list"></select>
+
+                <label for="modifier" class="mod pin_list">Modifier:</label>
+                <select class="mod pin_list"></select>
+
+                <label for="indicator" class="mod pin_list">Indicator:</label>
+                <select class="mod pin_list"></select>
+
+                <label for="button" class="mod pin_list">Button:</label>
+                <select class="mod pin_list"></select>
+
+                <br />
+                <input class="update-button" type="submit" value="Update" />
+
+            </div>
+
+
+        </div>
+        <div class="container" id="Device-Modes">
+            <div class="module narrow" id="Device-Mode-List">
+                <select size="10" class="list">
+                    <option>Mode 1</option>
+                    <option>Mode 2</option>
+                    <option>Mode 3</option>
+                    <option></option>
+                </select>
+
+                <input class="list-button" type="submit" value="Add" />
+                <input class="list-button" type="submit" value="Remove" />
+
+
+            </div>
+            <div class="module" id="Device-Mode-Details">
+                <label for="arduino">Arduino:</label>
+                <select name="arduino">
+                    <option>Primary</option>
+                    <option>Secondary</option>
+                    <option>Tertiary</option>
+                </select>
+
+                <div class="section">
+                    <h3>Available</h3>
+                    <select size="7" class="list">
+                        <option>Joy 1</option>
+                        <option>Joy 2</option>
+                        <option>Button 1</option>
+                        <option>Button 2</option>
+                    </select>
+
+                    <input class="list-button" type="submit" value="Add" />
+                </div>
+                <div class="section">
+                    <h3>Configured</h3>
+                    <select size="7" class="list">
+                        <option>Joy 1</option>
+                        <option>Joy 2</option>
+                        <option>Button 1</option>
+                        <option>Button 2</option>
+                    </select>
+
+                    <input class="list-button" type="submit" value="Remove" />
+                </div>
+            </div>
+        </div>
+
+        <div class="container" id="Display-Modes">
+            <div class="module narrow" id="Display-Mode-List">
+                <select size="10" class="list">
+                    <option>Mode 1</option>
+                    <option>Mode 2</option>
+                    <option>Mode 3</option>
+                    <option></option>
+                </select>
+
+                <input class="list-button" type="submit" value="Add" />
+                <input class="list-button" type="submit" value="Remove" />
+
+
+            </div>
+            <div class="module" id="Display-Mode-Details">
+                <label for="arduino">Arduino:</label>
+                <select name="arduino">
+                    <option>Primary</option>
+                    <option>Secondary</option>
+                    <option>Tertiary</option>
+                </select>
+
+                <div class="section">
+                    <h3>Seven Segment Displays</h3>
+                    <select id="display-sevensegment-1">
+                        <option>Apoapsis</option>
+                        <option>Periapsis</option>
+                    </select>
+
+                    <select id="display-sevensegment-2">
+                        <option>Apoapsis</option>
+                        <option>Periapsis</option>
+                    </select>
+
+                    <select id="display-sevensegment-3">
+                        <option>Apoapsis</option>
+                        <option>Periapsis</option>
+                    </select>
+
+                </div>
+
+                <div class="section">
+                    <h3>Bargraph Displays</h3>
+                    <select id="display-bargraph-1">
+                        <option>Liquid Fuel</option>
+                        <option>Oxidizer</option>
+                    </select>
+
+                    <select id="display-bargraph-2">
+                        <option>Liquid Fuel</option>
+                        <option>Oxidizer</option>
+                    </select>
+
+                    <select id="display-bargraph-3">
+                        <option>Liquid Fuel</option>
+                        <option>Oxidizer</option>
+                    </select>
+                </div>
+
+                <input class="update-button" type="submit" value="Update" />
+            </div>
+
+
+        </div>
+
+
+
     </body>
 </html>

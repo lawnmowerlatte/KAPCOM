@@ -14,66 +14,11 @@
             <div class="module" id="General-Settings"></div>
         </div>
         <div class="container" id="Arduino">
-            <div class="module narrow" id="Arduino-List">
-                <select size="10" class="list">
-                    <option>Primary</option>
-                    <option>Secondary</option>
-                    <option>Tertiary</option>
-                </select>
-
-                <input class="list-button" type="submit" value="Add" />
-                <input class="list-button" type="submit" value="Remove" />
-
-
-            </div>
-            <div class="module" id="Arduino-Details">
-                <label for="name">Name:</label>
-                <input name="name" />
-
-                <label for="uuid">UUID:</label>
-                <input name="uuid" />
-
-                <label for="bargraphs">Bargraphs:</label>
-                <select>
-                    <option>1</option>
-                    <option>2</option>
-                    <option>3</option>
-                    <option>4</option>
-                    <option>5</option>
-                </select>
-
-                <label for="sevensegment">Seven Segments:</label>
-                <select>
-                    <option>1</option>
-                    <option>2</option>
-                    <option>3</option>
-                    <option>4</option>
-                    <option>5</option>
-                </select>
-
-                <label for="default">Default:</label>
-                <input type="checkbox" name="default" />
-
-                <input class="update-button" type="submit" value="Update" />
-
-            </div>
-
-
+            <div class="module narrow" id="Arduino-Selector"></div>
+            <div class="module" id="Arduino-Details"></div>
         </div>
         <div class="container" id="Displays">
-            <div class="module narrow" id="Display-List">
-                <select size="10" class="list">
-                    <option>Apoapsis</option>
-                    <option>Periapsis</option>
-                    <option>Liquid Fuel</option>
-                    <option>Oxidizer</option>
-                </select>
-
-                <input class="list-button" type="submit" value="Add" />
-                <input class="list-button" type="submit" value="Remove" />
-
-
-            </div>
+            <div class="module narrow" id="Display-Selector"></div>
             <div class="module" id="Display-Details">
                 <label for="name">Name:</label>
                 <input name="name" />
@@ -98,19 +43,7 @@
 
         </div>
         <div class="container" id="Devices">
-            <div class="module narrow" id="Device-List">
-                <select size="10" class="list">
-                    <option>Joy 1</option>
-                    <option>Joy 2</option>
-                    <option>Button 1</option>
-                    <option>Button 2</option>
-                </select>
-
-                <input class="list-button" type="submit" value="Add" />
-                <input class="list-button" type="submit" value="Remove" />
-
-
-            </div>
+            <div class="module narrow" id="Device-Selector"></div>
             <div class="module" id="Device-Details">
                 <label for="name">Name:</label>
                 <input name="name" />
@@ -162,7 +95,7 @@
 
         </div>
         <div class="container" id="Device-Modes">
-            <div class="module narrow" id="Device-Mode-List">
+            <div class="module narrow" id="Device-Mode-Selector">
                 <select size="10" class="list">
                     <option>Mode 1</option>
                     <option>Mode 2</option>
@@ -209,7 +142,7 @@
         </div>
 
         <div class="container" id="Display-Modes">
-            <div class="module narrow" id="Display-Mode-List">
+            <div class="module narrow" id="Display-Mode-Selector">
                 <select size="10" class="list">
                     <option>Mode 1</option>
                     <option>Mode 2</option>

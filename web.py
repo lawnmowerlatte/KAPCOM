@@ -118,7 +118,6 @@ def configure_file_api(action):
 
     return json.dumps(data), code
 
-
 @app.route("/configure/get_<string:action>")
 def configure_get_api(action):
     global configuration
@@ -139,9 +138,9 @@ def configure_get_api(action):
             data = configuration["data"]["configuration"]["devices"][name]
         elif action == "display":
             data = configuration["data"]["configuration"]["displays"][name]
-        elif action == "device-mode":
+        elif action == "device_mode":
             data = configuration["data"]["modes"]["devices"][name]
-        elif action == "display-mode":
+        elif action == "display_mode":
             data = configuration["data"]["modes"]["displays"][name]
         else:
             return "", 405
@@ -156,9 +155,9 @@ def configure_get_api(action):
             data = configuration["data"]["configuration"]["devices"]
         elif action == "display":
             data = configuration["data"]["configuration"]["displays"]
-        elif action == "device-mode":
+        elif action == "device_mode":
             data = configuration["data"]["modes"]["devices"]
-        elif action == "display-mode":
+        elif action == "display_mode":
             data = configuration["data"]["modes"]["displays"]
         else:
             return "", 405
@@ -210,13 +209,147 @@ def configure_set_api(action):
             except:
                 pass
         else:
-            log.critical("Enabling headless mode")
             configuration['data']['headless'] = True
 
         data = True
 
+
+    elif action == "arduino":
+        key = request.args.get("key")
+        name = request.args.get("name")
+        uuid = request.args.get("uuid")
+        bargraphs = request.args.get("bargraphs")
+        sevensegments = request.args.get("sevensegments")
+        default = request.args.get("default")
+
+        if key not in configuration['data']['arduino']:
+            return False, 500
+
+        if name != key:
+            configuration['data']['arduino'][name] = configuration['data']['arduino'].pop(key)
+
+        if uuid is not None:
+            configuration['data']['arduino'][name]['uuid'] = uuid
+        else:
+            try:
+                configuration['data']['arduino'][name].pop('uuid')
+            except:
+                pass
+
+        if bargraphs is not None:
+            configuration['data']['arduino'][name]['bargraphs'] = bargraphs
+        else:
+            try:
+                configuration['data']['arduino'][name].pop('bargraphs')
+            except:
+                pass
+
+        if sevensegments is not None:
+            configuration['data']['arduino'][name]['sevensegments'] = sevensegments
+        else:
+            try:
+                configuration['data']['arduino'][name].pop('sevensegments')
+            except:
+                pass
+
+        if default != "on":
+            try:
+                configuration['data']['arduino'][name].pop('default')
+            except:
+                pass
+        else:
+            configuration['data']['arduino'][name]['default'] = True
+
     return json.dumps(data), code
 
+@app.route("/configure/delete_<string:action>")
+def configure_delete_api(action):
+    global configuration
+    data = ""
+    code = 200
+
+    if request.method == 'GET':
+        name = request.args.get("name")
+    elif request.method == 'POST':
+        name = request.form.get("name")
+    else:
+        return False, 405
+
+    if name is not None:
+        if action == "arduino":
+            data = configuration["data"]["arduino"].pop(name)
+        elif action == "device":
+            data = configuration["data"]["configuration"]["devices"].pop(name)
+        elif action == "display":
+            data = configuration["data"]["configuration"]["displays"].pop(name)
+        elif action == "device-mode":
+            data = configuration["data"]["modes"]["devices"].pop(name)
+        elif action == "display-mode":
+            data = configuration["data"]["modes"]["displays"].pop(name)
+        else:
+            return False, 405
+
+    else:
+        return False, 405
+
+    return json.dumps(data), code
+
+@app.route("/configure/new_<string:action>")
+def configure_new_api(action):
+    global configuration
+    data = ""
+    code = 200
+
+    if request.method == 'GET':
+        name = request.args.get("name")
+    elif request.method == 'POST':
+        name = request.form.get("name")
+    else:
+        return "", 405
+
+    if name is not None:
+        if action == "arduino":
+            if name not in configuration["data"]["arduino"]:
+                configuration["data"]["arduino"][name] = {}
+                data = True
+            else:
+                data = False
+                code = 409
+        elif action == "device":
+            if name not in configuration["data"]["configuration"]["devices"]:
+                configuration["data"]["configuration"]["devices"] = {}
+                data = True
+            else:
+                data = False
+                code = 409
+        elif action == "display":
+            if name not in configuration["data"]["configuration"]["displays"]:
+                configuration["data"]["configuration"]["displays"] = {}
+                data = True
+            else:
+                data = False
+                code = 409
+        elif action == "device-mode":
+            if name not in configuration["data"]["modes"]["devices"]:
+                configuration["data"]["modes"]["devices"] = {}
+                data = True
+            else:
+                data = False
+                code = 409
+        elif action == "display-mode":
+            if name not in configuration["data"]["modes"]["displays"]:
+                configuration["data"]["modes"]["displays"] = {}
+                data = True
+            else:
+                data = False
+                code = 409
+        else:
+            return "", 405
+
+    else:
+        return False, 405
+
+    return json.dumps(data), code
 
 @app.route("/api/<string:action>", methods=['GET', 'POST'])
 def api(action):

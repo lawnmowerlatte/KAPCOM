@@ -25,13 +25,8 @@ if not len(log.handlers):
 
 
 class Mod(object):
-    def __init__(self, arduino, name, api, pin, options=None):
+    def __init__(self, arduino, name, api, modifier, indicator, button, options=None):
         """Initialize modifier with parameters"""
-
-        # Remap pins from array
-        modifier = pin[0]
-        indicator = pin[1]
-        button = pin[2]
 
         # Set core attributes
         self.mod = DigitalIn(arduino, name + " Modifier", "", modifier, options.get('modifier'))

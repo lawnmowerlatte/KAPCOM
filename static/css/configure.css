@@ -21,6 +21,10 @@ body {
     color: #eeeeee;
 }
 
+h3 {
+    margin: 5px auto 0 auto;
+}
+
 div {
     float: left;
     margin-right: 5px;
@@ -120,8 +124,4 @@ label {
     font-weight: bold;
     padding-top: 5px;
     size: 12px;
-}
-
-.pin_list.joy, .pin_list.mod {
-    display: none;
 }

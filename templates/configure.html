@@ -19,194 +19,20 @@
         </div>
         <div class="container" id="Displays">
             <div class="module narrow" id="Display-Selector"></div>
-            <div class="module" id="Display-Details">
-                <label for="name">Name:</label>
-                <input name="name" />
-
-                <label for="api">API:</label>
-                <input name="api" />
-
-                <label for="type">Type:</label>
-                <select>
-                    <option>Bargraph</option>
-                    <option>SevenSegment</option>
-                </select>
-
-                <label for="max_api">API for Max:</label>
-                <input name="max_api" />
-
-                <input class="update-button" type="submit" value="Update" />
-
-
-            </div>
-
-
+            <div class="module" id="Display-Details"></div>
         </div>
         <div class="container" id="Devices">
             <div class="module narrow" id="Device-Selector"></div>
-            <div class="module" id="Device-Details">
-                <label for="name">Name:</label>
-                <input name="name" />
-
-                <label for="api">API:</label>
-                <input name="api" />
-
-                <label for="type">Type:</label>
-                <select>
-                    <option>Digital Input</option>
-                    <option>Digital Output</option>
-                    <option>Analog Input</option>
-                    <option>Analog Output</option>
-                    <option>Modifier</option>
-                    <option>Joystick</option>
-                </select>
-
-
-                <label for="pin" class="default pin_list">Pin:</label>
-                <select id="default" class=" pin_list"></select>
-
-
-                <label for="x" class="joy pin_list">X:</label>
-                <select class="joy pin_list"></select>
-
-                <label for="y" class="joy pin_list">Y:</label>
-                <select name="y" class="joy pin_list"></select>
-
-                <label for="z" class="joy pin_list">Z:</label>
-                <select class="joy pin_list"></select>
-
-                <label for="joy-button" class="joy pin_list">Button:</label>
-                <select class="joy pin_list"></select>
-
-                <label for="modifier" class="mod pin_list">Modifier:</label>
-                <select class="mod pin_list"></select>
-
-                <label for="indicator" class="mod pin_list">Indicator:</label>
-                <select class="mod pin_list"></select>
-
-                <label for="button" class="mod pin_list">Button:</label>
-                <select class="mod pin_list"></select>
-
-                <br />
-                <input class="update-button" type="submit" value="Update" />
-
-            </div>
-
-
+            <div class="module" id="Device-Details"></div>
         </div>
         <div class="container" id="Device-Modes">
-            <div class="module narrow" id="Device-Mode-Selector">
-                <select size="10" class="list">
-                    <option>Mode 1</option>
-                    <option>Mode 2</option>
-                    <option>Mode 3</option>
-                    <option></option>
-                </select>
-
-                <input class="list-button" type="submit" value="Add" />
-                <input class="list-button" type="submit" value="Remove" />
-
-
-            </div>
-            <div class="module" id="Device-Mode-Details">
-                <label for="arduino">Arduino:</label>
-                <select name="arduino">
-                    <option>Primary</option>
-                    <option>Secondary</option>
-                    <option>Tertiary</option>
-                </select>
-
-                <div class="section">
-                    <h3>Available</h3>
-                    <select size="7" class="list">
-                        <option>Joy 1</option>
-                        <option>Joy 2</option>
-                        <option>Button 1</option>
-                        <option>Button 2</option>
-                    </select>
-
-                    <input class="list-button" type="submit" value="Add" />
-                </div>
-                <div class="section">
-                    <h3>Configured</h3>
-                    <select size="7" class="list">
-                        <option>Joy 1</option>
-                        <option>Joy 2</option>
-                        <option>Button 1</option>
-                        <option>Button 2</option>
-                    </select>
-
-                    <input class="list-button" type="submit" value="Remove" />
-                </div>
-            </div>
+            <div class="module narrow" id="Device-Mode-Selector"></div>
+            <div class="module" id="Device-Mode-Details"></div>
         </div>
 
         <div class="container" id="Display-Modes">
-            <div class="module narrow" id="Display-Mode-Selector">
-                <select size="10" class="list">
-                    <option>Mode 1</option>
-                    <option>Mode 2</option>
-                    <option>Mode 3</option>
-                    <option></option>
-                </select>
-
-                <input class="list-button" type="submit" value="Add" />
-                <input class="list-button" type="submit" value="Remove" />
-
-
-            </div>
-            <div class="module" id="Display-Mode-Details">
-                <label for="arduino">Arduino:</label>
-                <select name="arduino">
-                    <option>Primary</option>
-                    <option>Secondary</option>
-                    <option>Tertiary</option>
-                </select>
-
-                <div class="section">
-                    <h3>Seven Segment Displays</h3>
-                    <select id="display-sevensegment-1">
-                        <option>Apoapsis</option>
-                        <option>Periapsis</option>
-                    </select>
-
-                    <select id="display-sevensegment-2">
-                        <option>Apoapsis</option>
-                        <option>Periapsis</option>
-                    </select>
-
-                    <select id="display-sevensegment-3">
-                        <option>Apoapsis</option>
-                        <option>Periapsis</option>
-                    </select>
-
-                </div>
-
-                <div class="section">
-                    <h3>Bargraph Displays</h3>
-                    <select id="display-bargraph-1">
-                        <option>Liquid Fuel</option>
-                        <option>Oxidizer</option>
-                    </select>
-
-                    <select id="display-bargraph-2">
-                        <option>Liquid Fuel</option>
-                        <option>Oxidizer</option>
-                    </select>
-
-                    <select id="display-bargraph-3">
-                        <option>Liquid Fuel</option>
-                        <option>Oxidizer</option>
-                    </select>
-                </div>
-
-                <input class="update-button" type="submit" value="Update" />
-            </div>
-
-
+            <div class="module narrow" id="Display-Mode-Selector"></div>
+            <div class="module" id="Display-Mode-Details"></div>
         </div>
-
-
-
     </body>
 </html>

@@ -131,13 +131,13 @@ def configure_get_api(action):
     else:
         return "", 405
 
-    if name is not None:
+    if name is not None and name != "" and name != "null":
         if action == "arduino":
             data = configuration["data"]["arduino"][name]
         elif action == "device":
-            data = configuration["data"]["configuration"]["devices"][name]
+            data = [x for x in configuration["data"]["configuration"]["devices"] if x['name'] == name][0]
         elif action == "display":
-            data = configuration["data"]["configuration"]["displays"][name]
+            data = [x for x in configuration["data"]["configuration"]["displays"] if x['name'] == name][0]
         elif action == "device_mode":
             data = configuration["data"]["modes"]["devices"][name]
         elif action == "display_mode":
@@ -159,6 +159,10 @@ def configure_get_api(action):
             data = configuration["data"]["modes"]["devices"]
         elif action == "display_mode":
             data = configuration["data"]["modes"]["displays"]
+        elif action == "default_device_mode":
+            data = configuration["data"]["modes"]["default"]["devices"]
+        elif action == "default_display_mode":
+            data = configuration["data"]["modes"]["default"]["displays"]
         else:
             return "", 405
 
@@ -177,6 +181,8 @@ def configure_set_api(action):
         host = request.args.get("host")
         port = request.args.get("port")
         baud = request.args.get("baud")
+        default_display_mode = request.args.get("default-display-mode")
+        default_device_mode = request.args.get("default-device-mode")
         headless = request.args.get("headless")
 
         if host is not None:
@@ -210,6 +216,9 @@ def configure_set_api(action):
                 pass
         else:
             configuration['data']['headless'] = True
+
+        configuration["data"]["modes"]["default"]["displays"] = default_display_mode
+        configuration["data"]["modes"]["default"]["devices"] = default_device_mode
 
         data = True
 
@@ -260,6 +269,98 @@ def configure_set_api(action):
         else:
             configuration['data']['arduino'][name]['default'] = True
 
+    elif action == "display":
+        key = request.args.get("key")
+        name = request.args.get("name")
+        type = request.args.get("type")
+        api = request.args.get("api")
+        max_api = request.args.get("max_api")
+        max_value = request.args.get("max_value")
+
+        if key not in [value['name'] for value in configuration['data']['configuration']['displays']]:
+            return "false", 500
+
+        display = [value for value in configuration['data']['configuration']['displays'] if value['name'] == key][0]
+
+        if name != key and name is not None and name != "":
+            display['name'] = name
+
+        if type is not None:
+            display['type'] = type
+
+        if api is not None:
+            display['api'] = api
+
+        if type == "Bargraph":
+            if max_api is not None:
+                try:
+                    display['options'].pop('max_value')
+                except:
+                    pass
+                display['options']['max_api'] = max_api
+            elif max_value is not None:
+                try:
+                    display['options'].pop('max_api')
+                except:
+                    pass
+                display['options']['max_value'] = max_value
+        else:
+            try:
+                display['options'].pop('max_api')
+            except:
+                pass
+
+            try:
+                display['options'].pop('max_value')
+            except:
+                pass
+
+    elif action == "device":
+        key = request.args.get("key")
+        name = request.args.get("name")
+        type = request.args.get("type")
+        api = request.args.get("api")
+        pin = request.args.get("pin")
+        x = request.args.get("x")
+        y = request.args.get("y")
+        z = request.args.get("z")
+        button = request.args.get("button")
+        modifier = request.args.get("modifier")
+        indicator = request.args.get("indicator")
+
+        if key not in [value['name'] for value in configuration['data']['configuration']['devices']]:
+            return "false", 500
+
+        device = [value for value in configuration['data']['configuration']['devices'] if value['name'] == key][0]
+
+        if name != key and name is not None and name != "":
+            device['name'] = name
+
+        if type is not None:
+            device['type'] = type
+
+        if api is not None:
+            device['api'] = api
+
+        for x in ["x", "y", "z", "modifier", "indicator", "button", "pin"]:
+            try:
+                device.pop(x)
+            except KeyError:
+                pass
+
+        if type == "Joy":
+            device['x'] = x
+            device['y'] = y
+            device['z'] = z
+            device['button'] = button
+        elif type == "Mod":
+            device['modifier'] = modifier
+            device['indicator'] = indicator
+            device['button'] = button
+        else:
+            device['pin'] = pin
+
+
     return json.dumps(data), code
 
 @app.route("/configure/delete_<string:action>")
@@ -275,16 +376,18 @@ def configure_delete_api(action):
     else:
         return False, 405
 
-    if name is not None:
+    if name is not None and name != "" and name != "null":
         if action == "arduino":
             data = configuration["data"]["arduino"].pop(name)
         elif action == "device":
-            data = configuration["data"]["configuration"]["devices"].pop(name)
+            data = [x for x in configuration["data"]["configuration"]["devices"] if x['name'] != name]
+            configuration["data"]["configuration"]["devices"] = data
         elif action == "display":
-            data = configuration["data"]["configuration"]["displays"].pop(name)
-        elif action == "device-mode":
+            data = [x for x in configuration["data"]["configuration"]["displays"] if x['name'] != name]
+            configuration["data"]["configuration"]["displays"] = data
+        elif action == "device_mode":
             data = configuration["data"]["modes"]["devices"].pop(name)
-        elif action == "display-mode":
+        elif action == "display_mode":
             data = configuration["data"]["modes"]["displays"].pop(name)
         else:
             return False, 405
@@ -307,7 +410,7 @@ def configure_new_api(action):
     else:
         return "", 405
 
-    if name is not None:
+    if name is not None and name != "" and name != "null":
         if action == "arduino":
             if name not in configuration["data"]["arduino"]:
                 configuration["data"]["arduino"][name] = {}
@@ -317,28 +420,28 @@ def configure_new_api(action):
                 code = 409
         elif action == "device":
             if name not in configuration["data"]["configuration"]["devices"]:
-                configuration["data"]["configuration"]["devices"] = {}
+                configuration["data"]["configuration"]["devices"].append({"name": name})
                 data = True
             else:
                 data = False
                 code = 409
         elif action == "display":
             if name not in configuration["data"]["configuration"]["displays"]:
-                configuration["data"]["configuration"]["displays"] = {}
+                configuration["data"]["configuration"]["displays"].append({"name": name})
                 data = True
             else:
                 data = False
                 code = 409
-        elif action == "device-mode":
+        elif action == "device_mode":
             if name not in configuration["data"]["modes"]["devices"]:
-                configuration["data"]["modes"]["devices"] = {}
+                configuration["data"]["modes"]["devices"][name] = {}
                 data = True
             else:
                 data = False
                 code = 409
-        elif action == "display-mode":
+        elif action == "display_mode":
             if name not in configuration["data"]["modes"]["displays"]:
-                configuration["data"]["modes"]["displays"] = {}
+                configuration["data"]["modes"]["displays"][name] = {}
                 data = True
             else:
                 data = False

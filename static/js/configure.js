@@ -1,5 +1,6 @@
 function send_api(command, postdata) {
-    console.log("Request: " + command + " : " + postdata);
+    console.log("Request: " + command);
+
 
     request = {
         async: false,
@@ -9,26 +10,38 @@ function send_api(command, postdata) {
 
     if (postdata != null) {
         request.data = postdata;
+        console.log(postdata);
     }
 
 
     response = $.ajax(request);
-    console.log("Response: " + response.responseJSON);
+    console.log("Response:");
+    console.log(response.responseJSON);
 
     return response.responseJSON;
 }
 
-function build_select(data, current, size, id, name, classes) {
+function build_select(data, current, size, id, name, classes, multiple, blank) {
     if (size == null) {
         size = ""
     } else {
         size = "size=" + size;
     }
 
-    s = "<select " + size + " id='" + id + "' name='" + name + "' class='" + classes + "'>";
+    if (multiple) {
+        multiple = "multiple";
+    } else {
+        multiple = "";
+    }
+
+    s = "<select " + size + " id='" + id + "' name='" + name + "' class='" + classes + "' " + multiple + ">";
+
+    if (blank) {
+        s += "<option value=''></option>";
+    }
 
     for (item of data) {
-        if (item == current) {
+        if (typeof item != "undefined" && (item == current || (current != null && typeof current == "object" && current.indexOf(item) > -1))) {
             s += "<option value='" + item + "' selected>" + item + "</option>";
         } else {
             s += "<option value='" + item + "'>" + item + "</option>";
@@ -37,6 +50,7 @@ function build_select(data, current, size, id, name, classes) {
     }
 
     s += "</select>";
+
     return s;
 }
 
@@ -85,7 +99,7 @@ function refresh_file_selector() {
     s += "<input id='File-Save-As' class='list-button' type='submit' value='Save As' />";
     s += "<input id='File-Delete' class='list-button' type='submit' value='Delete' />";
 
-    console.log(s);
+//    console.log(s);
     $("#File-Selector").html(s);
 
 
@@ -142,8 +156,6 @@ function refresh_general_settings() {
     baud = data.baud || 115200;
     headless = data.headless || "";
 
-    console.log( data.headless);
-
     if (headless == true) {
         headless = "checked";
     }
@@ -177,13 +189,12 @@ function refresh_general_settings() {
     s += "<input id='General-Settings-Submit' class='update-button' type='button' value='Update' />";
     s += "</form>"
 
+//    console.log(s);
     $("#General-Settings").html(s);
 
     $("#General-Settings-Submit").click(function() {
         var postdata = $(this).parents("form").serializeArray();
         var api = $(this).parents("form").attr("action");
-
-        console.log(postdata);
 
         send_api(api, postdata);
 
@@ -198,7 +209,7 @@ function refresh_arduino_selector() {
     s += "<input id='Arduino-New' class='list-button' type='submit' value='Add' />";
     s += "<input id='Arduino-Delete' class='list-button' type='submit' value='Delete' />"
 
-    console.log(s);
+//    console.log(s);
     $("#Arduino-Selector").html(s);
 
     $("#Arduino-List").change(function () {
@@ -255,7 +266,6 @@ function refresh_arduino_details() {
 
     s += "<label for='sevensegments'>Seven Segments:</label>";
     s += build_select(numbers, data.sevensegments, "", "SevenSegment-Count", "sevensegments", "");
-    console.log(data.sevensegments);
 
     s += "<label for='default'>Default:</label> ";
     s += "<input name='default' type='checkbox' name='default' " + data.default + " /> ";
@@ -263,7 +273,7 @@ function refresh_arduino_details() {
     s += "<input id='Arduino-Details-Submit' class='update-button' type='button' value='Update' /> ";
     s += "</form>";
 
-    console.log(s);
+//    console.log(s);
     $("#Arduino-Details").html(s);
 
     $("#Arduino-Details-Submit").click(function () {
@@ -272,8 +282,6 @@ function refresh_arduino_details() {
 
         old_name = $("#Arduino-List").val();
         new_name = $("#Arduino-Name").val()
-
-        console.log(postdata);
 
         send_api(api, postdata);
 
@@ -302,7 +310,7 @@ function refresh_display_selector() {
     s += "<input id='Display-New' class='list-button' type='submit' value='Add' />";
     s += "<input id='Display-Delete' class='list-button' type='submit' value='Delete' />"
 
-    console.log(s);
+//    console.log(s);
     $("#Display-Selector").html(s);
 
     $("#Display-List").change(function () {
@@ -371,7 +379,7 @@ function refresh_display_details() {
 
     s += "<input id='Display-Details-Submit' class='update-button' type='button' value='Update' />";
 
-    console.log(s);
+//    console.log(s);
     $("#Display-Details").html(s);
 
     $("#Display-Type").ready(function() {
@@ -435,9 +443,7 @@ function refresh_display_details() {
         old_name = $("#Display-List").val();
         new_name = $("#Display-Name").val()
 
-        console.log(postdata);
-
-        send_api(api, postdata);
+                    send_api(api, postdata);
 
         if (old_name != new_name) {
             refresh_display_selector();
@@ -464,7 +470,7 @@ function refresh_device_selector() {
     s += "<input id='Device-New' class='list-button' type='submit' value='Add' />";
     s += "<input id='Device-Delete' class='list-button' type='submit' value='Delete' />"
 
-    console.log(s);
+//    console.log(s);
     $("#Device-Selector").html(s);
 
     $("#Device-List").change(function () {
@@ -497,7 +503,6 @@ function refresh_device_details() {
     data = send_api("get_device", "name=" + $("#Device-List").val());
     types = ["DigitalIn", "DigitalOut", "AnalogIn", "AnalogOut", "Mod", "Joy"];
 
-    console.log(data);
     if ($("#Device-List").val() == null || data == null) { return; }
 
     s = "<form method='POST' action='set_device'>";
@@ -539,7 +544,7 @@ function refresh_device_details() {
     s += "<br />";
     s += "<input id='Device-Details-Submit' class='update-button' type='button' value='Update' />";
 
-    console.log(s);
+//    console.log(s);
     $("#Device-Details").html(s);
 
     $("#Device-Type").ready(function() {
@@ -575,8 +580,6 @@ function refresh_device_details() {
         old_name = $("#Device-List").val();
         new_name = $("#Device-Name").val()
 
-        console.log(postdata);
-
         send_api(api, postdata);
 
         if (old_name != new_name) {
@@ -595,7 +598,7 @@ function refresh_device_mode_selector() {
     s += "<input id='Device-Mode-New' class='list-button' type='submit' value='Add' />";
     s += "<input id='Device-Mode-Delete' class='list-button' type='submit' value='Delete' />"
 
-    console.log(s);
+//    console.log(s);
     $("#Device-Mode-Selector").html(s);
 
     $("#Device-Mode-List").change(function () {
@@ -625,53 +628,40 @@ function refresh_device_mode_selector() {
 }
 
 function refresh_device_mode_details() {
-    // To do
+    arduinos = Object.keys(send_api("get_arduino"));
+    all = send_api("get_device");
+    selected_names = send_api("get_device_mode?name=" + $("#Device-Mode-List").val());
+    all_names = [];
+
+    try {
+        for (device of all) {
+            all_names.push(device.name);
+        }
+    } catch (e) {
+        all_names = [];
+    }
+
     if ($("#Device-Mode-List").val() == null || data == null) { return; }
 
     s = "<form method='POST' action='set_device_mode'>";
+    s += "<input name='name' type='hidden' value='" + $("#Device-Mode-List").val() + "' /> ";
     s += "<h3>Device Mode Configuration</h3>";
-    s += "<label for='arduino'>Arduino:</label>";
-    s += "<select name='arduino'>";
-    s += "<option>Primary</option>";
-    s += "<option>Secondary</option>";
-    s += "<option>Tertiary</option>";
-    s += "</select>";
 
-    s += "<div class='section'>";
-    s += "<h3>Available</h3>";
-    s += "<select size='7' class='list'>";
-    s += "<option>Joy 1</option>";
-    s += "<option>Joy 2</option>";
-    s += "<option>Button 1</option>";
-    s += "<option>Button 2</option>";
-    s += "</select>";
+    s += build_select(all_names, selected_names, 10, "Mode-Device-List", "device", "list", true);
 
-    s += "<input class='list-button' type='submit' value='Add' />";
-    s += "</div>";
-    s += "<div class='section'>";
-    s += "<h3>Configured</h3>";
-    s += "<select size='7' class='list'>";
-    s += "<option>Joy 1</option>";
-    s += "<option>Joy 2</option>";
-    s += "<option>Button 1</option>";
-    s += "<option>Button 2</option>";
-    s += "</select>";
+    s += "<input id='Device-Mode-Details-Submit' class='update-button' type='button' value='Update' />";
+    s += "</form>";
 
-    s += "<input class='list-button' type='submit' value='Remove' />";
-    s += "</div>";
-
-    console.log(s);
+//    console.log(s);
     $("#Device-Mode-Details").html(s);
 
     $("#Device-Mode-Details-Submit").click(function () {
         var postdata = $(this).parents("form").serializeArray();
         var api = $(this).parents("form").attr("action");
 
-        console.log(postdata);
+                    send_api(api, postdata);
 
-        send_api(api, postdata);
-
-        refresh_arduino_details();
+        refresh_device_mode_details();
     });
 }
 
@@ -682,11 +672,11 @@ function refresh_display_mode_selector() {
     s += "<input id='Display-Mode-New' class='list-button' type='submit' value='Add' />";
     s += "<input id='Display-Mode-Delete' class='list-button' type='submit' value='Delete' />"
 
-    console.log(s);
+//    console.log(s);
     $("#Display-Mode-Selector").html(s);
 
     $("#Display-Mode-List").change(function () {
-        refresh_arduino_details();
+        refresh_display_mode_details();
     });
 
     $("#Display-Mode-New").click(function () {
@@ -712,70 +702,102 @@ function refresh_display_mode_selector() {
 }
 
 function refresh_display_mode_details() {
-    // To do
+
     if ($("#Display-Mode-List").val() == null || data == null) { return; }
 
-    s = "<form method='POST' action='set_display_mode>";
+    arduinos = Object.keys(send_api("get_arduino"));
+
+    if ($("#Arduino-List-for-Device-Mode").val() == null) {
+        s = "<form method='POST' action='set_display_mode>";
+        s += "<input name='name' type='hidden' value='" + $("#Display-Mode-List").val() + "' /> ";
+        s += "<h3>Display Mode Configuration</h3>";
+        s += "<label for='arduino'>Arduino:</label>";
+        s += build_select(arduinos, null, null, "Arduino-List-for-Device-Mode", "arduino", "");
+
+        s += "<input class='update-button' type='button' value='Update' />";
+
+//        console.log(s);
+        $("#Display-Mode-Details").html(s);
+
+        refresh_display_mode_details();
+    }
+
+    arduino = send_api("get_arduino?name=" + $("#Arduino-List-for-Device-Mode").val());
+
+    sevensegments = send_api("get_display?type=SevenSegment");
+    sevensegment_selected = send_api("get_display_mode?name=" + $("#Display-Mode-List").val()).SevenSegment[$("#Arduino-List-for-Device-Mode").val()];
+    sevensegment_list = [];
+
+    bargraphs = send_api("get_display?type=Bargraph");
+    bargraph_selected = send_api("get_display_mode?name=" + $("#Display-Mode-List").val()).Bargraph[$("#Arduino-List-for-Device-Mode").val()];
+    bargraph_list = [];
+
+     try {
+        for (display of sevensegments) {
+            sevensegment_list.push(display.name);
+        }
+    } catch (e) {
+        sevensegment_list = new Array(arduino.sevensegments);
+    }
+    if (typeof sevensegment_selected == "undefined") {
+        sevensegment_selected = new Array(arduino.sevensegments);
+    }
+
+     try {
+        for (display of bargraphs) {
+            bargraph_list.push(display.name);
+        }
+    } catch (e) {
+        bargraph_list = new Array(arduino.bargraphs);
+    }
+    if (typeof bargraph_selected == "undefined") {
+        bargraph_selected = new Array(arduino.bargraphs);
+    }
+
+    s = "<form method='POST' action='set_display_mode'>";
+    s += "<input name='name' type='hidden' value='" + $("#Display-Mode-List").val() + "' /> ";
     s += "<h3>Display Mode Configuration</h3>";
     s += "<label for='arduino'>Arduino:</label>";
-    s += "<select name='arduino'>";
-    s += "<option>Primary</option>";
-    s += "<option>Secondary</option>";
-    s += "<option>Tertiary</option>";
-    s += "</select>";
+    s += build_select(arduinos, $("#Arduino-List-for-Device-Mode").val(), null, "Arduino-List-for-Device-Mode", "arduino", "");
 
     s += "<div class='section'>";
     s += "<h3>Seven Segment Displays</h3>";
-    s += "<select id='display-sevensegment-1'>";
-    s += "<option>Apoapsis</option>";
-    s += "<option>Periapsis</option>";
-    s += "</select>";
 
-    s += "<select id='display-sevensegment-2'>";
-    s += "<option>Apoapsis</option>";
-    s += "<option>Periapsis</option>";
-    s += "</select>";
+    for (var i=0; i < arduino.sevensegments; i++) {
+        s += build_select(sevensegment_list, (sevensegment_selected[i] || ""), null, "Display-SevenSegment-" + i, "display-sevensegment-" + i, "", false, true);
+    }
 
-    s += "<select id='display-sevensegment-3'>";
-    s += "<option>Apoapsis</option>";
-    s += "<option>Periapsis</option>";
-    s += "</select>";
+    if (arduino.sevensegments == null || arduino.sevensegments == 0) {
+        s += ""
+    }
 
     s += "</div>";
 
     s += "<div class='section'>";
     s += "<h3>Bargraph Displays</h3>";
-    s += "<select id='display-bargraph-1'>";
-    s += "<option>Liquid Fuel</option>";
-    s += "<option>Oxidizer</option>";
-    s += "</select>";
 
-    s += "<select id='display-bargraph-2'>";
-    s += "<option>Liquid Fuel</option>";
-    s += "<option>Oxidizer</option>";
-    s += "</select>";
+    for (var i=0; i < arduino.bargraphs; i++) {
+        s += build_select(bargraph_list, (bargraph_selected[i] || ""), null, "Display-Bargraph-" + i, "display-bargraph-" + i, "", false, true);
+    }
 
-    s += "<select id='display-bargraph-3'>";
-    s += "<option>Liquid Fuel</option>";
-    s += "<option>Oxidizer</option>";
-    s += "</select>";
     s += "</div>";
 
-    s += "<input class='update-button' type='submit' value='Update' />";
+    s += "<input id='Display-Mode-Details-Submit' class='update-button' type='button' value='Update' />";
 
-
-    console.log(s);
+//    console.log(s);
     $("#Display-Mode-Details").html(s);
 
     $("#Display-Mode-Details-Submit").click(function () {
         var postdata = $(this).parents("form").serializeArray();
         var api = $(this).parents("form").attr("action");
 
-        console.log(postdata);
-
         send_api(api, postdata);
 
-        refresh_arduino_details();
+        refresh_display_mode_details();
+    });
+
+    $("#Arduino-List-for-Device-Mode").change(function () {
+        refresh_display_mode_details();
     });
 }
 

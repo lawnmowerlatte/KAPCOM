@@ -74,7 +74,7 @@ def configure_file_api(action):
 
     elif action == "save":
         with open(configuration['file'], 'w') as f:
-            json.dump(configuration['data'], f)
+            json.dump(configuration['data'], f, sort_keys=True, indent=4, separators=(',', ': '))
         data = True
 
     elif action == "save_as":
@@ -82,7 +82,7 @@ def configure_file_api(action):
             configuration['file'] = file
 
             with open(configuration['file'], 'w') as f:
-                json.dump(configuration['data'], f)
+                json.dump(configuration['data'], f, sort_keys=True, indent=4, separators=(',', ': '))
 
             data = True
         else:
@@ -95,7 +95,7 @@ def configure_file_api(action):
             configuration['data'] = {}
 
             with open(configuration['file'], 'w') as f:
-                json.dump(configuration['data'], f)
+                json.dump(configuration['data'], f, sort_keys=True, indent=4, separators=(',', ': '))
 
             data = True
         else:
@@ -126,8 +126,10 @@ def configure_get_api(action):
 
     if request.method == 'GET':
         name = request.args.get("name")
+        type = request.args.get("type")
     elif request.method == 'POST':
         name = request.form.get("name")
+        type = request.form.get("type")
     else:
         return "", 405
 
@@ -142,6 +144,12 @@ def configure_get_api(action):
             data = configuration["data"]["modes"]["devices"][name]
         elif action == "display_mode":
             data = configuration["data"]["modes"]["displays"][name]
+        else:
+            return "", 405
+
+    elif type is not None and type != "" and type != "null":
+        if action == "display":
+            data = [x for x in configuration["data"]["configuration"]["displays"] if x['type'] == type]
         else:
             return "", 405
 
@@ -360,6 +368,41 @@ def configure_set_api(action):
         else:
             device['pin'] = pin
 
+    elif action == "device_mode":
+        name = request.args.get("name")
+
+        if name is None or name == "":
+            return "false", 500
+
+        configuration['data']['modes']['devices'][name] = request.args.getlist("device")
+
+    elif action == "display_mode":
+
+        name = request.args.get("name")
+        arduino = request.args.get("arduino")
+
+        if name is None or name == "":
+            return "false", 500
+
+        if arduino is None or arduino == "":
+            return "false", 500
+
+        sevensegment_count = configuration['data']['arduino'][arduino]['sevensegments']
+        bargraph_count = configuration['data']['arduino'][arduino]['bargraphs']
+
+        sevensegments = []
+        bargraphs = []
+
+        for i in range(int(sevensegment_count)):
+            sevensegments.append(request.args.get("display-sevensegment-" + str(i)))
+
+        for i in range(int(bargraph_count)):
+            bargraphs.append(request.args.get("display-bargraph-" + str(i)))
+
+        configuration['data']['modes']['displays'][name]['SevenSegment'][arduino] = sevensegments
+        configuration['data']['modes']['displays'][name]['Bargraph'][arduino] = bargraphs
+
+        data = True
 
     return json.dumps(data), code
 

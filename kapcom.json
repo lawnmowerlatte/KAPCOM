@@ -1,142 +1,528 @@
 {
-	"host": "Mac.local",
     "arduino": {
         "Primary": {
-            "uuid": "6dd4170e-f7a6-11e4-a322-1697f925ec7b",
-            "default": true
+            "bargraphs": "5",
+            "default": true,
+            "sevensegments": "5",
+            "uuid": "6dd4170e-f7a6-11e4-a322-1697f925ec7b"
         },
         "Secondary": {
+            "bargraphs": "1",
+            "sevensegments": "2",
             "uuid": "d257503a-f0ff-4854-b2ab-e41e65d05cc2"
         }
     },
+    "baud": "115200",
+    "configuration": {
+        "devices": [
+            {
+                "api": "attitude",
+                "button": 163,
+                "name": "Rocket Attitude",
+                "options": {
+                    "invertZ": "True"
+                },
+                "type": "Joy",
+                "x": 160,
+                "y": 161,
+                "z": 162
+            },
+            {
+                "api": "attitude",
+                "button": 163,
+                "name": "Spaceplane Attitude",
+                "options": {
+                    "invertY": "True"
+                },
+                "type": "Joy",
+                "x": 160,
+                "y": 162,
+                "z": 161
+            },
+            {
+                "api": "translation",
+                "button": 167,
+                "name": "Translation",
+                "options": null,
+                "type": "Joy",
+                "x": 165,
+                "y": 164,
+                "z": 166
+            },
+            {
+                "api": "sas_status",
+                "name": "SAS Status",
+                "pin": 33,
+                "type": "DigitalOut"
+            },
+            {
+                "api": "rcs_status",
+                "name": "RCS Status",
+                "pin": 31,
+                "type": "DigitalOut"
+            },
+            {
+                "api": "action_group_light",
+                "name": "Light Status",
+                "pin": 29,
+                "type": "DigitalOut"
+            },
+            {
+                "api": "action_group_gear",
+                "name": "Gear Status",
+                "pin": 27,
+                "type": "DigitalOut"
+            },
+            {
+                "api": "",
+                "name": "Map Lamp",
+                "pin": 25,
+                "type": "DigitalOut"
+            },
+            {
+                "api": "action_group_brake",
+                "name": "Brake Status",
+                "pin": 23,
+                "type": "DigitalOut"
+            },
+            {
+                "api": "",
+                "name": "Last Warp Lamp",
+                "options": {
+                    "initial": 1
+                },
+                "pin": 35,
+                "type": "DigitalOut"
+            },
+            {
+                "api": "",
+                "name": "Next Warp Lamp",
+                "options": {
+                    "initial": 1
+                },
+                "pin": 37,
+                "type": "DigitalOut"
+            },
+            {
+                "api": "",
+                "name": "Last Ship Lamp",
+                "options": {
+                    "initial": 1
+                },
+                "pin": 39,
+                "type": "DigitalOut"
+            },
+            {
+                "api": "",
+                "name": "Next Ship Lamp",
+                "options": {
+                    "initial": 1
+                },
+                "pin": 41,
+                "type": "DigitalOut"
+            },
+            {
+                "api": "",
+                "name": "Last Camera Lamp",
+                "options": {
+                    "initial": 1
+                },
+                "pin": 43,
+                "type": "DigitalOut"
+            },
+            {
+                "api": "",
+                "name": "Next Camera Lamp",
+                "options": {
+                    "initial": 1
+                },
+                "pin": 45,
+                "type": "DigitalOut"
+            },
+            {
+                "api": "set_throttle",
+                "name": "Throttle",
+                "options": {
+                    "deadzone": 0.05,
+                    "format": "floatpoint",
+                    "invert": "True"
+                },
+                "pin": 168,
+                "type": "AnalogIn"
+            },
+            {
+                "api": "stage",
+                "button": 170,
+                "indicator": 171,
+                "modifier": 169,
+                "name": "Stage",
+                "options": {
+                    "button": {
+                        "invert": "True"
+                    },
+                    "format": "true"
+                },
+                "type": "Mod"
+            },
+            {
+                "api": "abort",
+                "button": 173,
+                "indicator": 174,
+                "modifier": 172,
+                "name": "Abort",
+                "options": {
+                    "button": {
+                        "invert": "True"
+                    },
+                    "format": "true"
+                },
+                "type": "Mod"
+            },
+            {
+                "api": "sas",
+                "name": "SAS",
+                "options": {
+                    "format": "toggle",
+                    "invert": "True"
+                },
+                "pin": 32,
+                "type": "DigitalIn"
+            },
+            {
+                "api": "rcs",
+                "name": "RCS",
+                "options": {
+                    "format": "toggle",
+                    "invert": "True"
+                },
+                "pin": 30,
+                "type": "DigitalIn"
+            },
+            {
+                "api": "light",
+                "name": "Light",
+                "options": {
+                    "format": "toggle",
+                    "invert": "True"
+                },
+                "pin": 28,
+                "type": "DigitalIn"
+            },
+            {
+                "api": "gear",
+                "name": "Gear",
+                "options": {
+                    "format": "toggle",
+                    "invert": "True"
+                },
+                "pin": 26,
+                "type": "DigitalIn"
+            },
+            {
+                "api": "toggle_map",
+                "name": "Map",
+                "options": {
+                    "format": "toggle",
+                    "invert": "True"
+                },
+                "pin": 24,
+                "type": "DigitalIn"
+            },
+            {
+                "api": "brake",
+                "name": "Brake",
+                "options": {
+                    "format": "toggle",
+                    "invert": "True"
+                },
+                "pin": 22,
+                "type": "DigitalIn"
+            },
+            {
+                "api": "",
+                "name": "Last Warp",
+                "options": {
+                    "format": "key",
+                    "invert": "True",
+                    "key": ","
+                },
+                "pin": 34,
+                "type": "DigitalIn"
+            },
+            {
+                "api": "",
+                "name": "Next Warp",
+                "options": {
+                    "format": "key",
+                    "invert": "True",
+                    "key": "."
+                },
+                "pin": 36,
+                "type": "DigitalIn"
+            },
+            {
+                "api": "",
+                "name": "Last Ship",
+                "options": {
+                    "format": "key",
+                    "invert": "True",
+                    "key": "["
+                },
+                "pin": 38,
+                "type": "DigitalIn"
+            },
+            {
+                "api": "",
+                "name": "Next Ship",
+                "options": {
+                    "format": "key",
+                    "invert": "True",
+                    "key": "]"
+                },
+                "pin": 40,
+                "type": "DigitalIn"
+            },
+            {
+                "api": "",
+                "name": "Last Camera",
+                "options": {
+                    "format": "key",
+                    "invert": "True",
+                    "key": "-"
+                },
+                "pin": 42,
+                "type": "DigitalIn"
+            },
+            {
+                "api": "",
+                "name": "Next Camera",
+                "options": {
+                    "format": "key",
+                    "invert": "True",
+                    "key": "="
+                },
+                "pin": 44,
+                "type": "DigitalIn"
+            },
+            {
+                "api": "action_group_1",
+                "name": "Action Group 1",
+                "options": {
+                    "format": "toggle",
+                    "invert": "True"
+                },
+                "pin": 2,
+                "type": "DigitalIn"
+            },
+            {
+                "api": "action_group_2",
+                "name": "Action Group 2",
+                "options": {
+                    "format": "toggle",
+                    "invert": "True"
+                },
+                "pin": 3,
+                "type": "DigitalIn"
+            },
+            {
+                "api": "action_group_3",
+                "name": "Action Group 3",
+                "options": {
+                    "format": "toggle",
+                    "invert": "True"
+                },
+                "pin": 4,
+                "type": "DigitalIn"
+            },
+            {
+                "api": "action_group_4",
+                "name": "Action Group 4",
+                "options": {
+                    "format": "toggle",
+                    "invert": "True"
+                },
+                "pin": 5,
+                "type": "DigitalIn"
+            },
+            {
+                "api": "action_group_5",
+                "name": "Action Group 5",
+                "options": {
+                    "format": "toggle",
+                    "invert": "True"
+                },
+                "pin": 6,
+                "type": "DigitalIn"
+            },
+            {
+                "api": "action_group_6",
+                "name": "Action Group 6",
+                "options": {
+                    "format": "toggle",
+                    "invert": "True"
+                },
+                "pin": 7,
+                "type": "DigitalIn"
+            },
+            {
+                "api": "action_group_7",
+                "name": "Action Group 7",
+                "options": {
+                    "format": "toggle",
+                    "invert": "True"
+                },
+                "pin": 8,
+                "type": "DigitalIn"
+            },
+            {
+                "api": "action_group_8",
+                "name": "Action Group 8",
+                "options": {
+                    "format": "toggle",
+                    "invert": "True"
+                },
+                "pin": 9,
+                "type": "DigitalIn"
+            },
+            {
+                "api": "action_group_9",
+                "name": "Action Group 9",
+                "options": {
+                    "format": "toggle",
+                    "invert": "True"
+                },
+                "pin": 10,
+                "type": "DigitalIn"
+            },
+            {
+                "api": "action_group_10",
+                "name": "Action Group 10",
+                "options": {
+                    "format": "toggle",
+                    "invert": "True"
+                },
+                "pin": 11,
+                "type": "DigitalIn"
+            }
+        ],
+        "displays": [
+            {
+                "api": "vessel_altitude",
+                "name": "Altitude",
+                "type": "SevenSegment"
+            },
+            {
+                "api": "vessel_orbital_velocity",
+                "name": "Orbital Velocity",
+                "type": "SevenSegment"
+            },
+            {
+                "api": "vessel_surface_velocity",
+                "name": "Surface Velocity",
+                "type": "SevenSegment"
+            },
+            {
+                "api": "vessel_atmospheric_density",
+                "name": "Atmospheric Density",
+                "type": "SevenSegment"
+            },
+            {
+                "api": "vessel_surface_speed",
+                "name": "Surface Speed",
+                "type": "SevenSegment"
+            },
+            {
+                "api": "vessel_gee_force",
+                "name": "Gee Force",
+                "options": {
+                    "max_value": 15
+                },
+                "type": "Bargraph"
+            },
+            {
+                "api": "vessel_apoapsis",
+                "name": "Apoapsis",
+                "type": "SevenSegment"
+            },
+            {
+                "api": "vessel_periapsis",
+                "name": "Periapsis",
+                "type": "SevenSegment"
+            },
+            {
+                "api": "vessel_asl_height",
+                "name": "Radar Altimeter",
+                "type": "SevenSegment"
+            },
+            {
+                "api": "resource_lf_current",
+                "name": "Liquid Fuel",
+                "options": {
+                    "max_api": "resource_lf_max"
+                },
+                "type": "Bargraph"
+            },
+            {
+                "api": "resource_ox_current",
+                "name": "Oxidizer",
+                "options": {
+                    "max_api": "resource_ox_max"
+                },
+                "type": "Bargraph"
+            },
+            {
+                "api": "resource_ia_current",
+                "name": "Intake Air",
+                "options": {
+                    "max_api": "resource_ia_max"
+                },
+                "type": "Bargraph"
+            },
+            {
+                "api": "resource_ec_current",
+                "name": "Electrical Charge",
+                "options": {
+                    "max_api": "resource_ec_max"
+                },
+                "type": "Bargraph"
+            },
+            {
+                "api": "resource_mp_current",
+                "name": "Monopropellant",
+                "options": {
+                    "max_api": "resource_mp_max"
+                },
+                "type": "Bargraph"
+            },
+            {
+                "api": "resource_sf_current",
+                "name": "Solid Fuel",
+                "options": {
+                    "max_api": "resource_sf_max"
+                },
+                "type": "Bargraph"
+            },
+            {
+                "api": "resource_xg_current",
+                "name": "Xenon Gas",
+                "options": {
+                    "max_api": "resource_xg_max"
+                },
+                "type": "Bargraph"
+            }
+        ]
+    },
+    "host": "Mac.local",
     "modes": {
         "default": {
-            "displays": "Rocket",
-            "devices": "Rocket"
-        },
-        "displays": {
-            "Rocket": {
-                "SevenSegment": {
-                    "Primary": [
-                        "Altitude",
-                        "Orbital Velocity",
-                        "Apoapsis",
-                        "Periapsis",
-                        "Radar Altimeter"
-                    ]
-                },
-                "Bargraph": {
-                    "Primary": [
-                        "Liquid Fuel",
-                        "Oxidizer",
-                        "Monopropellant",
-                        "Solid Fuel",
-                        "Electrical Charge"
-                    ]
-                }
-            },
-            "Spaceplane": {
-                "SevenSegment": {
-                    "Primary": [
-                        "Altitude",
-                        "Surface Velocity",
-                        "Apoapsis",
-                        "Periapsis",
-                        "Radar Altimeter"
-                    ]
-                },
-                "Bargraph": {
-                    "Primary": [
-                        "Liquid Fuel",
-                        "Intake Air",
-                        "Oxidizer",
-                        "Monopropellant",
-                        "Electrical Charge"
-                    ]
-                }
-            },
-            "Rover": {
-                "SevenSegment": {
-                    "Primary": [
-                        "Altitude",
-                        "Surface Speed",
-                        "Orbital Velocity",
-                        "Atmospheric Density",
-                        "Radar Altimeter"
-                    ]
-                },
-                "Bargraph": {
-                    "Primary": [
-                        "Electrical Charge",
-                        "Monopropellant",
-                        "Liquid Fuel",
-                        "Oxidizer",
-                        "Gee Force"
-                    ]
-                }
-            },
-            "Probe": {
-                "SevenSegment": {
-                    "Primary": [
-                        "Altitude",
-                        "Orbital Velocity",
-                        "Apoapsis",
-                        "Periapsis",
-                        "Radar Altimeter"
-                    ]
-                },
-                "Bargraph": {
-                    "Primary": [
-                        "Liquid Fuel",
-                        "Oxidizer",
-                        "Xenon Gas",
-                        "Monopropellant",
-                        "Electrical Charge"
-                    ]
-                }
-            }
+            "devices": "Spaceplane",
+            "displays": "Probe"
         },
         "devices": {
             "Rocket": [
                 "Rocket Attitude",
-                "Translation",
-                "SAS Status",
-                "RCS Status",
-                "Light Status",
-                "Gear Status",
-                "Map Lamp",
-                "Brake Status",
-                "Last Warp Lamp",
-                "Next Warp Lamp",
-                "Last Ship Lamp",
-                "Next Ship Lamp",
-                "Last Camera Lamp",
-                "Next Camera Lamp",
-                "Throttle",
-                "Stage",
-                "Abort",
-                "SAS",
-                "RCS",
-                "Light",
-                "Gear",
-                "Map",
-                "Brake",
-                "Last Warp",
-                "Next Warp",
-                "Last Ship",
-                "Next Ship",
-                "Last Camera",
-                "Next Camera",
-                "Action Group 1",
-                "Action Group 2",
-                "Action Group 3",
-                "Action Group 4",
-                "Action Group 5",
-                "Action Group 6",
-                "Action Group 7",
-                "Action Group 8",
-                "Action Group 9",
-                "Action Group 10"
+                "Spaceplane Attitude",
+                "Translation"
             ],
             "Spaceplane": [
                 "Spaceplane Attitude",
@@ -179,506 +565,89 @@
                 "Action Group 9",
                 "Action Group 10"
             ]
+        },
+        "displays": {
+            "Probe": {
+                "Bargraph": {
+                    "Primary": [
+                        "Liquid Fuel",
+                        "Oxidizer",
+                        "Xenon Gas",
+                        "Monopropellant",
+                        "Electrical Charge"
+                    ]
+                },
+                "SevenSegment": {
+                    "Primary": [
+                        "Altitude",
+                        "Orbital Velocity",
+                        "Apoapsis",
+                        "Periapsis",
+                        "Radar Altimeter"
+                    ]
+                }
+            },
+            "Rocket": {
+                "Bargraph": {
+                    "Primary": [
+                        "Liquid Fuel",
+                        "Oxidizer",
+                        "Monopropellant",
+                        "Solid Fuel",
+                        "Electrical Charge"
+                    ]
+                },
+                "SevenSegment": {
+                    "Primary": [
+                        "Altitude",
+                        "Orbital Velocity",
+                        "Apoapsis",
+                        "Periapsis",
+                        "Radar Altimeter"
+                    ]
+                }
+            },
+            "Rover": {
+                "Bargraph": {
+                    "Primary": [
+                        "Electrical Charge",
+                        "Monopropellant",
+                        "Liquid Fuel",
+                        "Oxidizer",
+                        "Gee Force"
+                    ]
+                },
+                "SevenSegment": {
+                    "Primary": [
+                        "Altitude",
+                        "Surface Speed",
+                        "Orbital Velocity",
+                        "Atmospheric Density",
+                        "Radar Altimeter"
+                    ]
+                }
+            },
+            "Spaceplane": {
+                "Bargraph": {
+                    "Primary": [
+                        "Liquid Fuel",
+                        "Intake Air",
+                        "Oxidizer",
+                        "Monopropellant",
+                        "Electrical Charge"
+                    ]
+                },
+                "SevenSegment": {
+                    "Primary": [
+                        "Altitude",
+                        "Surface Velocity",
+                        "Apoapsis",
+                        "Periapsis",
+                        "Radar Altimeter"
+                    ]
+                }
+            }
         }
     },
-    "configuration": {
-        "displays": [
-            {
-                "api": "vessel_altitude",
-                "type": "SevenSegment",
-                "name": "Altitude"
-            },
-            {
-                "api": "vessel_orbital_velocity",
-                "type": "SevenSegment",
-                "name": "Orbital Velocity"
-            },
-            {
-                "api": "vessel_surface_velocity",
-                "type": "SevenSegment",
-                "name": "Surface Velocity"
-            },
-            {
-                "api": "vessel_atmospheric_density",
-                "type": "SevenSegment",
-                "name": "Atmospheric Density"
-            },
-            {
-                "api": "vessel_surface_speed",
-                "type": "SevenSegment",
-                "name": "Surface Speed"
-            },
-            {
-                "api": "vessel_gee_force",
-                "type": "Bargraph",
-                "name": "Gee Force"
-            },
-            {
-                "api": "vessel_apoapsis",
-                "type": "SevenSegment",
-                "name": "Apoapsis"
-            },
-            {
-                "api": "vessel_periapsis",
-                "type": "SevenSegment",
-                "name": "Periapsis"
-            },
-            {
-                "api": "vessel_asl_height",
-                "type": "SevenSegment",
-                "name": "Radar Altimeter"
-            },
-            {
-                "api": "resource_lf_current",
-                "type": "Bargraph",
-                "name": "Liquid Fuel",
-                "options": {
-                    "max_api": "resource_lf_max"
-                }
-            },
-            {
-                "api": "resource_ox_current",
-                "type": "Bargraph",
-                "name": "Oxidizer",
-                "options": {
-                    "max_api": "resource_ox_max"
-                }
-            },
-            {
-                "api": "resource_ia_current",
-                "type": "Bargraph",
-                "name": "Intake Air",
-                "options": {
-                    "max_api": "resource_ia_max"
-                }
-            },
-            {
-                "api": "resource_ec_current",
-                "type": "Bargraph",
-                "name": "Electrical Charge",
-                "options": {
-                    "max_api": "resource_ec_max"
-                }
-            },
-            {
-                "api": "resource_mp_current",
-                "type": "Bargraph",
-                "name": "Monopropellant",
-                "options": {
-                    "max_api": "resource_mp_max"
-                }
-            },
-            {
-                "api": "resource_sf_current",
-                "type": "Bargraph",
-                "name": "Solid Fuel",
-                "options": {
-                    "max_api": "resource_sf_max"
-                }
-            },
-            {
-                "api": "resource_xg_current",
-                "type": "Bargraph",
-                "name": "Xenon Gas",
-                "options": {
-                    "max_api": "resource_xg_max"
-                }
-            }
-        ],
-        "devices": [
-            {
-                "name": "Rocket Attitude",
-                "api": "attitude",
-                "type": "Joy",
-                "button": 163,
-                "y": 161,
-                "x": 160,
-                "z": 162,
-                "options": {
-                    "invertZ": "True"
-                }
-            },
-            {
-                "name": "Spaceplane Attitude",
-                "api": "attitude",
-                "type": "Joy",
-                "button": 163,
-                "x": 160,
-                "y": 162,
-                "z": 161,
-                "options": {
-                    "invertY": "True"
-                }
-            },
-            {
-                "name": "Translation",
-                "api": "translation",
-                "type": "Joy",
-                "button": 167,
-                "x": 165,
-                "y": 164,
-                "z": 166,
-                "options": null
-            },
-            {
-                "name": "SAS Status",
-                "api": "sas_status",
-                "type": "DigitalOut",
-                "pin": 33
-            },
-            {
-                "name": "RCS Status",
-                "api": "rcs_status",
-                "type": "DigitalOut",
-                "pin": 31
-            },
-            {
-                "name": "Light Status",
-                "api": "action_group_light",
-                "type": "DigitalOut",
-                "pin": 29
-            },
-            {
-                "name": "Gear Status",
-                "api": "action_group_gear",
-                "type": "DigitalOut",
-                "pin": 27
-            },
-            {
-                "name": "Map Lamp",
-                "api": "",
-                "type": "DigitalOut",
-                "pin": 25
-            },
-            {
-                "name": "Brake Status",
-                "api": "action_group_brake",
-                "type": "DigitalOut",
-                "pin": 23
-            },
-            {
-                "name": "Last Warp Lamp",
-                "api": "",
-                "type": "DigitalOut",
-                "pin": 35,
-                "options": {
-                    "initial": 1
-                }
-            },
-            {
-                "name": "Next Warp Lamp",
-                "api": "",
-                "type": "DigitalOut",
-                "pin": 37,
-                "options": {
-                    "initial": 1
-                }
-            },
-            {
-                "name": "Last Ship Lamp",
-                "api": "",
-                "type": "DigitalOut",
-                "pin": 39,
-                "options": {
-                    "initial": 1
-                }
-            },
-            {
-                "name": "Next Ship Lamp",
-                "api": "",
-                "type": "DigitalOut",
-                "pin": 41,
-                "options": {
-                    "initial": 1
-                }
-            },
-            {
-                "name": "Last Camera Lamp",
-                "api": "",
-                "type": "DigitalOut",
-                "pin": 43,
-                "options": {
-                    "initial": 1
-                }
-            },
-            {
-                "name": "Next Camera Lamp",
-                "api": "",
-                "type": "DigitalOut",
-                "pin": 45,
-                "options": {
-                    "initial": 1
-                }
-            },
-            {
-                "name": "Throttle",
-                "api": "set_throttle",
-                "type": "AnalogIn",
-                "pin": 168,
-                "options": {
-                    "format": "floatpoint",
-                    "deadzone": 0.05,
-                    "invert": "True"
-                }
-            },
-            {
-                "name": "Stage",
-                "api": "stage",
-                "type": "Mod",
-                "pin": [
-                    169,
-                    171,
-                    170
-                ],
-                "options": {
-                    "format": "true",
-                    "button": {
-                        "invert": "True"
-                    }
-                }
-            },
-            {
-                "name": "Abort",
-                "api": "abort",
-                "type": "Mod",
-                "pin": [
-                    172,
-                    174,
-                    173
-                ],
-                "options": {
-                    "format": "true",
-                    "button": {
-                        "invert": "True"
-                    }
-                }
-            },
-            {
-                "name": "SAS",
-                "api": "sas",
-                "type": "DigitalIn",
-                "pin": 32,
-                "options": {
-                    "invert": "True",
-                    "format": "toggle"
-                }
-            },
-            {
-                "name": "RCS",
-                "api": "rcs",
-                "type": "DigitalIn",
-                "pin": 30,
-                "options": {
-                    "invert": "True",
-                    "format": "toggle"
-                }
-            },
-            {
-                "api": "light",
-                "type": "DigitalIn",
-                "name": "Light",
-                "pin": 28,
-                "options": {
-                    "invert": "True",
-                    "format": "toggle"
-                }
-            },
-            {
-                "api": "gear",
-                "type": "DigitalIn",
-                "name": "Gear",
-                "pin": 26,
-                "options": {
-                    "invert": "True",
-                    "format": "toggle"
-                }
-            },
-            {
-                "name": "Map",
-                "api": "toggle_map",
-                "type": "DigitalIn",
-                "pin": 24,
-                "options": {
-                    "invert": "True",
-                    "format": "toggle"
-                }
-            },
-            {
-                "name": "Brake",
-                "api": "brake",
-                "type": "DigitalIn",
-                "pin": 22,
-                "options": {
-                    "invert": "True",
-                    "format": "toggle"
-                }
-            },
-            {
-                "name": "Last Warp",
-                "api": "",
-                "type": "DigitalIn",
-                "pin": 34,
-                "options": {
-                    "invert": "True",
-                    "format": "key",
-                    "key": ","
-                }
-            },
-            {
-                "name": "Next Warp",
-                "api": "",
-                "type": "DigitalIn",
-                "pin": 36,
-                "options": {
-                    "invert": "True",
-                    "format": "key",
-                    "key": "."
-                }
-            },
-            {
-                "name": "Last Ship",
-                "api": "",
-                "type": "DigitalIn",
-                "pin": 38,
-                "options": {
-                    "invert": "True",
-                    "format": "key",
-                    "key": "["
-                }
-            },
-            {
-                "name": "Next Ship",
-                "api": "",
-                "type": "DigitalIn",
-                "pin": 40,
-                "options": {
-                    "invert": "True",
-                    "format": "key",
-                    "key": "]"
-                }
-            },
-            {
-                "name": "Last Camera",
-                "api": "",
-                "type": "DigitalIn",
-                "pin": 42,
-                "options": {
-                    "invert": "True",
-                    "format": "key",
-                    "key": "-"
-                }
-            },
-            {
-                "name": "Next Camera",
-                "api": "",
-                "type": "DigitalIn",
-                "pin": 44,
-                "options": {
-                    "invert": "True",
-                    "format": "key",
-                    "key": "="
-                }
-            },
-            {
-                "name": "Action Group 1",
-                "api": "action_group_1",
-                "type": "DigitalIn",
-                "pin": 2,
-                "options": {
-                    "invert": "True",
-                    "format": "toggle"
-                }
-            },
-            {
-                "name": "Action Group 2",
-                "api": "action_group_2",
-                "type": "DigitalIn",
-                "pin": 3,
-                "options": {
-                    "invert": "True",
-                    "format": "toggle"
-                }
-            },
-            {
-                "name": "Action Group 3",
-                "api": "action_group_3",
-                "type": "DigitalIn",
-                "pin": 4,
-                "options": {
-                    "invert": "True",
-                    "format": "toggle"
-                }
-            },
-            {
-                "name": "Action Group 4",
-                "api": "action_group_4",
-                "type": "DigitalIn",
-                "pin": 5,
-                "options": {
-                    "invert": "True",
-                    "format": "toggle"
-                }
-            },
-            {
-                "name": "Action Group 5",
-                "api": "action_group_5",
-                "type": "DigitalIn",
-                "pin": 6,
-                "options": {
-                    "invert": "True",
-                    "format": "toggle"
-                }
-            },
-            {
-                "name": "Action Group 6",
-                "api": "action_group_6",
-                "type": "DigitalIn",
-                "pin": 7,
-                "options": {
-                    "invert": "True",
-                    "format": "toggle"
-                }
-            },
-            {
-                "name": "Action Group 7",
-                "api": "action_group_7",
-                "type": "DigitalIn",
-                "pin": 8,
-                "options": {
-                    "invert": "True",
-                    "format": "toggle"
-                }
-            },
-            {
-                "name": "Action Group 8",
-                "api": "action_group_8",
-                "type": "DigitalIn",
-                "pin": 9,
-                "options": {
-                    "invert": "True",
-                    "format": "toggle"
-                }
-            },
-            {
-                "name": "Action Group 9",
-                "api": "action_group_9",
-                "type": "DigitalIn",
-                "pin": 10,
-                "options": {
-                    "invert": "True",
-                    "format": "toggle"
-                }
-            },
-            {
-                "name": "Action Group 10",
-                "api": "action_group_10",
-                "type": "DigitalIn",
-                "pin": 11,
-                "options": {
-                    "invert": "True",
-                    "format": "toggle"
-                }
-            }
-        ]
-    }
+    "port": ""
 }

@@ -1,7 +1,13 @@
 #!/usr/bin/python
 
-from pin import *
+import sys
+from pin import AnalogIn, DigitalIn
 from arduino import Arduino
+from tools import *
+
+# Logging
+_log = KAPCOMLog("Joy", logging.WARN)
+log = _log.log
 
 
 class Joy(object):
@@ -13,34 +19,34 @@ class Joy(object):
             invert_button = options['invertButton']
             button_options['invert'] = invert_button
         except (KeyError, TypeError):
-            pass
+            button_options = None
 
         try:
             x_options = all_options.copy()
             invert_x = options['invertX']
             x_options['invert'] = invert_x
         except (KeyError, TypeError):
-            pass
+            x_options = None
 
         try:
             y_options = all_options.copy()
             invert_y = options['invertY']
             y_options['invert'] = invert_y
         except (KeyError, TypeError):
-            pass
+            y_options = None
 
         try:
             z_options = all_options.copy()
             invert_z = options['invertZ']
             z_options['invert'] = invert_z
         except (KeyError, TypeError):
-            pass
+            z_options = None
 
         # Set core attributes
         self.x = AnalogIn(arduino, name + ":X", "", x, x_options)
         self.y = AnalogIn(arduino, name + ":Y", "", y, y_options)
         self.z = AnalogIn(arduino, name + ":Z", "", z, z_options)
-        self.button = DigitalIn(arduino, name + " Button", "", button)
+        self.button = DigitalIn(arduino, name + " Button", "", button, button_options)
 
         self.name = name
         self.api = api
@@ -89,13 +95,13 @@ class Joy(object):
             self.Z = (self.Z * 1.0) / self.scale
 
     def printout(self):
-        print self.name + ": " + self.toString()
+        print self.name + ": " + str(self)
         self.x.printout()
         self.y.printout()
         self.z.printout()
         self.button.printout()
 
-    def toString(self):
+    def __str__(self):
         return str(self.X) + "," + str(self.Y) + "," + str(self.Z)
 
 
@@ -104,44 +110,18 @@ class Joy(object):
 # #####################################
 
 
-def breakpoint():
-    """Python debug breakpoint."""
-
-    from code import InteractiveConsole
-    from inspect import currentframe
-
-    try:
-        import readline  # noqa
-    except ImportError:
-        pass
-
-    caller = currentframe().f_back
-
-    env = {}
-    env.update(caller.f_globals)
-    env.update(caller.f_locals)
-
-    shell = InteractiveConsole(env)
-    shell.interact(
-        '* Break: {} ::: Line {}\n'
-        '* Continue with Ctrl+D...'.format(
-            caller.f_code.co_filename, caller.f_lineno
-        )
-    )
-
-
 def main():
-    a = Arduino()
+    a = Arduino("Test")
 
-    j0 = Joy(a, "J0", 0xA0, 0xA1, 0xA2, 0xA3)
-    j1 = Joy(a, "J0", 0xA4, 0xA5, 0xA6, 0xA7)
+    j0 = Joy(a, "J0", "", 0xA0, 0xA1, 0xA2, 0xA3)
+    j1 = Joy(a, "J0", "", 0xA4, 0xA5, 0xA6, 0xA7)
 
     import time
 
     while True:
         j0.update()
         j1.update()
-        print j0.toString() + "," + j1.toString()
+        print str(j0) + "," + str(j1)
         time.sleep(1)
 
     breakpoint()

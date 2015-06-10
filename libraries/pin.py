@@ -3,28 +3,13 @@
 from abc import ABCMeta, abstractmethod
 from datetime import datetime
 import sys
-import logging
 import pyautogui
 from arduino import Arduino
+from tools import *
 
 # Logging
-_name = "Pin"
-_debug = logging.WARNING
-
-log = logging.getLogger(_name)
-if not len(log.handlers):
-    log.setLevel(_debug)
-
-    longFormatter = logging.Formatter("%(asctime)s [%(threadName)-12.12s] [%(levelname)-10.10s]  %(message)s")
-    shortFormatter = logging.Formatter("[%(levelname)-8.8s]  %(message)s")
-
-    fileHandler = logging.FileHandler("logs/{0}/{1}.log".format("./", _name))
-    fileHandler.setFormatter(longFormatter)
-    log.addHandler(fileHandler)
-
-    consoleHandler = logging.StreamHandler()
-    consoleHandler.setFormatter(shortFormatter)
-    log.addHandler(consoleHandler)
+_log = KAPCOMLog("Pin", logging.WARN)
+log = _log.log
 
 
 class Pin(object):
@@ -128,7 +113,7 @@ class Pin(object):
     def printout(self):
         print "{0} ({1})={2}".format(self.name, self.api, self.value)
 
-    def toString(self):
+    def __str__(self):
         # Define lambdas for selecting value based on format
         value = lambda x: str(x)
         toggle = lambda x: (None, "")[x]
@@ -282,34 +267,8 @@ class DigitalOut(__digital, __output):
 # #####################################
 
 
-def breakpoint():
-    """Python debug breakpoint."""
-
-    from code import InteractiveConsole
-    from inspect import currentframe
-
-    try:
-        import readline
-    except ImportError:
-        pass
-
-    caller = currentframe().f_back
-
-    env = {}
-    env.update(caller.f_globals)
-    env.update(caller.f_locals)
-
-    shell = InteractiveConsole(env)
-    shell.interact(
-        '* Break: {} ::: Line {}\n'
-        '* Continue with Ctrl+D...'.format(
-            caller.f_code.co_filename, caller.f_lineno
-        )
-    )
-
-
 def main():
-    a = Arduino()
+    a = Arduino("Test")
 
     ai = AnalogIn(a, "Throttle", "throttle", 0xA8)
     ao = AnalogOut(a, "Dimmer", "dimmer", 0x08)
@@ -317,7 +276,6 @@ def main():
     do = DigitalOut(a, "SAS Status", "sas_status", 0x0B)
 
     breakpoint()
-
 
 if __name__ == "__main__":
     try:

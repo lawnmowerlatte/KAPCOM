@@ -2,7 +2,7 @@
 
 import platform
 import serial
-import logging
+from tools import *
 
 if platform.system() == 'Windows':
     import _winreg as winreg
@@ -13,23 +13,8 @@ else:
     import glob
 
 # Logging
-_name = "Arduino"
-_debug = logging.INFO
-
-log = logging.getLogger(_name)
-if not len(log.handlers):
-    log.setLevel(_debug)
-
-    longFormatter = logging.Formatter("%(asctime)s [%(threadName)-12.12s] [%(levelname)-10.10s]  %(message)s")
-    shortFormatter = logging.Formatter("[%(levelname)-8.8s]  %(message)s")
-
-    fileHandler = logging.FileHandler("logs/{0}/{1}.log".format("./", _name))
-    fileHandler.setFormatter(longFormatter)
-    log.addHandler(fileHandler)
-
-    consoleHandler = logging.StreamHandler()
-    consoleHandler.setFormatter(shortFormatter)
-    log.addHandler(consoleHandler)
+_log = KAPCOMLog("Arduino", logging.INFO)
+log = _log.log
 
 
 class Arduino(object):
@@ -221,7 +206,6 @@ class Arduino(object):
         except serial.serialutil.SerialException:
             log.critical("Terminal error while communicating with Arduino.")
             return ""
-
 
     def _close(self):
         """Closes the serial connection"""

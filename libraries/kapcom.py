@@ -17,53 +17,17 @@ import threading
 sys.path.append(os.getcwd() + "/pyksp")
 import pyksp
 
-from pin import *
+from tools import *
+from arduino import Arduino
+from pin import DigitalIn, DigitalOut, AnalogIn, AnalogOut
 from mod import Mod
 from joy import Joy
 from bargraph import Bargraph
 from sevensegment import SevenSegment
 
 # Logging
-_name = "KAPCOM"
-_debug = logging.INFO
-log = logging.getLogger(_name)
-log.setLevel(_debug)
-
-longFormatter = logging.Formatter("%(asctime)s [%(threadName)-12.12s] [%(levelname)-10.10s]  %(message)s")
-shortFormatter = logging.Formatter("[%(levelname)-8.8s]  %(message)s")
-
-fileHandler = logging.FileHandler("logs/{0}/{1}.log".format("./", _name))
-fileHandler.setFormatter(longFormatter)
-log.addHandler(fileHandler)
-
-consoleHandler = logging.StreamHandler()
-consoleHandler.setFormatter(shortFormatter)
-log.addHandler(consoleHandler)
-
-
-def breakpoint():
-    """Python debug breakpoint."""
-    
-    from code import InteractiveConsole
-    from inspect import currentframe
-    try:
-        import readline
-    except ImportError:
-        pass
-
-    caller = currentframe().f_back
-
-    env = {}
-    env.update(caller.f_globals)
-    env.update(caller.f_locals)
-
-    shell = InteractiveConsole(env)
-    shell.interact(
-        '* Break: {} ::: Line {}\n'
-        '* Continue with Ctrl+D...'.format(
-            caller.f_code.co_filename, caller.f_lineno
-        )
-    )
+_log = KAPCOMLog("KAPCOM", logging.INFO)
+log = _log.log
 
 
 class KAPCOM(object):
@@ -202,9 +166,9 @@ class KAPCOM(object):
 
         while not self.initialize():
             time.sleep(10)
-            log.info("Restarting countdown.")
+            log.info("Restarting countdown")
 
-        log.info("Ready for input:")
+        log.info("Ready for input")
 
         self.start()
 
@@ -230,7 +194,7 @@ class KAPCOM(object):
         total = len(self.arduino)
 
         if total == 0:
-            log.critical("No Arduino devices defined in configuration file.")
+            log.critical("No Arduino devices defined in configuration file")
             exit()
 
         if defaults > 1:
@@ -240,7 +204,7 @@ class KAPCOM(object):
             defaults = len([val for (key, val) in self.arduino.iteritems() if val.default is True])
 
         if defaults == 0:
-            log.warn("No default set, using first device:")
+            log.warn("No default set, using first device")
             for key, a in self.arduino.iteritems():
                 log.warn("Selecting Arduino '" + key + "' as default")
                 setattr(a, "default", True)
@@ -252,7 +216,7 @@ class KAPCOM(object):
         try:
             self.configure()
         except IOError:
-            log.error("Failed to read configuration file.")
+            log.error("Failed to read configuration file")
             return False
         log.info("Configuration successful")
 
@@ -278,10 +242,10 @@ class KAPCOM(object):
                 break
             time.sleep(1)
         else:
-            log.error("Timeout while waiting for telemetry.")
+            log.error("Timeout while waiting for telemetry")
             return False
         
-        log.info("All systems are go.")
+        log.info("All systems are go")
         return True
         
     def configure(self):
@@ -430,7 +394,7 @@ class KAPCOM(object):
 
             # Send all active joysticks
             for name, joy in joys_active.iteritems():
-                self.send_flybywire(joy.api, joy.toString())
+                self.send_flybywire(joy.api, str(joy))
         else:
             # If fly-by-wire is enabled, disable it
             if self.flybywire is True:
@@ -452,7 +416,7 @@ class KAPCOM(object):
                     # If it had changed
                     if device.changed():
                         # Send the update
-                        self.send_flybywire(device.api, device.toString())
+                        self.send_flybywire(device.api, str(device))
 
                 else:
                     log.error("Unhandled type: " + str(type(device)) + " for device " + device.name)
@@ -541,7 +505,7 @@ class KAPCOM(object):
                             .index(display.name)
                         # Attach the display
                         display.attach(arduino, index)
-                        log.info("Attached display " + display_name + " to Arduino " + arduino_name)
+                        log.info("Attached " + display.__class__.__name__ + " display '" + display_name + "' to Arduino '" + arduino_name + "'")
                         break
                     except (ValueError, AttributeError):
                         log.debug("Did not find display " + display.name + " for Arduino " + arduino_name)
@@ -701,6 +665,7 @@ class KAPCOM(object):
 
         return stats
 
+
 def usage():
     """Print out a usage message"""
     
@@ -711,7 +676,6 @@ def main(argv):
     """Create KAPCOM object, initialize and run."""
 
     filename = None
-
     opts, args = None, None
     try:
         opts, args = getopt.getopt(argv, "hd:c:", ["help", "debug=", "config="])

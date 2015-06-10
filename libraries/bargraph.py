@@ -1,28 +1,13 @@
 #!/usr/bin/python
 
 import sys
-import logging
 from datetime import datetime
 from arduino import Arduino
+from tools import *
 
 # Logging
-_name = "Bargraph"
-_debug = logging.WARN
-
-log = logging.getLogger(_name)
-if not len(log.handlers):
-    log.setLevel(_debug)
-
-    longFormatter = logging.Formatter("%(asctime)s [%(threadName)-12.12s] [%(levelname)-10.10s]  %(message)s")
-    shortFormatter = logging.Formatter("[%(levelname)-8.8s]  %(message)s")
-
-    fileHandler = logging.FileHandler("logs/{0}/{1}.log".format("./", _name))
-    fileHandler.setFormatter(longFormatter)
-    log.addHandler(fileHandler)
-
-    consoleHandler = logging.StreamHandler()
-    consoleHandler.setFormatter(shortFormatter)
-    log.addHandler(consoleHandler)
+_log = KAPCOMLog("Bargraph", logging.WARN)
+log = _log.log
 
 
 class Bargraph(object):
@@ -110,9 +95,9 @@ class Bargraph(object):
         
     def printout(self):
         print "Bargraph " + self.name + " (Type = " + self._type + ")"
-        print self.toString()
+        print str(self)
         
-    def toString(self):
+    def __str__(self):
         bar = "["
         char = "|"
         
@@ -229,68 +214,26 @@ class Bargraph(object):
 # #####################################
 
 
-def breakpoint():
-    """Python debug breakpoint."""
-    
-    from code import InteractiveConsole
-    from inspect import currentframe
-    try:
-        import readline
-    except ImportError:
-        pass
-
-    caller = currentframe().f_back
-
-    env = {}
-    env.update(caller.f_globals)
-    env.update(caller.f_locals)
-
-    shell = InteractiveConsole(env)
-    shell.interact(
-        '* Break: {} ::: Line {}\n'
-        '* Continue with Ctrl+D...'.format(
-            caller.f_code.co_filename, caller.f_lineno
-        )
-    )
-
-
 def main():
-    a = Arduino()
+    a = Arduino("Test")
     
-    bar0 = Bargraph(a, "Test", "test", 0)
-    bar1 = Bargraph(a, "Test", "test", 1)
-    bar2 = Bargraph(a, "Test", "test", 2)
-    bar3 = Bargraph(a, "Test", "test", 3)
-    bar4 = Bargraph(a, "Test", "test", 4)
+    bar = Bargraph(a, "Test", "test")
     
-    bar0.update()
-    bar1.update()
-    bar2.update()
-    bar3.update()
-    bar4.update()
+    bar.update()
     
-    bar0.printout()
+    bar.printout()
     
     import time
     
     for i in range(0, 101):
-        bar0.set(i)
-        bar1.set(i)
-        bar2.set(i)
-        bar3.set(i)
-        bar4.set(i)
-        
-        print bar0.toString()
+        bar.set(i)
+        print str(bar)
         time.sleep(.25)
         
     for i in range(101, -1, -1):
-        bar0.set(i)
-        bar1.set(i)
-        bar2.set(i)
-        bar3.set(i)
-        bar4.set(i)
+        bar.set(i)
         
-        print bar0.toString()
+        print str(bar)
         time.sleep(.25)
         
 

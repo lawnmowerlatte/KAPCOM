@@ -1,35 +1,18 @@
 #!/usr/bin/python
 
 import sys
-import logging
-import pyautogui
+from tools import *
 from arduino import Arduino
 
 # Logging
-_name = "SevenSegment"
-_debug = logging.WARN
-
-log = logging.getLogger(_name)
-if not len(log.handlers):
-    log.setLevel(_debug)
-
-    longFormatter = logging.Formatter("%(asctime)s [%(threadName)-12.12s] [%(levelname)-10.10s]  %(message)s")
-    shortFormatter = logging.Formatter("[%(levelname)-8.8s]  %(message)s")
-
-    fileHandler = logging.FileHandler("logs/{0}/{1}.log".format("./", _name))
-    fileHandler.setFormatter(longFormatter)
-    log.addHandler(fileHandler)
-
-    consoleHandler = logging.StreamHandler()
-    consoleHandler.setFormatter(shortFormatter)
-    log.addHandler(consoleHandler)
+_log = KAPCOMLog("SevenSegment", logging.WARN)
+log = _log.log
 
 
 class SevenSegment(object):
     formats = [
         "default"
     ]
-
 
     def __init__(self, name, api, options=None):
         """Initialize pin with parameters"""
@@ -93,9 +76,9 @@ class SevenSegment(object):
 
     def printout(self):
         print "Display " + self.name
-        print self.toString()
+        print str(self)
 
-    def toString(self):
+    def __str__(self):
         return "[" + self._color(self.value, "green") + "]"
 
     def format(self):
@@ -178,57 +161,23 @@ class SevenSegment(object):
 # #####################################
 
 
-def breakpoint():
-    """Python debug breakpoint."""
-
-    from code import InteractiveConsole
-    from inspect import currentframe
-
-    try:
-        import readline
-    except ImportError:
-        pass
-
-    caller = currentframe().f_back
-
-    env = {}
-    env.update(caller.f_globals)
-    env.update(caller.f_locals)
-
-    shell = InteractiveConsole(env)
-    shell.interact(
-        '* Break: {} ::: Line {}\n'
-        '* Continue with Ctrl+D...'.format(
-            caller.f_code.co_filename, caller.f_lineno
-        )
-    )
-
-
 def main():
-    a = Arduino()
-    d0 = SevenSegment(a, "Test", "test", 0)
-    d1 = SevenSegment(a, "Test", "test", 1)
-    d2 = SevenSegment(a, "Test", "test", 2)
-    d3 = SevenSegment(a, "Test", "test", 3)
-    d4 = SevenSegment(a, "Test", "test", 4)
+    a = Arduino("Test")
+    d = SevenSegment(a, "Test", "test")
 
     import time
 
     value = .00000012345678
 
     for i in range(0, 20):
-        d0.set(value)
-        d1.set(value)
-        d2.set(value)
-        d3.set(value)
-        d4.set(value)
+        d.set(value)
 
-        print d0.toString()
+        print str(d)
 
         value *= 10
         time.sleep(1)
 
-        # breakpoint()
+        breakpoint()
 
 
 if __name__ == "__main__":

@@ -1,27 +1,15 @@
 #!/usr/bin/python
 
-import logging
-from pin import *
+import sys
+from datetime import datetime
+import pyautogui
+from pin import DigitalIn, DigitalOut
 from arduino import Arduino
+from tools import *
 
 # Logging
-_name = "Mod"
-_debug = logging.WARNING
-
-log = logging.getLogger(_name)
-if not len(log.handlers):
-    log.setLevel(_debug)
-
-    longFormatter = logging.Formatter("%(asctime)s [%(threadName)-12.12s] [%(levelname)-10.10s]  %(message)s")
-    shortFormatter = logging.Formatter("[%(levelname)-8.8s]  %(message)s")
-
-    fileHandler = logging.FileHandler("logs/{0}/{1}.log".format("./", _name))
-    fileHandler.setFormatter(longFormatter)
-    log.addHandler(fileHandler)
-
-    consoleHandler = logging.StreamHandler()
-    consoleHandler.setFormatter(shortFormatter)
-    log.addHandler(consoleHandler)
+_log = KAPCOMLog("Mod", logging.WARN)
+log = _log.log
 
 
 class Mod(object):
@@ -57,7 +45,7 @@ class Mod(object):
         self.update()
         return self.value
 
-    def toString(self):
+    def __str__(self):
         # Define lambdas for selecting value based on format
         value = lambda x: str(x)
         toggle = lambda x: (None, "")[x]
@@ -101,34 +89,8 @@ class Mod(object):
 # #####################################
 
 
-def breakpoint():
-    """Python debug breakpoint."""
-
-    from code import InteractiveConsole
-    from inspect import currentframe
-
-    try:
-        import readline
-    except ImportError:
-        pass
-
-    caller = currentframe().f_back
-
-    env = {}
-    env.update(caller.f_globals)
-    env.update(caller.f_locals)
-
-    shell = InteractiveConsole(env)
-    shell.interact(
-        '* Break: {} ::: Line {}\n'
-        '* Continue with Ctrl+D...'.format(
-            caller.f_code.co_filename, caller.f_lineno
-        )
-    )
-
-
 def main():
-    a = Arduino()
+    a = Arduino("Test")
 
     abort = Mod(a, "Abort", "abort", 0xA9, 0xAB, 0xAA)
     stage = Mod(a, "Stage", "stage", 0xAC, 0xAE, 0xAD)
@@ -144,7 +106,6 @@ def main():
         time.sleep(1)
 
     breakpoint()
-
 
 if __name__ == "__main__":
     try:

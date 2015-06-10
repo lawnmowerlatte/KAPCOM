@@ -6,12 +6,12 @@ import json
 import getopt
 import logging
 from flask import Flask, request, render_template, redirect, url_for
+
+sys.path.append(os.getcwd() + "/libraries")
 from kapcom import KAPCOM
-from bargraph import Bargraph
-from sevensegment import SevenSegment
 
 # Logging
-_name = "KAPCOM Web"
+_name = "KAPCOM Interface"
 _debug = logging.INFO
 log = logging.getLogger(_name)
 log.setLevel(_debug)
@@ -27,7 +27,6 @@ consoleHandler = logging.StreamHandler()
 consoleHandler.setFormatter(shortFormatter)
 log.addHandler(consoleHandler)
 
-
 app = Flask("Flask App")
 app.secret_key = 'TuKfzxdpLWpkBViZovZJCbWwfzHUveLyAtGVzdCJ3j9wrsLdHZ'
 configuration = {
@@ -39,7 +38,6 @@ k = None
 @app.route("/configure")
 def configure():
     return render_template('configure.html')
-
 
 @app.route("/configure/file_<string:action>")
 def configure_file_api(action):
@@ -553,7 +551,7 @@ def api(action):
         page = json.dumps(json_files)
 
     elif action == "get_current_file":
-        json_files = k.filename;
+        json_files = k.filename
         page = json.dumps(json_files)
 
     elif action == "get_current_mode":

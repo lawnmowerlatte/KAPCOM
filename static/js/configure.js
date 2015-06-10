@@ -1,5 +1,5 @@
 function send_api(command, postdata) {
-    console.log("Request: " + command);
+//    console.log("Request: " + command);
 
 
     request = {
@@ -10,13 +10,13 @@ function send_api(command, postdata) {
 
     if (postdata != null) {
         request.data = postdata;
-        console.log(postdata);
+//        console.log(postdata);
     }
 
 
     response = $.ajax(request);
-    console.log("Response:");
-    console.log(response.responseJSON);
+//    console.log("Response:");
+//    console.log(response.responseJSON);
 
     return response.responseJSON;
 }
@@ -153,7 +153,7 @@ function refresh_general_settings() {
 
     host = data.host || "";
     port = data.port || "";
-    baud = data.baud || 115200;
+    baud = data.baud || "";
     headless = data.headless || "";
 
     if (headless == true) {
@@ -170,7 +170,7 @@ function refresh_general_settings() {
     s += "<input name='port' value='" + port + "' />";
 
     s += "<label for='baud'>Baud:</label>";
-    s += build_select(baud_list, baud, null, "Baud-List", "baud", "");
+    s += build_select(baud_list, baud, null, "Baud-List", "baud", "", false, true);
 
     s += "<label for='default-device-mode'>Device Mode:</label>";
     data = Object.keys(send_api("get_device_mode"));

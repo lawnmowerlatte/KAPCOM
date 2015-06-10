@@ -116,6 +116,24 @@ except ImportError:
             fail("Installation failed, please install pyserial using pip.")
     else:
         fail("Please install pyserial using pip.")
+        
+debug("Checking for Flask: ", newline=False)
+try:
+    import flask
+    ok()
+except ImportError:
+    fail(end=False)
+    
+    if tryinstall:
+        debug("Installing Flask: ", newline=False)
+        try:
+            pip.main(["install", "-q", "flask"])
+            import serial
+            ok()
+        except:
+            fail("Installation failed, please install Flask using pip.")
+    else:
+        fail("Please install Flask using pip.")
 
 # Check for serial toolchain
 debug("Checking for serial tools: ", newline=False)

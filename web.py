@@ -91,11 +91,24 @@ def configure_file_api(action):
 
     elif action == "new":
         if file is not None and file not in json_files:
-            configuration['file'] = file
-            configuration['data'] = {}
+            data = {
+                "arduino": {},
+                "configuration": {
+                    "devices": [],
+                    "displays": []
+                },
+                "modes": {
+                    "default": {
+                        "devices": "",
+                        "displays": ""
+                    },
+                    "devices": {},
+                    "displays": {}
+                }
+            }
 
-            with open(configuration['file'], 'w') as f:
-                json.dump(configuration['data'], f, sort_keys=True, indent=4, separators=(',', ': '))
+            with open(file, 'w') as f:
+                json.dump(data, f, sort_keys=True, indent=4, separators=(',', ': '))
 
             data = True
         else:
@@ -193,7 +206,7 @@ def configure_set_api(action):
         default_device_mode = request.args.get("default-device-mode")
         headless = request.args.get("headless")
 
-        if host is not None:
+        if host is not None and host != "":
             configuration['data']['host'] = host
         else:
             try:
@@ -201,7 +214,7 @@ def configure_set_api(action):
             except:
                 pass
 
-        if port is not None:
+        if port is not None and port != "":
             configuration['data']['port'] = port
         else:
             try:
@@ -209,7 +222,7 @@ def configure_set_api(action):
             except:
                 pass
 
-        if baud is not None:
+        if baud is not None and baud != "":
             configuration['data']['baud'] = baud
         else:
             try:
@@ -217,16 +230,23 @@ def configure_set_api(action):
             except:
                 pass
 
-        if headless != "on":
+        if headless == "on":
+            configuration['data']['headless'] = True
+        else:
             try:
                 configuration['data'].pop('headless')
             except:
                 pass
-        else:
-            configuration['data']['headless'] = True
 
-        configuration["data"]["modes"]["default"]["displays"] = default_display_mode
-        configuration["data"]["modes"]["default"]["devices"] = default_device_mode
+        if default_display_mode is not None:
+            configuration["data"]["modes"]["default"]["displays"] = default_display_mode
+        else:
+            configuration["data"]["modes"]["default"]["displays"] = ""
+
+        if default_device_mode is not None:
+            configuration["data"]["modes"]["default"]["devices"] = default_device_mode
+        else:
+            configuration["data"]["modes"]["default"]["devices"] = ""
 
         data = True
 

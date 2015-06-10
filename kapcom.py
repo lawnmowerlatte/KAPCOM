@@ -175,7 +175,7 @@ class KAPCOM(object):
         set_configuration("filename", filename, None, self.defaults.get("filename"))
 
         # Open the file and load the JSON data
-        with open(self.filename, 'r') as config_file:
+        with open("./config/" + self.filename, 'r') as config_file:
             self.configuration = json.load(config_file)
 
             # For the list of default values
@@ -252,7 +252,7 @@ class KAPCOM(object):
         try:
             self.configure()
         except IOError:
-            log.error("Failed t o read configuration file.")
+            log.error("Failed to read configuration file.")
             return False
         log.info("Configuration successful")
 

@@ -32,7 +32,7 @@ app = Flask("Flask App")
 app.secret_key = 'TuKfzxdpLWpkBViZovZJCbWwfzHUveLyAtGVzdCJ3j9wrsLdHZ'
 configuration = {
     "file": "kapcom.json",
-    "data": json.load(open("kapcom.json", "r"))
+    "data": json.load(open("config/kapcom.json", "r"))
 }
 k = None
 
@@ -47,7 +47,7 @@ def configure_file_api(action):
     data = ""
     code = 200
 
-    json_files = [f for f in os.listdir("./") if '.json' in f]
+    json_files = [f for f in os.listdir("./config") if '.json' in f]
 
     if request.method == 'GET':
         file = request.args.get("file")
@@ -549,7 +549,7 @@ def api(action):
         page = json.dumps(json_files)
 
     elif action == "get_available_files":
-        json_files = [f for f in os.listdir("./") if '.json' in f]
+        json_files = [f for f in os.listdir("./config") if '.json' in f]
         page = json.dumps(json_files)
 
     elif action == "get_current_file":

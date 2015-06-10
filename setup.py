@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-pyksp_git="https://github.com/lawnmowerlatte/pyksp.git"
+pyksp_git = "https://github.com/lawnmowerlatte/pyksp.git"
 
 try:
     import sys
@@ -226,4 +226,4 @@ except ImportError:
         exit()
     
 debug()
-debug("Prerequisites met. Please run configure.py", color="green")
+debug("Prerequisites met. Please run web.py", color="green")

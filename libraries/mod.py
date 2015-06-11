@@ -48,21 +48,26 @@ class Mod(object):
 
     def __str__(self):
         # Define lambdas for selecting value based on format
-        value = lambda x: str(x)
-        toggle = lambda x: (None, "")[x]
-        truefalse = lambda x: ("True", "False")[x]
-        true = lambda x: ("True", "")[x]
-        false = lambda x: ("", "False")[x]
-        zero = lambda x: ("0", "")[x]
-        one = lambda x: ("1", "")[x]
-        key = lambda x: pyautogui.press(self._key) if x == 1 else False
+        displays = {
+            "value": lambda x: str(x),
+            "toggle": lambda x: (None, "")[x],
+            "truefalse": lambda x: ("True", "False")[x],
+            "true": lambda x: ("True", "")[x],
+            "false": lambda x: ("", "False")[x],
+            "zero": lambda x: ("0", "")[x],
+            "one": lambda x: ("1", "")[x],
+            "floatpoint": lambda x: str(float(x) / self._max),
+            "percent": lambda x: str(float(x) / self._max * 100),
+            "key": lambda x: pyautogui.press(self._key) if x == 1 else False
+        }
 
         # Try to run the lambda specified by _format
-        f = locals().get(self._format)
-        try:
+        f = displays.get(self._format)
+        if f is not None:
             return f(self.value)
-        except AttributeError:
-            log.warn('Format not found "%s"' % self._format)
+        else:
+            log.warn('Format not found "{0}"'.format(self._format))
+            return ""
 
     def update(self):
         is_locked = self.mod.get()

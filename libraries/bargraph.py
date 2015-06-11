@@ -57,7 +57,8 @@ class Bargraph(object):
         # Run initial update
         self.update()
 
-    def _color(self, character, color):
+    @staticmethod
+    def _color(character, color):
         try:
             from termcolor import colored
             return colored(character, color)

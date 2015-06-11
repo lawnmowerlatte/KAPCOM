@@ -118,7 +118,7 @@ except ImportError:
             pip.main(["install", "-q", "pyserial"])
             import serial
             ok()
-        except:
+        except ImportError:
             fail("Installation failed, please install pyserial using pip.")
     else:
         fail("Please install pyserial using pip.")
@@ -136,7 +136,7 @@ except ImportError:
             pip.main(["install", "-q", "flask"])
             import serial
             ok()
-        except:
+        except ImportError:
             fail("Installation failed, please install Flask using pip.")
     else:
         fail("Please install Flask using pip.")
@@ -158,7 +158,7 @@ if platform.system() == 'Windows':
                 import _winreg as winreg
                 import itertools
                 ok()
-            except:
+            except ImportError:
                 fail("Installation failed, please install winreg and itertools using pip.")
         else:
             fail("Please install winreg and itertools using pip.")
@@ -182,7 +182,7 @@ else:
                 pip.main(["install", "-q", "glob"])
                 import glob
                 ok()
-            except:
+            except ImportError:
                 fail("Installation failed, please install glob using pip.")
         else:
             fail("Please install glob using pip.")
@@ -199,7 +199,7 @@ except ImportError:
             pip.main(["install", "-q", "pyautogui"])
             import pyautogui
             ok()
-        except:
+        except ImportError:
             fail("Installation failed, please install pyautogui using pip.")
     else:
             fail("Please install pyautogui using pip.")
@@ -224,7 +224,7 @@ except ImportError:
                     fail("Clone failed.", False)
             else:
                 fail("Couldn't find git", False)
-        except:
+        except ImportError:
             fail("Installation failed", False)
     else:
         debug("Please install pyksp within the KAPCOM directory using git", False)

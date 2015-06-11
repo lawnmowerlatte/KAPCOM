@@ -260,7 +260,7 @@ class Arduino(object):
         
         return self._read(self._build_command("D", pin))
         
-    def set_subscriptions(self, pins):
+    def subscribe(self, pins):
         """Subscribe to a set of pins"""
         string = ""
         for pin in pins:
@@ -268,7 +268,7 @@ class Arduino(object):
         
         self._write(self._build_command("s", string))
         
-    def get_subscriptions(self):
+    def poll_subscriptions(self):
         """Return values for subscriptions as a list"""
         array = []
         raw = self._read(self._build_command("S"))

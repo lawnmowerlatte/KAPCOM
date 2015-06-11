@@ -366,11 +366,11 @@ class KAPCOM(object):
         self.daemon = None
 
         print("=======[ Stats ]=======")
-        print("Cycles:        %s" % self.cycles)
+        print("Cycles:        {0}".format(self.cycles))
 
         if self.cycles > 0:
-            print("Rate:          %.2fms" % (float(self.duration)*1000))
-            print("Frequency:     %.2fHz" % (1/float(self.duration)))
+            print("Rate:          {0:.2f}ms".format(float(self.duration)*1000))
+            print("Frequency:     {0:.2f}Hz".format(1/float(self.duration)))
 
     def update(self):
         # Get list of joysticks currently configured
@@ -672,7 +672,7 @@ class KAPCOM(object):
 def usage():
     """Print out a usage message"""
     
-    print("%s [-h] [-d level|--debug level] [-c file|--config file]" % sys.argv[0])
+    print("{0} [-h] [-d level|--debug level] [-c file|--config file]".format(sys.argv[0]))
 
 
 def main(argv):

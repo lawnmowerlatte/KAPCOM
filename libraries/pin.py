@@ -65,11 +65,11 @@ class Pin(object):
 
     @abstractmethod
     def init(self):
-        log.critical("Abstract method init() called!")
+        log.critical("Abstract method init() called for " + self.name + "!")
 
     @abstractmethod
     def act(self, value=None):
-        log.critical("Abstract method act() called!")
+        log.critical("Abstract method act() called for " + self.name + "!")
 
     def get(self):
         self.update()
@@ -116,25 +116,26 @@ class Pin(object):
 
     def __str__(self):
         # Define lambdas for selecting value based on format
-        value = lambda x: str(x)
-        toggle = lambda x: (None, "")[x]
-        truefalse = lambda x: ("True", "False")[x]
-        true = lambda x: ("True", "")[x]
-        false = lambda x: ("", "False")[x]
-        zero = lambda x: ("0", "")[x]
-        one = lambda x: ("1", "")[x]
-        floatpoint = lambda x: str(float(x) / self._max)
-        percent = lambda x: str(float(x) / self._max * 100)
-        key = lambda x: pyautogui.press(self._key) if x == 1 else False
+        displays = {
+            "value": lambda x: str(x),
+            "toggle": lambda x: (None, "")[x],
+            "truefalse": lambda x: ("True", "False")[x],
+            "true": lambda x: ("True", "")[x],
+            "false": lambda x: ("", "False")[x],
+            "zero": lambda x: ("0", "")[x],
+            "one": lambda x: ("1", "")[x],
+            "floatpoint": lambda x: str(float(x) / self._max),
+            "percent": lambda x: str(float(x) / self._max * 100),
+            "key": lambda x: pyautogui.press(self._key) if x == 1 else False
+        }
 
         # Try to run the lambda specified by _format
-        f = locals().get(self._format)
-        try:
+        f = displays.get(self._format)
+        if f is not None:
             return f(self.value)
-        except AttributeError:
-            print('Format not found "%s"' % self._format)
-
-        return ""
+        else:
+            log.warn('Format not found "{0}"'.format(self._format))
+            return ""
 
 
 class _Input(Pin):
@@ -176,7 +177,7 @@ class _Analog():
     __metaclass__ = ABCMeta
 
     def __init__(self):
-        log.critical("_Analog's __init__() method should never be called")
+        log.critical("_Analog.__init__() method called for " + self.name + "!")
 
     def set_max(self, new):
         """Set the maximum value"""
@@ -226,7 +227,7 @@ class _Digital():
     __metaclass__ = ABCMeta
 
     def __init__(self):
-        log.critical("_Digital's __init__() method should never be called")
+        log.critical("_Digital.__init__() method called for " + self.name + "!")
 
     def read(self):
         """Read from hardware"""

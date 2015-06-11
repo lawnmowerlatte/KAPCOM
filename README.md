@@ -2,7 +2,9 @@ KAPCOM
 =============
 
 [![Build Status](https://travis-ci.org/lawnmowerlatte/KAPCOM.svg)](https://travis-ci.org/lawnmowerlatte/KAPCOM)
+
 [![Coverage Status](https://coveralls.io/repos/lawnmowerlatte/KAPCOM/badge.svg)](https://coveralls.io/r/lawnmowerlatte/KAPCOM)
+
 [![Code Issues](http://www.quantifiedcode.com/api/v1/project/00317bdaff814223a6f33d28f1e37479/badge.svg)](http://www.quantifiedcode.com/app/project/00317bdaff814223a6f33d28f1e37479)
 
 About

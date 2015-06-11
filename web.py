@@ -210,7 +210,7 @@ def configure_set_api(action):
             try:
                 configuration['data'].pop('host')
             except:
-                pass
+                log.debug("Unable to find key 'host'")
 
         if port is not None and port != "":
             configuration['data']['port'] = port
@@ -218,7 +218,7 @@ def configure_set_api(action):
             try:
                 configuration['data'].pop('port')
             except:
-                pass
+                log.debug("Unable to find key 'port'")
 
         if baud is not None and baud != "":
             configuration['data']['baud'] = baud
@@ -226,7 +226,7 @@ def configure_set_api(action):
             try:
                 configuration['data'].pop('baud')
             except:
-                pass
+                log.debug("Unable to find key 'baud'")
 
         if headless == "on":
             configuration['data']['headless'] = True
@@ -234,7 +234,7 @@ def configure_set_api(action):
             try:
                 configuration['data'].pop('headless')
             except:
-                pass
+                log.debug("Unable to find key 'headless'")
 
         if default_display_mode is not None:
             configuration["data"]["modes"]["default"]["displays"] = default_display_mode
@@ -269,7 +269,7 @@ def configure_set_api(action):
             try:
                 configuration['data']['arduino'][name].pop('uuid')
             except:
-                pass
+                log.debug("Unable to find key 'uuid'")
 
         if bargraphs is not None:
             configuration['data']['arduino'][name]['bargraphs'] = bargraphs
@@ -277,7 +277,7 @@ def configure_set_api(action):
             try:
                 configuration['data']['arduino'][name].pop('bargraphs')
             except:
-                pass
+                log.debug("Unable to find key 'bargraphs'")
 
         if sevensegments is not None:
             configuration['data']['arduino'][name]['sevensegments'] = sevensegments
@@ -285,13 +285,13 @@ def configure_set_api(action):
             try:
                 configuration['data']['arduino'][name].pop('sevensegments')
             except:
-                pass
+                log.debug("Unable to find key 'sevensegments'")
 
         if default != "on":
             try:
                 configuration['data']['arduino'][name].pop('default')
             except:
-                pass
+                log.debug("Unable to find key 'default'")
         else:
             configuration['data']['arduino'][name]['default'] = True
 
@@ -322,24 +322,24 @@ def configure_set_api(action):
                 try:
                     display['options'].pop('max_value')
                 except:
-                    pass
+                    log.debug("Unable to find key 'max_value'")
                 display['options']['max_api'] = max_api
             elif max_value is not None:
                 try:
                     display['options'].pop('max_api')
                 except:
-                    pass
+                    log.debug("Unable to find key 'max_api'")
                 display['options']['max_value'] = max_value
         else:
             try:
                 display['options'].pop('max_api')
             except:
-                pass
+                log.debug("Unable to find key 'max_api'")
 
             try:
                 display['options'].pop('max_value')
             except:
-                pass
+                log.debug("Unable to find key 'max_value'")
 
     elif action == "device":
         key = request.args.get("key")
@@ -372,7 +372,7 @@ def configure_set_api(action):
             try:
                 device.pop(x)
             except KeyError:
-                pass
+                log.debug("Unable to find key '" + x + "'")
 
         if type == "Joy":
             device['x'] = x

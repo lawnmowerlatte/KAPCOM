@@ -1,9 +1,10 @@
 #!/usr/bin/python
 
 import sys
+import logging
+
 from pin import AnalogIn, DigitalIn
-from arduino import Arduino
-from tools import *
+from tools import KAPCOMLog
 
 # Logging
 _log = KAPCOMLog("Joy", logging.WARN)
@@ -43,10 +44,10 @@ class Joy(object):
             z_options = None
 
         # Set core attributes
-        self.x = AnalogIn(arduino, name + ":X", "", x, x_options)
-        self.y = AnalogIn(arduino, name + ":Y", "", y, y_options)
-        self.z = AnalogIn(arduino, name + ":Z", "", z, z_options)
-        self.button = DigitalIn(arduino, name + " Button", "", button, button_options)
+        self.x = AnalogIn({arduino, name + ":X", "", x, x_options})
+        self.y = AnalogIn({arduino, name + ":Y", "", y, y_options})
+        self.z = AnalogIn({arduino, name + ":Z", "", z, z_options})
+        self.button = DigitalIn({arduino, name + " Button", "", button, button_options})
 
         self.name = name
         self.api = api
@@ -111,6 +112,9 @@ class Joy(object):
 
 
 def main():
+    from arduino import Arduino
+    from tools import breakpoint
+
     a = Arduino("Test")
 
     j0 = Joy(a, "J0", "", 0xA0, 0xA1, 0xA2, 0xA3)

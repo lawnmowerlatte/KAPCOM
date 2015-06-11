@@ -1,11 +1,12 @@
 #!/usr/bin/python
 
 import sys
-from datetime import datetime
+import logging
 import pyautogui
+from datetime import datetime
+
 from pin import DigitalIn, DigitalOut
-from arduino import Arduino
-from tools import *
+from tools import KAPCOMLog
 
 # Logging
 _log = KAPCOMLog("Mod", logging.WARN)
@@ -17,9 +18,9 @@ class Mod(object):
         """Initialize modifier with parameters"""
 
         # Set core attributes
-        self.mod = DigitalIn(arduino, name + " Modifier", "", modifier, options.get('modifier'))
-        self.indicator = DigitalOut(arduino, name + " Indicator", "", indicator, options.get('indicator'))
-        self.button = DigitalIn(arduino, name + " Button", "", button, options.get('button'))
+        self.mod = DigitalIn({arduino, name + " Modifier", "", modifier, options.get('modifier')})
+        self.indicator = DigitalOut({arduino, name + " Indicator", "", indicator, options.get('indicator')})
+        self.button = DigitalIn({arduino, name + " Button", "", button, options.get('button')})
 
         self.name = name
         self.api = api
@@ -61,7 +62,7 @@ class Mod(object):
         try:
             return f(self.value)
         except AttributeError:
-            print 'Format not found "%s"' % self._format
+            log.warn('Format not found "%s"' % self._format)
 
     def update(self):
         is_locked = self.mod.get()
@@ -90,12 +91,14 @@ class Mod(object):
 
 
 def main():
+    import time
+    from arduino import Arduino
+    from tools import breakpoint
+
     a = Arduino("Test")
 
     abort = Mod(a, "Abort", "abort", 0xA9, 0xAB, 0xAA)
     stage = Mod(a, "Stage", "stage", 0xAC, 0xAE, 0xAD)
-
-    import time
 
     while False:
         abort.update()

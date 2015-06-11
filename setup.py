@@ -11,9 +11,15 @@ try:
     import socket
     import atexit
     import json
+    import logging
 except ImportError:
     print("Failed to import necessary core modules.")
     exit()
+
+from tools import KAPCOMLog
+
+_log = KAPCOMLog("SevenSegment", logging.INFO)
+log = _log.log
 
 debugger = 6
 usecolor = False
@@ -59,7 +65,7 @@ if platform.system() != 'Windows':
         import termcolor
         usecolor = True
     except ImportError:
-        pass
+        debug("Unable to import termcolor, using monochrome")
 
 debug("Checking Python version: ", newline=False)
 if "2.7" in sys.version.partition(' ')[0]:

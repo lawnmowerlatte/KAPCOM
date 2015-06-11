@@ -1,9 +1,9 @@
 #!/usr/bin/python
 
 import sys
+import logging
 from datetime import datetime
-from arduino import Arduino
-from tools import *
+from tools import KAPCOMLog
 
 # Logging
 _log = KAPCOMLog("Bargraph", logging.WARN)
@@ -190,7 +190,7 @@ class Bargraph(object):
         clear()
         
         if self.value < 0 or self._max < 0:
-            self._arduino.bargraphWrite(self.device, self.red, self.green)
+            self._arduino.bargraph_write(self.device, self.red, self.green)
             return
         
         f = locals().get(self._type)
@@ -201,13 +201,14 @@ class Bargraph(object):
         try:
             f()
         except ZeroDivisionError:
-            pass
+            log.error("Tried to divide by 0, check the math")
 
     def write(self):
         if cmp(self.red, self._lastred) == 0 and cmp(self.green, self._lastgreen) == 0:
-            pass
+            log.debug("No change in display, skipping update")
         else:
-            self._arduino.bargraphWrite(self.device, self.red, self.green)
+            self._arduino.bargraph_write(self.device, self.red, self.green)
+
 
 # #####################################
 # ########## Testing Methods ##########
@@ -215,6 +216,8 @@ class Bargraph(object):
 
 
 def main():
+    from arduino import Arduino
+    from tools import breakpoint
     a = Arduino("Test")
     
     bar = Bargraph(a, "Test", "test")
@@ -235,6 +238,8 @@ def main():
         
         print str(bar)
         time.sleep(.25)
+
+    breakpoint()
         
 
 if __name__ == "__main__":    

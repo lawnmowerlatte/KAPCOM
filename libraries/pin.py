@@ -3,9 +3,10 @@
 from abc import ABCMeta, abstractmethod
 from datetime import datetime
 import sys
+import logging
 import pyautogui
-from arduino import Arduino
-from tools import *
+
+from tools import KAPCOMLog
 
 # Logging
 _log = KAPCOMLog("Pin", logging.WARN)
@@ -64,11 +65,11 @@ class Pin(object):
 
     @abstractmethod
     def init(self):
-        pass
+        log.critical("Abstract method init() called!")
 
     @abstractmethod
     def act(self, value=None):
-        pass
+        log.critical("Abstract method act() called!")
 
     def get(self):
         self.update()
@@ -76,18 +77,18 @@ class Pin(object):
 
     def push(self, value):
         """Attempts to push the selected value and update"""
-        if value == "1" or value == "True" or value is True:
+        if value in ["1", "True", True]:
             value = 1
-        if value == "0" or value == "False" or value is False:
+        if value in ["0", "False", False]:
             value = 0
 
         return self.update(value)
 
     def set(self, value):
         """Set the value and update"""
-        if value == "1" or value == "True" or value is True:
+        if value in ["1", "True", True]:
             value = 1
-        if value == "0" or value == "False" or value is False:
+        if value in ["0", "False", False]:
             value = 0
 
         self.update(value)
@@ -131,16 +132,19 @@ class Pin(object):
         try:
             return f(self.value)
         except AttributeError:
-            print 'Format not found "%s"' % self._format
+            print('Format not found "%s"' % self._format)
 
         return ""
 
 
-class __input(Pin):
+class _Input(Pin):
     __metaclass__ = ABCMeta
 
+    def __init__(self, **kwargs):
+        super(_Input, self).__init__(**kwargs)
+
     def init(self):
-        self._arduino.pinMode(self.pin, "INPUT_PULLUP")
+        self._arduino.pin_mode(self.pin, "INPUT_PULLUP")
 
     def act(self, value=None):
         """If no value is passed, read"""
@@ -148,22 +152,31 @@ class __input(Pin):
             return self.read()
 
 
-class __output(Pin):
+class _Output(Pin):
     __metaclass__ = ABCMeta
+
+    def __init__(self, **kwargs):
+        super(_Output, self).__init__(**kwargs)
 
     def init(self):
         """Set the hardware and local value"""
-        self._arduino.pinMode(self.pin, "OUTPUT")
+        self._arduino.pin_mode(self.pin, "OUTPUT")
         self._cooldown = 0
-        pass
 
-    def act(self, value):
+    def act(self, value=None):
         """Write the value"""
+        if value is None:
+            log.warn("No value sent!")
+            return
+
         self.write(value)
 
 
-class __analog():
+class _Analog():
     __metaclass__ = ABCMeta
+
+    def __init__(self):
+        log.critical("_Analog's __init__() method should never be called")
 
     def set_max(self, new):
         """Set the maximum value"""
@@ -186,7 +199,7 @@ class __analog():
 
     def read(self):
         """Read from hardware"""
-        self.value = int(self._arduino.analogRead(self.pin))
+        self.value = int(self._arduino.analog_read(self.pin))
 
         if self._invert:
             self.value = self._max - self.value
@@ -206,15 +219,18 @@ class __analog():
             if self._invert:
                 self.value = self._max - self.value
 
-            self._arduino.analogWrite(self.pin, self.value)
+            self._arduino.analog_write(self.pin, self.value)
 
 
-class __digital():
+class _Digital():
     __metaclass__ = ABCMeta
+
+    def __init__(self):
+        log.critical("_Digital's __init__() method should never be called")
 
     def read(self):
         """Read from hardware"""
-        self.value = int(self._arduino.digitalRead(self.pin))
+        self.value = int(self._arduino.digital_read(self.pin))
 
         if self._invert:
             if self.value == 0:
@@ -243,23 +259,23 @@ class __digital():
                 else:
                     print "Unexpected value: " + value
 
-            self._arduino.digitalWrite(self.pin, self.value)
+            self._arduino.digital_write(self.pin, self.value)
 
 
-class AnalogIn(__analog, __input):
-    pass
+class AnalogIn(_Input, _Analog):
+    log.debug("Creating AnalogIn class")
 
 
-class AnalogOut(__analog, __output):
-    pass
+class AnalogOut(_Output, _Analog):
+    log.debug("Creating AnalogOut class")
 
 
-class DigitalIn(__digital, __input):
-    pass
+class DigitalIn(_Input, _Digital):
+    log.debug("Creating DigitalIn class")
 
 
-class DigitalOut(__digital, __output):
-    pass
+class DigitalOut(_Output, _Digital):
+    log.debug("Creating DigitalOut class")
 
 
 # #####################################
@@ -268,6 +284,9 @@ class DigitalOut(__digital, __output):
 
 
 def main():
+    from arduino import Arduino
+    from tools import breakpoint
+
     a = Arduino("Test")
 
     ai = AnalogIn(a, "Throttle", "throttle", 0xA8)

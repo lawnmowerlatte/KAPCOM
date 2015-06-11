@@ -1,8 +1,9 @@
 #!/usr/bin/python
 
 import sys
-from tools import *
-from arduino import Arduino
+import logging
+
+from tools import KAPCOMLog
 
 # Logging
 _log = KAPCOMLog("SevenSegment", logging.WARN)
@@ -153,7 +154,7 @@ class SevenSegment(object):
 
     def write(self):
         if self.value != self._lastvalue:
-            self._arduino.displayWrite(self.device, self.value)
+            self._arduino.display_write(self.device, self.value)
 
 
 # #####################################
@@ -162,6 +163,9 @@ class SevenSegment(object):
 
 
 def main():
+    from arduino import Arduino
+    from tools import breakpoint
+
     a = Arduino("Test")
     d = SevenSegment(a, "Test", "test")
 

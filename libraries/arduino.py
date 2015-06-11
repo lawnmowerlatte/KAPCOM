@@ -1,8 +1,9 @@
 #!/usr/bin/python
 
 import platform
+import logging
 import serial
-from tools import *
+from tools import KAPCOMLog
 
 if platform.system() == 'Windows':
     import _winreg as winreg
@@ -37,28 +38,28 @@ class Arduino(object):
                     self.s = serial.Serial(port, baud, timeout=timeout)
                 except (serial.SerialException, OSError):
                     log.error("Specified port is not found.")
-                    return None
+                    raise EnvironmentError("Specified port is not found.")
 
                 # Check if the connected device is compatible
-                v = self.getVersion(s)
+                v = self.get_version(s)
 
                 # Retry once in case we missed it
                 if v == "":
-                    v = self.getVersion(s)
+                    v = self.get_version(s)
 
                 # If not correct, continue search
                 if v != self.version:
                     log.error('Bad version "{0}". This is not a KAPCOM/Arduino!'.format(v))
-                    return None
+                    raise EnvironmentError('Bad version "{0}". This is not a KAPCOM/Arduino!'.format(v))
 
                 # Check UUID if set
                 if self.s is not None and self.uuid is not None:
-                    u = self.getUUID(s)
+                    u = self.get_uuid(s)
                     log.debug('Found UUID: ' + u)
 
                     if self.uuid != u:
                         log.error("Specified port does not match the UUID.")
-                        return None
+                        raise EnvironmentError("Specified port does not match the UUID.")
 
             if not self.s:
                 log.warn("Using interactive mode.")
@@ -90,11 +91,11 @@ class Arduino(object):
                 continue
                 
             # Check if the connected device is compatible
-            v = self.getVersion(s)
+            v = self.get_version(s)
             
             # Retry once in case we missed it
             if v == "":
-                v = self.getVersion(s)
+                v = self.get_version(s)
             
             # If not correct, continue search
             if v != self.version:
@@ -104,7 +105,7 @@ class Arduino(object):
 
             # Check UUID if set
             if self.uuid is not None:
-                u = self.getUUID(s)
+                u = self.get_uuid(s)
                 log.debug('Found UUID: ' + u)
 
                 if self.uuid != u:
@@ -120,7 +121,8 @@ class Arduino(object):
         # Search failed
         return None
 
-    def _enumerate_serial_ports(self):
+    @staticmethod
+    def _enumerate_serial_ports():
         """Uses the registry to return serial ports"""
     
         path = 'HARDWARE\\DEVICEMAP\\SERIALCOMM'
@@ -136,7 +138,8 @@ class Arduino(object):
             except EnvironmentError:
                 break
 
-    def _build_command(self, command, device=None, data=None, remap=True):
+    @staticmethod
+    def _build_command(command, device=None, data=None, remap=True):
         """Build a command string that can be sent to the Arduino"""
         
         if remap:
@@ -145,18 +148,18 @@ class Arduino(object):
                 device += 32
                 
                 # Concatenate the byte value of the pin we are sent
-                command = command + chr(device)
+                command += chr(device)
                 
                 if data is not None:
                     # Concatenate whatever data is sent
-                    command = command + str(data)
+                    command += str(data)
         else:
             if device is not None:
                 # Concatenate the byte value of the pin we are sent
-                command = command + str(device)
+                command += str(device)
                 if data is not None:
                     # Concatenate whatever data is sent
-                    command = command + str(data)
+                    command += str(data)
                     
         return command
 
@@ -168,18 +171,7 @@ class Arduino(object):
                 print("<< " + string)
             return
         
-        log.debug(string)
-        
-        if not s:
-            s = self.s
-        
-        try:
-            s.write(string + "\n")
-            s.flush()
-        except serial.SerialException:
-            pass
-            
-        s.readline()
+        return self._readwrite(string, s)
 
     def _read(self, string, s=None):
         """Write the string to serial and return the response"""
@@ -190,21 +182,25 @@ class Arduino(object):
                 return raw_input(">> ")
             return 1
         
+        self._readwrite(string, s)
+
+    def _readwrite(self, string, s=None):
         log.debug(string)
-        
+
         if not s:
             s = self.s
-        
+
         try:
             s.write(string + "\n")
             s.flush()
         except serial.SerialException:
-            pass
+            log.critical("Serial error while writing, check the connection")
+            return ""
 
         try:
             return s.readline().replace("\r\n", "")
-        except serial.serialutil.SerialException:
-            log.critical("Terminal error while communicating with Arduino.")
+        except serial.SerialException:
+            log.critical("Serial error while reading, check the connection")
             return ""
 
     def _close(self):
@@ -215,17 +211,17 @@ class Arduino(object):
             self.s.flush()
             self.s.close()
 
-    def getVersion(self, s=None):
+    def get_version(self, s=None):
         """Return the version of the connected Arduino"""
         
         return self._read(self._build_command("v"), s)
 
-    def getUUID(self, s=None):
+    def get_uuid(self, s=None):
         """Return the UUID of the connected Arduino"""
 
         return self._read(self._build_command("u"), s)
 
-    def digitalWrite(self, pin, value):
+    def digital_write(self, pin, value):
         """Sends digitalWrite command to digital pin on Arduino"""
         
         if value == 0 or str(value).upper() == "LOW" or str(value).upper() == "OFF":
@@ -238,7 +234,7 @@ class Arduino(object):
             
         self._write(self._build_command("d", pin, str(value)))
 
-    def analogWrite(self, pin, value):
+    def analog_write(self, pin, value):
         """Sends analogReadWrite command to pin on Arduino"""
         
         if value > 255:
@@ -248,7 +244,7 @@ class Arduino(object):
         
         self._write(self._build_command("a", pin, value))
 
-    def analogRead(self, pin):
+    def analog_read(self, pin):
         """Returns the value of a specified pin"""
         
         # Check that pin is in expected range
@@ -259,12 +255,12 @@ class Arduino(object):
         # When building command, don't use A
         return self._read(self._build_command("A", pin - 0xA0))
 
-    def digitalRead(self, pin):
+    def digital_read(self, pin):
         """Returns the value of a specified pin"""
         
         return self._read(self._build_command("D", pin))
         
-    def setSubscriptions(self, pins):
+    def set_subscriptions(self, pins):
         """Subscribe to a set of pins"""
         string = ""
         for pin in pins:
@@ -272,7 +268,7 @@ class Arduino(object):
         
         self._write(self._build_command("s", string))
         
-    def getSubscriptions(self):
+    def get_subscriptions(self):
         """Return values for subscriptions as a list"""
         array = []
         raw = self._read(self._build_command("S"))
@@ -281,11 +277,11 @@ class Arduino(object):
             
         return array
         
-    def displayWrite(self, device, data):
+    def display_write(self, device, data):
         """Sends command to 7-segment display"""
         self._write(self._build_command("7", device, data, False))
 
-    def bargraphWrite(self, device, red, green):
+    def bargraph_write(self, device, red, green):
         """Sends command to 24 LED bargraph"""
         
         if len(red) != 24 or len(green) != 24:
@@ -318,7 +314,7 @@ class Arduino(object):
         
         self._write(self._build_command("b", device, data, False))
 
-    def pinMode(self, pin, value):
+    def pin_mode(self, pin, value):
         """Sets I/O mode of pin"""
         
         if value == "OUTPUT":

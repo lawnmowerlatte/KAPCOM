@@ -13,17 +13,18 @@ import socket
 import time
 import json
 import threading
+import logging
 
 sys.path.append(os.getcwd() + "/pyksp")
 import pyksp
 
-from tools import *
 from arduino import Arduino
 from pin import DigitalIn, DigitalOut, AnalogIn, AnalogOut
 from mod import Mod
 from joy import Joy
 from bargraph import Bargraph
 from sevensegment import SevenSegment
+from tools import KAPCOMLog
 
 # Logging
 _log = KAPCOMLog("KAPCOM", logging.INFO)
@@ -279,10 +280,11 @@ class KAPCOM(object):
 
             log.debug(object_configuration)
 
-            if object_type == SevenSegment or object_type == Bargraph:
+            if object_type in [SevenSegment, Bargraph]:
                 return object_type(**object_configuration)
             else:
-                return object_type(self.arduino[arduino_id], **object_configuration)
+                object_configuration['arduino'] = self.arduino[arduino_id]
+                return object_type(**object_configuration)
 
         # Load all the objects!
         log.info("Loading objects from configuration")
@@ -363,12 +365,12 @@ class KAPCOM(object):
 
         self.daemon = None
 
-        print "=======[ Stats ]======="
-        print "Cycles:        %s" % self.cycles
+        print("=======[ Stats ]=======")
+        print("Cycles:        %s" % self.cycles)
 
         if self.cycles > 0:
-            print "Rate:          %.2fms" % (float(self.duration)*1000)
-            print "Frequency:     %.2fHz" % (1/float(self.duration))
+            print("Rate:          %.2fms" % (float(self.duration)*1000))
+            print("Frequency:     %.2fHz" % (1/float(self.duration)))
 
     def update(self):
         # Get list of joysticks currently configured
@@ -501,11 +503,12 @@ class KAPCOM(object):
 
                     try:
                         # If the display is present in the Arduino configuration
-                        index = self.configuration['modes']['displays'][self.mode['displays']][display.__class__.__name__].get(arduino_name)\
-                            .index(display.name)
+                        index = self.configuration['modes']['displays'][self.mode['displays']]\
+                            [display.__class__.__name__].get(arduino_name).index(display.name)
                         # Attach the display
                         display.attach(arduino, index)
-                        log.info("Attached " + display.__class__.__name__ + " display '" + display_name + "' to Arduino '" + arduino_name + "'")
+                        log.info("Attached " + display.__class__.__name__ + " display '" +
+                                 display_name + "' to Arduino '" + arduino_name + "'")
                         break
                     except (ValueError, AttributeError):
                         log.debug("Did not find display " + display.name + " for Arduino " + arduino_name)
@@ -519,8 +522,8 @@ class KAPCOM(object):
         :return: Datatype varies depending on the provided parameters
         """
 
-        log.info("Getting current display by: " + \
-                  "arduino=" + str(arduino) + ", type=" + str(display_type) + ", index=" + str(index))
+        log.info("Getting current display by: " +
+                 "arduino=" + str(arduino) + ", type=" + str(display_type) + ", index=" + str(index))
 
         if arduino is not None:
             uuid = self.arduino.get(arduino).uuid
@@ -669,11 +672,12 @@ class KAPCOM(object):
 def usage():
     """Print out a usage message"""
     
-    print "%s [-h] [-d level|--debug level] [-c file|--config file]" % sys.argv[0]
+    print("%s [-h] [-d level|--debug level] [-c file|--config file]" % sys.argv[0])
 
 
 def main(argv):
     """Create KAPCOM object, initialize and run."""
+    from tools import breakpoint
 
     filename = None
     opts, args = None, None

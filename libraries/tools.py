@@ -8,10 +8,6 @@ def breakpoint():
     
     from code import InteractiveConsole
     from inspect import currentframe
-    try:
-        import readline
-    except ImportError:
-        pass
 
     caller = currentframe().f_back
 
@@ -21,7 +17,7 @@ def breakpoint():
 
     shell = InteractiveConsole(env)
     shell.interact(
-        '* Break: {} ::: Line {}\n'
+        '* Break: {0} ::: Line {1}\n'
         '* Continue with Ctrl+D...'.format(
             caller.f_code.co_filename, caller.f_lineno
         )

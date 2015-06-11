@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-pyksp_git="https://github.com/lawnmowerlatte/pyksp.git"
+pyksp_git = "https://github.com/lawnmowerlatte/pyksp.git"
 
 try:
     import sys
@@ -11,19 +11,26 @@ try:
     import socket
     import atexit
     import json
-except:
+    import logging
+except ImportError:
     print("Failed to import necessary core modules.")
     exit()
+
+from tools import KAPCOMLog
+
+_log = KAPCOMLog("SevenSegment", logging.INFO)
+log = _log.log
 
 debugger = 6
 usecolor = False
 tryinstall = False
 
+
 def debug(message=None, level=debugger, newline=True, color=None):
     """Debugging log message"""
     
     if message is None:
-        message=""
+        message = ""
     
     if color is not None and usecolor is True:
         message = termcolor.colored(message, color)
@@ -34,10 +41,12 @@ def debug(message=None, level=debugger, newline=True, color=None):
         else:
             sys.stdout.write(message)
 
+
 def ok():
     """Print OK message"""
     debug("OK", color="green")
-    
+
+
 def fail(message=None, end=True):
     """Print fail message"""
     debug("Fail", color="red")
@@ -55,11 +64,11 @@ if platform.system() != 'Windows':
     try:
         import termcolor
         usecolor = True
-    except:
-        pass
+    except ImportError:
+        debug("Unable to import termcolor, using monochrome")
 
 debug("Checking Python version: ", newline=False)
-if ("2.7" in sys.version.partition(' ')[0]):
+if "2.7" in sys.version.partition(' ')[0]:
     ok()
 else:
     fail("Please use Python 2.7")
@@ -70,18 +79,18 @@ try:
     import pip
     tryinstall = True
     ok()
-except:
+except ImportError:
     fail(end=False)
     debug("Setup will continue, but will not be able to install packages automatically. Setup will fail if packages are missing.")
     
-# Opporunistically use termcolor if available
+# Opportunistically use termcolor if available
 if platform.system() != 'Windows':
     debug("Checking for termcolor: ", newline=False)
     try:
         import termcolor
         usecolor = True
         ok()
-    except:
+    except ImportError:
         fail(end=False)
         
         if tryinstall:
@@ -90,7 +99,7 @@ if platform.system() != 'Windows':
                 pip.main(["install", "-q", "termcolor"])
                 import termcolor
                 ok()
-            except:
+            except ImportError:
                 fail("Not required, continuing.", False)
         else:
             debug("Termcolor is not required, continuing.")
@@ -100,7 +109,7 @@ debug("Checking for PySerial: ", newline=False)
 try:
     import serial
     ok()
-except:
+except ImportError:
     fail(end=False)
     
     if tryinstall:
@@ -109,10 +118,28 @@ except:
             pip.main(["install", "-q", "pyserial"])
             import serial
             ok()
-        except:
+        except ImportError:
             fail("Installation failed, please install pyserial using pip.")
     else:
         fail("Please install pyserial using pip.")
+        
+debug("Checking for Flask: ", newline=False)
+try:
+    import flask
+    ok()
+except ImportError:
+    fail(end=False)
+    
+    if tryinstall:
+        debug("Installing Flask: ", newline=False)
+        try:
+            pip.main(["install", "-q", "flask"])
+            import serial
+            ok()
+        except ImportError:
+            fail("Installation failed, please install Flask using pip.")
+    else:
+        fail("Please install Flask using pip.")
 
 # Check for serial toolchain
 debug("Checking for serial tools: ", newline=False)
@@ -121,7 +148,7 @@ if platform.system() == 'Windows':
         import _winreg as winreg
         import itertools
         ok()
-    except:
+    except ImportError:
         fail(end=False)
         if tryinstall:
             debug("Installing winreg and itertools: ", newline=False)
@@ -131,7 +158,7 @@ if platform.system() == 'Windows':
                 import _winreg as winreg
                 import itertools
                 ok()
-            except:
+            except ImportError:
                 fail("Installation failed, please install winreg and itertools using pip.")
         else:
             fail("Please install winreg and itertools using pip.")
@@ -140,14 +167,14 @@ elif platform.system() == 'Darwin':
     try:
         from serial.tools import list_ports
         ok()
-    except:
+    except ImportError:
         fail("Not found, please install serial.tools using pip.")
 
 else:
     try:
         import glob
         ok()
-    except:
+    except ImportError:
         fail(end=False)
         if tryinstall:
             debug("Installing glob: ", newline=False)
@@ -155,17 +182,35 @@ else:
                 pip.main(["install", "-q", "glob"])
                 import glob
                 ok()
-            except:
+            except ImportError:
                 fail("Installation failed, please install glob using pip.")
         else:
             fail("Please install glob using pip.")
-        
+
+debug("Checking for PyAutoGUI: ", newline=False)
+try:
+    import pyautogui
+    ok()
+except ImportError:
+    fail(end=False)
+    if tryinstall:
+        debug("Installing pyautogui: ", newline=False)
+        try:
+            pip.main(["install", "-q", "pyautogui"])
+            import pyautogui
+            ok()
+        except ImportError:
+            fail("Installation failed, please install pyautogui using pip.")
+    else:
+            fail("Please install pyautogui using pip.")
+
 debug("Checking for pyksp: ", newline=False)
+
 try:
     sys.path.append("./pyksp")
     import pyksp
     ok()
-except:
+except ImportError:
     fail(end=False)
     if platform.system() != "Windows":
         debug("Trying to install pyksp: ", newline=False)
@@ -179,7 +224,7 @@ except:
                     fail("Clone failed.", False)
             else:
                 fail("Couldn't find git", False)
-        except:
+        except ImportError:
             fail("Installation failed", False)
     else:
         debug("Please install pyksp within the KAPCOM directory using git", False)
@@ -187,5 +232,4 @@ except:
         exit()
     
 debug()
-debug("Prerequisites met. Please run configure.py", color="green")
-    
+debug("Prerequisites met. Please run web.py", color="green")

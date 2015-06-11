@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Configuration</title>
+        <link href="{{ url_for('static', filename='css/configure.css') }}" rel="stylesheet" type="text/css">
+        <script src="{{ url_for('static', filename='js/jquery-2.1.4.js') }}"></script>
+        <script src="{{ url_for('static', filename='js/chart-1.0.2.js') }}"></script>
+        <script src="{{ url_for('static', filename='js/jquery-ui-1.11.4.js') }}"></script>
+        <script src="{{ url_for('static', filename='js/configure.js') }}"></script>
+    </head>
+    <body>
+        <div class="container" id="File-Manipulation">
+            <div class="module narrow" id="File-Selector"></div>
+            <div class="module" id="General-Settings"></div>
+        </div>
+        <div class="container" id="Arduino">
+            <div class="module narrow" id="Arduino-Selector"></div>
+            <div class="module" id="Arduino-Details"></div>
+        </div>
+        <div class="container" id="Displays">
+            <div class="module narrow" id="Display-Selector"></div>
+            <div class="module" id="Display-Details"></div>
+        </div>
+        <div class="container" id="Devices">
+            <div class="module narrow" id="Device-Selector"></div>
+            <div class="module" id="Device-Details"></div>
+        </div>
+        <div class="container" id="Device-Modes">
+            <div class="module narrow" id="Device-Mode-Selector"></div>
+            <div class="module" id="Device-Mode-Details"></div>
+        </div>
+
+        <div class="container" id="Display-Modes">
+            <div class="module narrow" id="Display-Mode-Selector"></div>
+            <div class="module" id="Display-Mode-Details"></div>
+        </div>
+    </body>
+</html>

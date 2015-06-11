@@ -1,1 +1,6 @@
 *.pyc
+pyksp/
+*.idea
+*.log
+logs/
+config/*.json

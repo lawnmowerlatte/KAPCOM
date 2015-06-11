@@ -1,3 +1,4 @@
+
 #include "LedControl.h"
 #include <Wire.h>
 #include <Adafruit_LEDBackpack.h>
@@ -6,10 +7,12 @@
 // Global Serial Reading
 String readLine;
 String nextLine;
+
 String subscriptions;
 int analogOffset = A0;
 
 String v = "KAPCOM v0.1";
+String u = "d257503a-f0ff-4854-b2ab-e41e65d05cc2";
 
 int DIN=14;
 int LOAD=15;
@@ -182,6 +185,10 @@ void getVersion() {
   Serial.println(v);
 }
 
+void getUUID() {
+  Serial.println(u);
+}
+
 void(* reset) (void) = 0;
 
 void serialEvent() {
@@ -244,6 +251,9 @@ void command(String read_) {
     case 'v':
       getVersion();
       break;
+    case 'u':
+      getUUID();
+      break;
     default:
       Serial.println("Unknown command: " + cmd);
   }
@@ -256,6 +266,11 @@ void setup()  {
   for (int i=0; i<BARGRAPH_COUNT; i++) {
     bargraphs[i] = Adafruit_24bargraph();
     bargraphs[i].begin(0x70+i);
+    
+    for (int j = 0; j < 24; j++) {
+      bargraphs[i].setBar(j, 0);
+    }
+    bargraphs[i].writeDisplay();
   }
   
   for (int i = 0; i < DISPLAY_COUNT; i++) {
@@ -267,8 +282,8 @@ void setup()  {
 
 void loop() {
   if (readLine !="") {
-    // Serial.println(readLine);
     command(readLine);
     readLine = "";
   }
 }
+

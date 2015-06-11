@@ -1,0 +1,127 @@
+:root {
+    --spacex-light-color: #8796b0;
+    --spacex-mid-color: #6b7da0;
+    --spacex-dark-color: #5b6d7f;
+    --spacex-break-point: 50%;
+    --spacex-highlight: #a2edf2;
+    --spacex-lowlight: #b5e8eb;
+    --spacex-shadow: #64758a;
+
+    --body-background: #778ba1;
+}
+
+body {
+    margin: 0px;
+    padding-left: 5px;
+    background: #778ba1;
+
+
+    font-family: Helvetica, Arial, sans;
+    font-size: 12px;
+    color: #eeeeee;
+}
+
+h3 {
+    margin: 5px auto 0 auto;
+}
+
+div {
+    float: left;
+    margin-right: 5px;
+    margin-bottom: 5px;
+    padding: 10px;
+}
+
+.container {
+    width: 100%;
+    margin:5px 0 -5px 0;
+    padding: 0px;
+}
+
+.module {
+    background: #8796b0; /* Old browsers */
+    background: -moz-linear-gradient(top,  #8796b0 0%, #6b7da0 72%, #5b6d7f 100%); /* FF3.6+ */
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#8796b0), color-stop(72%,#6b7da0), color-stop(100%,#5b6d7f)); /* Chrome,Safari4+ */
+    background: -webkit-linear-gradient(top,  #8796b0 0%,#6b7da0 72%,#5b6d7f 100%); /* Chrome10+,Safari5.1+ */
+    background: -o-linear-gradient(top,  #8796b0 0%,#6b7da0 72%,#5b6d7f 100%); /* Opera 11.10+ */
+    background: -ms-linear-gradient(top,  #8796b0 0%,#6b7da0 72%,#5b6d7f 100%); /* IE10+ */
+    background: linear-gradient(to bottom,  #8796b0 0%,#6b7da0 72%,#5b6d7f 100%); /* W3C */
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#8796b0', endColorstr='#5b6d7f',GradientType=0 ); /* IE6-9 */
+
+    border-right: 2px solid #64758a;
+    border-top: 1px solid #64758a;
+
+    width: 500px;
+    height: 210px;
+    overflow-y: hidden;;
+    overflow-x: hidden;
+
+    position: relative;
+}
+
+.module h4 {
+    text-align: center;
+    display: block;
+    margin: 0px;
+    padding: 0px;
+}
+
+.narrow {
+    width: 200px;
+}
+
+.section {
+    float: left;
+    width: 45%;
+}
+
+select {
+    display: block;
+    width: 150px;
+    margin-top: 5px;
+    font-size: 12px;
+}
+
+select.list {
+    width: 90%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+input {
+    display: block;
+    margin: 2px;
+    width: 143px;
+    margin-top: 5px;
+}
+
+input[type=checkbox] {
+    display: inline;
+    margin-left: -2px;
+}
+
+input.list-button {
+    display: block;
+
+    width: 90%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+input.update-button {
+    width: auto;
+    display: block;
+    position: absolute;
+    left: 5px;
+    right: 5px;
+    bottom: 5px;
+}
+
+label {
+    display: block;
+    float: left;
+    width: 110px;
+    font-weight: bold;
+    padding-top: 5px;
+    size: 12px;
+}

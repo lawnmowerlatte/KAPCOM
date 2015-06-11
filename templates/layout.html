@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>KAPCOM</title>
+        <link href="{{ url_for('static', filename='css/kapcom.css') }}" rel="stylesheet" type="text/css">
+        <script src="{{ url_for('static', filename='js/jquery-2.1.4.js') }}"></script>
+        <script src="{{ url_for('static', filename='js/chart-1.0.2.js') }}"></script>
+        <script src="{{ url_for('static', filename='js/jquery-ui-1.11.4.js') }}"></script>
+        <script src="{{ url_for('static', filename='js/kapcom.js') }}"></script>
+    </head>
+    <body>
+        <!--<header>-->
+
+        <!--</header>-->
+
+
+
+        <div id="container">
+            <div class="spacex" id="File-Selector"></div>
+
+            <div class="spacex" id="Status"></div>
+
+            <div class="spacex" id="Cycles">
+                <h4>Cycles</h4>
+                <canvas id="Cycles-Chart" width="200" height="200"></canvas>
+            </div>
+            <div class="spacex" id="Rate">
+                <h4>Rate</h4>
+                <canvas id="Rate-Chart" width="200" height="200"></canvas>
+            </div>
+            <div class="spacex" id="Frequency">
+                <h4>Frequency</h4>
+                <canvas id="Frequency-Chart" width="200" height="200"></canvas>
+            </div>
+
+            <div class="spacex" id="Bargraph"><img src="{{ url_for('static', filename='img/bargraph.png') }}" width="50px" /></div>
+
+            <div class="spacex" id="SevenSegment"><img src="{{ url_for('static', filename='img/sevensegment.png') }}" width="50px" /></div>
+
+            <div class="spacex" id="Display_Modes"></div>
+
+            <div class="spacex" id="Device_Modes"></div>
+        </div>
+    </body>
+</html>

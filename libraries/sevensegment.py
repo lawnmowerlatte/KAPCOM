@@ -1,75 +1,99 @@
 #!/usr/bin/python
 
-from arduino import arduino
+import sys
+import logging
 
-class display(object):
-    def __init__(self, arduino, name, api, device, options=None):
+from tools import KAPCOMLog
+
+# Logging
+_log = KAPCOMLog("SevenSegment", logging.WARN)
+log = _log.log
+
+
+class SevenSegment(object):
+    formats = [
+        "default"
+    ]
+
+    def __init__(self, name, api, options=None):
         """Initialize pin with parameters"""
         # Set core attributes
-        self._arduino       =   arduino
-        self.name           =   name
-        self.api            =   api
-        self.device         =   device
-        
+        self.device = None
+        self._arduino = None
+
+        self.name = name
+        self.api = api
+
         # Pre-set extra attributes
-        self._type          =   "default"
-        self._length        =   8
-        self._offset        =   0
-        self._decimals      =   3
-        self._pad           =   " "
-        
+        self._type = "default"
+        self._length = 8
+        self._offset = 0
+        self._decimals = 3
+        self._pad = " "
+
         # Override defaults with passed values
         if options:
             for key in options:
                 setattr(self, "_" + key, options[key])
-        
+
         # Set ephemeral values
-        self.value          =   "-" * self._length
-        self._lastvalue     =   "-" * self._length
-        
+        self.value = "-" * self._length
+        self._lastvalue = "-" * self._length
+
         # Run initial update
         self.update()
 
-    def _color(self, character, color):
+    @staticmethod
+    def _color(character, color):
         try:
             from termcolor import colored
+
             return colored(character, color)
-        except:
+        except ImportError:
             return character
 
+    def attach(self, arduino, device):
+        self._arduino = arduino
+        self.device = device
+
+    def detatch(self):
+        self._arduino = None
+        self.device = None
+
     def set(self, value):
-        self._lastvalue     =   self.value;
-        
+        log.debug("Setting seven-segment " + self.name + " " + str(value))
+
+        self._lastvalue = self.value
+
         if isinstance(value, str):
-            self.value      = float(value)
+            self.value = float(value)
         else:
-            self.value      = value
-        
+            self.value = int(value)
+
         self.format()
         self.update()
-        
+
     def update(self):
         self.write()
-        
+
     def printout(self):
         print "Display " + self.name
-        print self.toString()
-        
-    def toString(self):
+        print str(self)
+
+    def __str__(self):
         return "[" + self._color(self.value, "green") + "]"
-        
+
     def format(self):
         # Take the value passed and format it for the 8 digit seven-segment display
-        
+
         # Counter for exponents when using scientific notation
-        E           =   ""
-        exponent    =   0
-     
+        exponent = 0
+
         # Break the value into integer and decimal portions
-        value       =   '{0:f}'.format(self.value)
-        integer     =   value[:value.index('.')]
-        decimal     =   value[value.index('.')+1:]
-        
+        value = '{0:f}'.format(self.value)
+        integer = value[:value.index('.')]
+        decimal = value[value.index('.') + 1:]
+
         if len(integer) > self._length:
             significant = len(integer)
 
@@ -78,60 +102,60 @@ class display(object):
             # print "New Value:   " + value
             # print "Significant: " + str(significant)
             # print "Calculating..."
-            
+
             while significant + len(str(exponent)) + 1 > self._length:
-                exponent+=3
+                exponent += 3
                 significant = len(integer) - exponent
-                 
+
             # print "Exponent:    " + str(exponent)
             # print "Significant: " + str(significant)
-            
+
             formatted = value[:significant] + "E" + str(exponent)
-            
+
             # print "Formatted:   " + formatted
             decimals = self._length - len(formatted)
             # print "Decimals:    " + str(decimals)
             if decimals > 0:
-                 formatted = value[:significant] + "." + value[significant:significant+decimals] + "E" + str(exponent)
-              
-            # print "Reformatted: " + formatted
-        
+                formatted = value[:significant] + "." + value[significant:significant + decimals] + "E" + str(exponent)
+
+                # print "Reformatted: " + formatted
+
         elif len(integer) < self._length:
             # Fewer integers than can be displayed
             # Attempt to fill with decimals
-          
+
             # Truncate the decimals to fit on the display
-            decimal = decimal[:self._length-len(integer)]
-          
+            decimal = decimal[:self._length - len(integer)]
+
             # Truncate the decimals according to maximum decimal length
-            if (len(decimal) > self._decimals): 
+            if len(decimal) > self._decimals:
                 decimal = decimal[:self._decimals]
-              
+
             # Create formatted string
             formatted = integer + "." + decimal
-          
+
         else:
             # Integers fill display
-            formatted = integer + ".";
-         
+            formatted = integer + "."
+
         # Pad string if it's too short
         if len(formatted.replace(".", "")) < self._length:
             for i in range(0, self._length - len(formatted.replace(".", ""))):
                 formatted = self._pad + formatted
-     
+
         # Final check for string length
         if len(formatted.replace(".", "")) != self._length:
             # Print a debug message
-            print("Something went wrong while formatting: " + str(self.value) + " >> " + formatted)
-              
+            log.warn("Something went wrong while formatting: " + str(self.value) + " >> " + formatted)
+
             # Set the display to dashes
-            formatted = "-" * self._length;
-        
+            formatted = "-" * self._length
+
         self.value = formatted
 
     def write(self):
         if self.value != self._lastvalue:
-            self._arduino.displayWrite(self.device, self.value)
+            self._arduino.display_write(self.device, self.value)
 
 
 # #####################################
@@ -139,63 +163,34 @@ class display(object):
 # #####################################
 
 
-def breakpoint():
-    """Python debug breakpoint."""
-    
-    from code import InteractiveConsole
-    from inspect import currentframe
-    try:
-        import readline # noqa
-    except ImportError:
-        pass
-
-    caller = currentframe().f_back
-
-    env = {}
-    env.update(caller.f_globals)
-    env.update(caller.f_locals)
-
-    shell = InteractiveConsole(env)
-    shell.interact(
-        '* Break: {} ::: Line {}\n'
-        '* Continue with Ctrl+D...'.format(
-            caller.f_code.co_filename, caller.f_lineno
-        )
-    )
-
-
 def main():
-    a = arduino()
-    d0 = display(a, "Test", "test", 0)
-    d1 = display(a, "Test", "test", 1)
-    d2 = display(a, "Test", "test", 2)
-    d3 = display(a, "Test", "test", 3)
-    d4 = display(a, "Test", "test", 4)
-    
+    from arduino import Arduino
+    from tools import breakpoint
+
+    a = Arduino("Test")
+    d = SevenSegment(a, "Test", "test")
+
     import time
-    
+
     value = .00000012345678
-    
-    for i in range(0,20):
-        d0.set(value)
-        d1.set(value)
-        d2.set(value)
-        d3.set(value)
-        d4.set(value)
-        
-        print d0.toString()
-        
+
+    for i in range(0, 20):
+        d.set(value)
+
+        print str(d)
+
         value *= 10
         time.sleep(1)
-    
-    # breakpoint()
 
-if __name__ == "__main__":    
+        breakpoint()
+
+
+if __name__ == "__main__":
     try:
         main()
     except KeyboardInterrupt:
         sys.exit(0)
     except EOFError:
         sys.exit(0)
-    # except:
-    #     sys.exit(0)
+        # except:
+        # sys.exit(0)

@@ -1,7 +1,8 @@
-*.pyc
 pyksp/
+logs/
+venv/
+config/
+*.pyc
 *.idea
 *.log
-logs/
-config/*.json
 .coverage

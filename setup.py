@@ -144,4 +144,4 @@ except ImportError:
         exit(1)
     
 print()
-log.info("Prerequisites met. Please run web.py")
+log.info("Prerequisites met. Please run KAPCOM.py")

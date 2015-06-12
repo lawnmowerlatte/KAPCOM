@@ -10,6 +10,6 @@ coveralls
 
 # Optional
 termcolor
-glob
+#glob
 winreg
 itertools

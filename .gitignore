@@ -4,3 +4,4 @@ pyksp/
 *.log
 logs/
 config/*.json
+.coverage

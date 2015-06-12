@@ -1,0 +1,15 @@
+# Required
+pyserial
+pyautogui
+flask
+
+# Testing
+pytest
+pytest-cov
+coveralls
+
+# Optional
+termcolor
+glob
+winreg
+itertools

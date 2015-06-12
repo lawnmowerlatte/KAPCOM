@@ -43,15 +43,6 @@ class SevenSegment(object):
         # Run initial update
         self.update()
 
-    @staticmethod
-    def _color(character, color):
-        try:
-            from termcolor import colored
-
-            return colored(character, color)
-        except ImportError:
-            return character
-
     def attach(self, arduino, device):
         self._arduino = arduino
         self.device = device
@@ -81,7 +72,7 @@ class SevenSegment(object):
         print str(self)
 
     def __str__(self):
-        return "[" + self._color(self.value, "green") + "]"
+        return "[" + self.value + "]"
 
     def format(self):
         # Take the value passed and format it for the 8 digit seven-segment display

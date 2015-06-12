@@ -57,14 +57,6 @@ class Bargraph(object):
         # Run initial update
         self.update()
 
-    @staticmethod
-    def _color(character, color):
-        try:
-            from termcolor import colored
-            return colored(character, color)
-        except ImportError:
-            return character
-
     def attach(self, arduino, device):
         self._arduino = arduino
         self.device = device
@@ -104,11 +96,11 @@ class Bargraph(object):
         
         for i in range(0, 24):
             if self.red[i] and self.green[i]:
-                c = self._color(char, "yellow")
+                c = "Y"
             elif self.red[i]:
-                c = self._color(char, "red")
+                c = "R"
             elif self.green[i]:
-                c = self._color(char, "green")
+                c = "G"
             else:
                 c = " "
             

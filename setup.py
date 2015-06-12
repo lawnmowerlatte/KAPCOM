@@ -18,218 +18,130 @@ except ImportError:
 
 from tools import KAPCOMLog
 
-_log = KAPCOMLog("SevenSegment", logging.INFO)
+_log = KAPCOMLog("Setup", logging.INFO)
 log = _log.log
 
-debugger = 6
-usecolor = False
 tryinstall = False
 
-
-def debug(message=None, level=debugger, newline=True, color=None):
-    """Debugging log message"""
-    
-    if message is None:
-        message = ""
-    
-    if color is not None and usecolor is True:
-        message = termcolor.colored(message, color)
-    
-    if level <= debugger:
-        if newline:
-            print(message) 
-        else:
-            sys.stdout.write(message)
-
-
-def ok():
-    """Print OK message"""
-    debug("OK", color="green")
-
-
-def fail(message=None, end=True):
-    """Print fail message"""
-    debug("Fail", color="red")
-    if message is not None:
-        if end:
-            debug()
-            debug(message, color="red")
-            exit()
-        else:
-            debug(message, newline=False)
-
-# If termcolor is already installed, use it from the start
-# We'll try to install it later if not...
-if platform.system() != 'Windows':
-    try:
-        import termcolor
-        usecolor = True
-    except ImportError:
-        debug("Unable to import termcolor, using monochrome")
-
-debug("Checking Python version: ", newline=False)
+log.info("Checking Python version")
 if "2.7" in sys.version.partition(' ')[0]:
-    ok()
+    log.info("OK")
 else:
-    fail("Please use Python 2.7")
+    log.critical("Failed")
+    log.critical("Please use Python 2.7")
+    exit(1)
 
 # Check for pip
-debug("Checking for pip: ", newline=False)
+log.info("Checking for pip")
 try:
     import pip
     tryinstall = True
-    ok()
+    log.info("OK")
 except ImportError:
-    fail(end=False)
-    debug("Setup will continue, but will not be able to install packages automatically. Setup will fail if packages are missing.")
-    
-# Opportunistically use termcolor if available
-if platform.system() != 'Windows':
-    debug("Checking for termcolor: ", newline=False)
-    try:
-        import termcolor
-        usecolor = True
-        ok()
-    except ImportError:
-        fail(end=False)
-        
-        if tryinstall:
-            debug("Installing termcolor: ", newline=False)
-            try:
-                pip.main(["install", "-q", "termcolor"])
-                import termcolor
-                ok()
-            except ImportError:
-                fail("Not required, continuing.", False)
-        else:
-            debug("Termcolor is not required, continuing.")
-    
+    log.error("Failed.")
+    log.error("Setup will continue, but will not be able to install packages automatically. Setup will fail if packages are missing.")
+
 # Check for PySerial
-debug("Checking for PySerial: ", newline=False)
+log.info("Checking for PySerial")
 try:
     import serial
-    ok()
+    log.info("OK")
 except ImportError:
-    fail(end=False)
+    log.warn("Failed")
     
     if tryinstall:
-        debug("Installing PySerial: ", newline=False)
+        log.info("Installing PySerial")
         try:
             pip.main(["install", "-q", "pyserial"])
             import serial
-            ok()
+            log.info("Success")
         except ImportError:
-            fail("Installation failed, please install pyserial using pip.")
+            log.critical("Failed")
+            log.critical("Installation failed, please install pyserial using pip.")
+            exit(1)
     else:
-        fail("Please install pyserial using pip.")
+        log.critical("Failed")
+        log.critical("Please install pyserial using pip.")
+        exit(1)
         
-debug("Checking for Flask: ", newline=False)
+log.info("Checking for Flask")
 try:
     import flask
-    ok()
+    log.info("OK")
 except ImportError:
-    fail(end=False)
-    
+    log.warn("Failed")
+
     if tryinstall:
-        debug("Installing Flask: ", newline=False)
+        log.info("Installing Flask")
         try:
             pip.main(["install", "-q", "flask"])
-            import serial
-            ok()
+            import flask
+            log.info("OK")
         except ImportError:
-            fail("Installation failed, please install Flask using pip.")
+            log.critical("Failed")
+            log.critical("Installation failed, please install flask using pip.")
+            exit(1)
     else:
-        fail("Please install Flask using pip.")
+        log.critical("Failed")
+        log.critical("Please install flask using pip.")
+        exit(1)
 
-# Check for serial toolchain
-debug("Checking for serial tools: ", newline=False)
-if platform.system() == 'Windows':
-    try:
-        import _winreg as winreg
-        import itertools
-        ok()
-    except ImportError:
-        fail(end=False)
-        if tryinstall:
-            debug("Installing winreg and itertools: ", newline=False)
-            try:
-                pip.main(["install", "-q", "winreg"])
-                pip.main(["install", "-q", "itertools"])
-                import _winreg as winreg
-                import itertools
-                ok()
-            except ImportError:
-                fail("Installation failed, please install winreg and itertools using pip.")
-        else:
-            fail("Please install winreg and itertools using pip.")
-
-elif platform.system() == 'Darwin':
-    try:
-        from serial.tools import list_ports
-        ok()
-    except ImportError:
-        fail("Not found, please install serial.tools using pip.")
-
-else:
-    try:
-        import glob
-        ok()
-    except ImportError:
-        fail(end=False)
-        if tryinstall:
-            debug("Installing glob: ", newline=False)
-            try:
-                pip.main(["install", "-q", "glob"])
-                import glob
-                ok()
-            except ImportError:
-                fail("Installation failed, please install glob using pip.")
-        else:
-            fail("Please install glob using pip.")
-
-debug("Checking for PyAutoGUI: ", newline=False)
+log.info("Checking for PyAutoGUI")
 try:
     import pyautogui
-    ok()
+    log.info("OK")
 except ImportError:
-    fail(end=False)
+    log.warn("Failed")
+
     if tryinstall:
-        debug("Installing pyautogui: ", newline=False)
+        log.info("Installing pyautogui")
         try:
             pip.main(["install", "-q", "pyautogui"])
             import pyautogui
-            ok()
+            log.info("OK")
         except ImportError:
-            fail("Installation failed, please install pyautogui using pip.")
+            log.critical("Failed")
+            log.critical("Installation failed, please install pyautogui using pip.")
+            exit(1)
     else:
-            fail("Please install pyautogui using pip.")
+        log.critical("Failed")
+        log.critical("Please install pyautogui using pip.")
+        exit(1)
 
-debug("Checking for pyksp: ", newline=False)
-
+log.info("Checking for pyksp")
 try:
     sys.path.append("./pyksp")
     import pyksp
-    ok()
+    log.info("OK")
 except ImportError:
-    fail(end=False)
     if platform.system() != "Windows":
-        debug("Trying to install pyksp: ", newline=False)
+        log.warn("Failed")
+
+        log.info("Trying to install pyksp")
         try:
             if os.system("which git 2>&1 > /dev/null") == 0:
                 if os.system("git clone -q " + pyksp_git + "  2>&1 > /dev/null") == 0:
                     sys.path.append("./pyksp")
                     import pyksp
-                    ok()
+                    log.info("OK")
                 else:
-                    fail("Clone failed.", False)
+                    log.critical("Fail")
+                    log.critical("Clone failed")
+                    exit(1)
             else:
-                fail("Couldn't find git", False)
+                log.critical("Fail")
+                log.critical("Couldn't find git binary")
+                exit(1)
         except ImportError:
-            fail("Installation failed", False)
+            log.critical("Fail")
+            log.critical("Installation failed, please install pyksp from GitHub manually.")
+            log.info("git clone -q " + pyksp_git)
+            exit(1)
     else:
-        debug("Please install pyksp within the KAPCOM directory using git", False)
-        debug("git clone -q " + pyksp_git)
-        exit()
+        log.critical("Fail")
+        log.critical("Installation failed, please install pyksp from GitHub manually.")
+        log.info("git clone -q " + pyksp_git)
+        exit(1)
     
-debug()
-debug("Prerequisites met. Please run web.py", color="green")
+print()
+log.info("Prerequisites met. Please run web.py")

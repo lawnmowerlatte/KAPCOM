@@ -2,7 +2,11 @@ from abc import ABCMeta, abstractmethod
 from datetime import datetime
 import sys
 import logging
-import pyautogui
+
+try:
+    import pyautogui
+except ImportError:
+    print("Pyautogui not found. Keypresses will not work.")
 
 from tools import KAPCOMLog
 
@@ -121,7 +125,10 @@ class _Pin(object):
         # Try to run the lambda specified by _format
         f = displays.get(self.format)
         if f is not None:
-            return f(self.value)
+            try:
+                return f(self.value)
+            except NameError:
+                return
         else:
             log.warn('Format not found "{0}"'.format(self.format))
             return ""

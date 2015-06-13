@@ -1,7 +1,11 @@
 import sys
 import logging
-import pyautogui
 from datetime import datetime
+
+try:
+    import pyautogui
+except ImportError:
+    print("Pyautogui not found. Keypresses will not work.")
 
 from pin import DigitalIn, DigitalOut
 from tools import KAPCOMLog
@@ -64,7 +68,10 @@ class Mod(object):
         # Try to run the lambda specified by _format
         f = displays.get(self._format)
         if f is not None:
-            return f(self.value)
+            try:
+                return f(self.value)
+            except NameError:
+                return
         else:
             log.warn('Format not found "{0}"'.format(self._format))
             return ""

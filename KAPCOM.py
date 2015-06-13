@@ -9,6 +9,8 @@ from flask import Flask, request, render_template, redirect, url_for
 
 sys.path.append(os.getcwd() + "/libraries")
 from kapcom import KAPCOM
+from bargraph import Bargraph
+from sevensegment import SevenSegment
 
 # Logging
 _name = "KAPCOM Interface"
@@ -35,32 +37,35 @@ configuration = {
 }
 k = None
 
+
 @app.route("/configure")
 def configure():
     return render_template('configure.html')
 
+
 @app.route("/configure/file_<string:action>")
 def configure_file_api(action):
     global configuration
-    data = ""
     code = 200
 
     json_files = [f for f in os.listdir("./config") if '.json' in f]
 
     if request.method == 'GET':
-        file = request.args.get("file")
+        filename = request.args.get("file")
     elif request.method == 'POST':
-        file = request.form.get("file")
+        filename = request.form.get("file")
+    else:
+        filename = ""
 
-    if file == "":
+    if filename == "":
         return "false", 405
 
-    if file is not None and not file.endswith(".json"):
-        file += ".json"
+    if filename is not None and not filename.endswith(".json"):
+        filename += ".json"
 
     if action == "load":
-        if file is not None:
-            configuration['file'] = file
+        if filename is not None:
+            configuration['file'] = filename
 
             with open(configuration['file'], 'r') as f:
                 configuration['data'] = json.load(f)
@@ -76,8 +81,8 @@ def configure_file_api(action):
         data = True
 
     elif action == "save_as":
-        if file is not None and file not in json_files:
-            configuration['file'] = file
+        if filename is not None and filename not in json_files:
+            configuration['file'] = filename
 
             with open(configuration['file'], 'w') as f:
                 json.dump(configuration['data'], f, sort_keys=True, indent=4, separators=(',', ': '))
@@ -88,7 +93,7 @@ def configure_file_api(action):
             code = 405
 
     elif action == "new":
-        if file is not None and file not in json_files:
+        if filename is not None and filename not in json_files:
             data = {
                 "arduino": {},
                 "configuration": {
@@ -105,7 +110,7 @@ def configure_file_api(action):
                 }
             }
 
-            with open(file, 'w') as f:
+            with open(filename, 'w') as f:
                 json.dump(data, f, sort_keys=True, indent=4, separators=(',', ': '))
 
             data = True
@@ -120,7 +125,7 @@ def configure_file_api(action):
         data = configuration['file']
 
     elif action == "delete":
-        os.remove(file)
+        os.remove(filename)
         data = True
 
     else:
@@ -129,18 +134,18 @@ def configure_file_api(action):
 
     return json.dumps(data), code
 
+
 @app.route("/configure/get_<string:action>")
 def configure_get_api(action):
     global configuration
-    data = ""
     code = 200
 
     if request.method == 'GET':
         name = request.args.get("name")
-        type = request.args.get("type")
+        object_type = request.args.get("type")
     elif request.method == 'POST':
         name = request.form.get("name")
-        type = request.form.get("type")
+        object_type = request.form.get("type")
     else:
         return "", 405
 
@@ -158,9 +163,9 @@ def configure_get_api(action):
         else:
             return "", 405
 
-    elif type is not None and type != "" and type != "null":
+    elif object_type is not None and object_type != "" and object_type != "null":
         if action == "display":
-            data = [x for x in configuration["data"]["configuration"]["displays"] if x['type'] == type]
+            data = [x for x in configuration["data"]["configuration"]["displays"] if x['type'] == object_type]
         else:
             return "", 405
 
@@ -187,6 +192,7 @@ def configure_get_api(action):
 
     return json.dumps(data), code
 
+
 @app.route("/configure/set_<string:action>")
 def configure_set_api(action):
     global configuration
@@ -209,7 +215,7 @@ def configure_set_api(action):
         else:
             try:
                 configuration['data'].pop('host')
-            except:
+            except KeyError:
                 log.debug("Unable to find key 'host'")
 
         if port is not None and port != "":
@@ -217,7 +223,7 @@ def configure_set_api(action):
         else:
             try:
                 configuration['data'].pop('port')
-            except:
+            except KeyError:
                 log.debug("Unable to find key 'port'")
 
         if baud is not None and baud != "":
@@ -225,7 +231,7 @@ def configure_set_api(action):
         else:
             try:
                 configuration['data'].pop('baud')
-            except:
+            except KeyError:
                 log.debug("Unable to find key 'baud'")
 
         if headless == "on":
@@ -233,7 +239,7 @@ def configure_set_api(action):
         else:
             try:
                 configuration['data'].pop('headless')
-            except:
+            except KeyError:
                 log.debug("Unable to find key 'headless'")
 
         if default_display_mode is not None:
@@ -247,7 +253,6 @@ def configure_set_api(action):
             configuration["data"]["modes"]["default"]["devices"] = ""
 
         data = True
-
 
     elif action == "arduino":
         key = request.args.get("key")
@@ -268,7 +273,7 @@ def configure_set_api(action):
         else:
             try:
                 configuration['data']['arduino'][name].pop('uuid')
-            except:
+            except KeyError:
                 log.debug("Unable to find key 'uuid'")
 
         if bargraphs is not None:
@@ -276,7 +281,7 @@ def configure_set_api(action):
         else:
             try:
                 configuration['data']['arduino'][name].pop('bargraphs')
-            except:
+            except KeyError:
                 log.debug("Unable to find key 'bargraphs'")
 
         if sevensegments is not None:
@@ -284,13 +289,13 @@ def configure_set_api(action):
         else:
             try:
                 configuration['data']['arduino'][name].pop('sevensegments')
-            except:
+            except KeyError:
                 log.debug("Unable to find key 'sevensegments'")
 
         if default != "on":
             try:
                 configuration['data']['arduino'][name].pop('default')
-            except:
+            except KeyError:
                 log.debug("Unable to find key 'default'")
         else:
             configuration['data']['arduino'][name]['default'] = True
@@ -298,7 +303,7 @@ def configure_set_api(action):
     elif action == "display":
         key = request.args.get("key")
         name = request.args.get("name")
-        type = request.args.get("type")
+        object_type = request.args.get("type")
         api = request.args.get("api")
         max_api = request.args.get("max_api")
         max_value = request.args.get("max_value")
@@ -311,40 +316,40 @@ def configure_set_api(action):
         if name != key and name is not None and name != "":
             display['name'] = name
 
-        if type is not None:
-            display['type'] = type
+        if object_type is not None:
+            display['type'] = object_type
 
         if api is not None:
             display['api'] = api
 
-        if type == "Bargraph":
+        if object_type == "Bargraph":
             if max_api is not None:
                 try:
                     display['options'].pop('max_value')
-                except:
+                except KeyError:
                     log.debug("Unable to find key 'max_value'")
                 display['options']['max_api'] = max_api
             elif max_value is not None:
                 try:
                     display['options'].pop('max_api')
-                except:
+                except KeyError:
                     log.debug("Unable to find key 'max_api'")
                 display['options']['max_value'] = max_value
         else:
             try:
                 display['options'].pop('max_api')
-            except:
+            except KeyError:
                 log.debug("Unable to find key 'max_api'")
 
             try:
                 display['options'].pop('max_value')
-            except:
+            except KeyError:
                 log.debug("Unable to find key 'max_value'")
 
     elif action == "device":
         key = request.args.get("key")
         name = request.args.get("name")
-        type = request.args.get("type")
+        object_type = request.args.get("type")
         api = request.args.get("api")
         pin = request.args.get("pin")
         x = request.args.get("x")
@@ -362,8 +367,8 @@ def configure_set_api(action):
         if name != key and name is not None and name != "":
             device['name'] = name
 
-        if type is not None:
-            device['type'] = type
+        if object_type is not None:
+            device['type'] = object_type
 
         if api is not None:
             device['api'] = api
@@ -374,12 +379,12 @@ def configure_set_api(action):
             except KeyError:
                 log.debug("Unable to find key '" + x + "'")
 
-        if type == "Joy":
+        if object_type == "Joy":
             device['x'] = x
             device['y'] = y
             device['z'] = z
             device['button'] = button
-        elif type == "Mod":
+        elif object_type == "Mod":
             device['modifier'] = modifier
             device['indicator'] = indicator
             device['button'] = button
@@ -424,10 +429,10 @@ def configure_set_api(action):
 
     return json.dumps(data), code
 
+
 @app.route("/configure/delete_<string:action>")
 def configure_delete_api(action):
     global configuration
-    data = ""
     code = 200
 
     if request.method == 'GET':
@@ -458,10 +463,10 @@ def configure_delete_api(action):
 
     return json.dumps(data), code
 
+
 @app.route("/configure/new_<string:action>")
 def configure_new_api(action):
     global configuration
-    data = ""
     code = 200
 
     if request.method == 'GET':
@@ -514,6 +519,7 @@ def configure_new_api(action):
         return False, 405
 
     return json.dumps(data), code
+
 
 @app.route("/api/<string:action>", methods=['GET', 'POST'])
 def api(action):
@@ -587,7 +593,7 @@ def api(action):
             display_type = request.args.get("type")
             try:
                 index = int(request.args.get("index"))
-            except:
+            except KeyError:
                 index = None
         else:
             return "", 405
@@ -631,7 +637,6 @@ def api(action):
         data = k.get_display(name)
         page = json.dumps(data)
 
-
     elif action == "get_available_formats":
         if request.args["type"] == "SevenSegment":
             page = json.dumps(SevenSegment.formats)
@@ -645,8 +650,10 @@ def api(action):
         if request.method == "GET":
             name = request.args["name"]
             new_format = request.args["format"]
+        else:
+            return "", 400
 
-        display = k.displays.get(name)\
+        display = k.displays.get(name)
 
         display._type = new_format
 
@@ -661,6 +668,7 @@ def api(action):
 
     return page, code
 
+
 @app.route("/")
 def run():
     return render_template('layout.html')
@@ -674,9 +682,10 @@ def usage():
 
 def main(argv):
     """Create KAPCOM object, initialize and run."""
-    global k, a
+    global k
     filename = None
 
+    opts, args = None, None
     try:
         opts, args = getopt.getopt(argv, "hd:c:", ["help", "debug=", "config="])
     except getopt.GetoptError:

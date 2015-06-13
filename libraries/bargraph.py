@@ -24,20 +24,20 @@ class Bargraph(object):
         """Initialize pin with parameters"""
         # Set core attributes
         self.device = None
-        self._arduino = None
+        self.arduino = None
 
         self.name = name
         self.api = api
         
         # Pre-set extra attributes
-        self._type = "delta"
-        self._max = 100
-        self._showdelta = 60*1000
+        self.type = "delta"
+        self.max = 100
+        self.showdelta = 60*1000
         
         # Override defaults with passed values
         if options:
             for key in options:
-                setattr(self, "_" + key, options[key])
+                setattr(self, key, options[key])
         
         # Set ephemeral values
         self.value = 0
@@ -51,25 +51,31 @@ class Bargraph(object):
         self._lastred = [False] * 24
         self._lastgreen = [False] * 24
         
-        for i in range(self._max, 0):
+        for i in range(self.max, 0):
             self.set(i)
         
         # Run initial update
         self.update()
 
     def attach(self, arduino, device):
-        self._arduino = arduino
+        self.arduino = arduino
         self.device = device
 
     def detatch(self):
-        self._arduino = None
+        self.arduino = None
         self.device = None
+
+    def is_attached(self):
+        if self.arduino is not None and self.device is not None:
+            return True
+        else:
+            return False
 
     def set(self, value, new_max=None):
         log.debug("Setting bargraph " + self.name + " " + str(value) + "/" + str(new_max))
 
         if new_max is not None:
-            self._max = new_max
+            self.max = new_max
 
         try:
             value = int(value)
@@ -87,12 +93,11 @@ class Bargraph(object):
         self.write()
         
     def printout(self):
-        print "Bargraph " + self.name + " (Type = " + self._type + ")"
+        print "Bargraph " + self.name + " (Type = " + self.type + ")"
         print str(self)
         
     def __str__(self):
         bar = "["
-        char = "|"
         
         for i in range(0, 24):
             if self.red[i] and self.green[i]:
@@ -119,7 +124,7 @@ class Bargraph(object):
                 self.green[i] = False
         
         def default():
-            percent = float(self.value) * 100 / self._max
+            percent = float(self.value) * 100 / self.max
             
             for i in range(0, min(24, int(24*percent/100))):
                 if percent > 50:
@@ -132,7 +137,7 @@ class Bargraph(object):
                     self.red[i] = True
         
         def rainbow():
-            percent = float(self.value) * 100 / self._max
+            percent = float(self.value) * 100 / self.max
             
             for i in range(0, min(24, int(24*percent/100))):
                 if i > 12:
@@ -145,19 +150,19 @@ class Bargraph(object):
                     self.red[i] = True
         
         def red():
-            percent = float(self.value) * 100 / self._max
+            percent = float(self.value) * 100 / self.max
             
             for i in range(0, min(24, int(24*percent/100))):
                 self.red[i] = True
                 
         def green():
-            percent = float(self.value) * 100 / self._max
+            percent = float(self.value) * 100 / self.max
             
             for i in range(0, min(24, int(24*percent/100))):
                 self.green[i] = True
                 
         def yellow():
-            percent = float(self.value) * 100 / self._max
+            percent = float(self.value) * 100 / self.max
             
             for i in range(0, min(24, int(24*percent/100))):
                 self.red[i] = True
@@ -165,11 +170,10 @@ class Bargraph(object):
         
         def delta():
             green()
-            
-            percent = float(self.value) * 100 / self._max
+            percent = float(self.value) * 100 / self.max
             changepermilli = float(self.value-self._lastvalue)/(self._delta.total_seconds()*1000)
-            projectedchange = changepermilli * self._showdelta
-            percentchange = projectedchange / self._max
+            projectedchange = changepermilli * self.showdelta
+            percentchange = projectedchange / self.max
             
             if percentchange > 0:
                 for i in range(min(24, int(24*percent/100)), min(24, int(24*(percent+percentchange)/100))):
@@ -182,13 +186,13 @@ class Bargraph(object):
             
         clear()
         
-        if self.value < 0 or self._max < 0:
-            self._arduino.bargraph_write(self.device, self.red, self.green)
+        if self.value < 0 or self.max <= 0:
+            self.arduino.bargraph_write(self.device, self.red, self.green)
             return
         
-        f = locals().get(self._type)
+        f = locals().get(self.type)
         if not f:
-            log.error("Unknown type: " + self._type)
+            log.error("Unknown type: " + self.type)
             return
 
         try:
@@ -200,7 +204,33 @@ class Bargraph(object):
         if cmp(self.red, self._lastred) == 0 and cmp(self.green, self._lastgreen) == 0:
             log.debug("No change in display, skipping update")
         else:
-            self._arduino.bargraph_write(self.device, self.red, self.green)
+            self.arduino.bargraph_write(self.device, self.red, self.green)
+
+    def get_data(self):
+        if self.is_attached():
+            data = {
+                "Name": self.name,
+                "API": self.api,
+                "Type": "Bargraph",
+                "Format": self.type,
+                "Value": self.value,
+                "Arduino": self.arduino.name,
+                "Device": self.device,
+                "Max": self.max
+            }
+        else:
+            data = {
+                "Name": self.name,
+                "API": self.api,
+                "Type": "Bargraph",
+                "Format": self.type,
+                "Value": self.value,
+                "Arduino": "None",
+                "Device": "None",
+                "Max": self.max
+            }
+
+        return data
 
 
 # #####################################

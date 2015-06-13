@@ -18,9 +18,9 @@ class Mod(object):
         """Initialize modifier with parameters"""
 
         # Set core attributes
-        self.mod = DigitalIn({arduino, name + " Modifier", "", modifier, options.get('modifier')})
-        self.indicator = DigitalOut({arduino, name + " Indicator", "", indicator, options.get('indicator')})
-        self.button = DigitalIn({arduino, name + " Button", "", button, options.get('button')})
+        self.mod = DigitalIn(arduino, name + " Modifier", "", modifier, options.get('modifier'))
+        self.indicator = DigitalOut(arduino, name + " Indicator", "", indicator, options.get('indicator'))
+        self.button = DigitalIn(arduino, name + " Button", "", button, options.get('button'))
 
         self.name = name
         self.api = api
@@ -28,6 +28,7 @@ class Mod(object):
         # Pre-set extra attributes
         self._format = "value"
         self._initial = 0
+        self._key = ""
 
         # Override defaults with passed values
         if options:
@@ -56,8 +57,6 @@ class Mod(object):
             "false": lambda x: ("", "False")[x],
             "zero": lambda x: ("0", "")[x],
             "one": lambda x: ("1", "")[x],
-            "floatpoint": lambda x: str(float(x) / self._max),
-            "percent": lambda x: str(float(x) / self._max * 100),
             "key": lambda x: pyautogui.press(self._key) if x == 1 else False
         }
 

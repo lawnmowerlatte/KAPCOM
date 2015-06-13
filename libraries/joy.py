@@ -44,10 +44,10 @@ class Joy(object):
             z_options = None
 
         # Set core attributes
-        self.x = AnalogIn({arduino, name + ":X", "", x, x_options})
-        self.y = AnalogIn({arduino, name + ":Y", "", y, y_options})
-        self.z = AnalogIn({arduino, name + ":Z", "", z, z_options})
-        self.button = DigitalIn({arduino, name + " Button", "", button, button_options})
+        self.x = AnalogIn(arduino, name + ":X", "", x, x_options)
+        self.y = AnalogIn(arduino, name + ":Y", "", y, y_options)
+        self.z = AnalogIn(arduino, name + ":Z", "", z, z_options)
+        self.button = DigitalIn(arduino, name + " Button", "", button, button_options)
 
         self.name = name
         self.api = api

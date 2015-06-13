@@ -425,9 +425,9 @@ class KAPCOM(object):
 
         # Iterate across displays
         for display_name, display in self.displays.iteritems():
-            if display._arduino is not None:
+            if display.arduino is not None:
                 if type(display) == Bargraph:
-                    display.set(self.get_telemetry(display.api), self.get_telemetry(display._max_api))
+                    display.set(self.get_telemetry(display.api), self.get_telemetry(display.max_api))
 
                 elif type(display) == SevenSegment:
                     display.set(self.get_telemetry(display.api))
@@ -503,8 +503,8 @@ class KAPCOM(object):
 
                     try:
                         # If the display is present in the Arduino configuration
-                        index = self.configuration['modes']['displays'][self.mode['displays']]\
-                            [display.__class__.__name__].get(arduino_name).index(display.name)
+                        display_list = self.configuration['modes']['displays'][self.mode['displays']]
+                        index = display_list[display.__class__.__name__].get(arduino_name).index(display.name)
                         # Attach the display
                         display.attach(arduino, index)
                         log.info("Attached " + display.__class__.__name__ + " display '" +
@@ -535,8 +535,8 @@ class KAPCOM(object):
                     # Return specific display specified
                     return {value.device: key for (key, value)
                             in self.displays.iteritems()
-                            if value._arduino is not None
-                            and value._arduino.uuid == uuid
+                            if value.is_attached()
+                            and value.arduino.uuid == uuid
                             and type(value) == eval(display_type)}.get(index)
                 else:
                     # Return a list of specified displays on named Arduino
@@ -610,30 +610,7 @@ class KAPCOM(object):
         :return: Dictionary of attributes from the object
         """
 
-        display = self.displays[name]
-
-        data = {
-            "Name": display.name,
-            "API": display.api,
-            "Type": display.__class__.__name__,
-            "Format": display._type,
-            "Value": display.value,
-            "Arduino": display._arduino.name,
-            "Device": display.device
-        }
-
-        if type(display) == Bargraph:
-            data['Max'] = display._max
-
-        elif type(display) == SevenSegment:
-            data['Length'] = display._length
-            data['Decimals'] = display._decimals
-            data['Pad'] = display._pad
-
-        else:
-            log.critical("Unknown display type")
-
-        return data
+        return self.displays[name].get_data()
 
     def start(self):
         log.critical("Trying to start thread")

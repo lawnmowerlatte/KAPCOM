@@ -13,7 +13,7 @@ _log = KAPCOMLog("Pin", logging.WARN)
 log = _log.log
 
 
-class Pin(object):
+class _Pin(object):
     __metaclass__ = ABCMeta
 
     # Core Class Members
@@ -21,7 +21,7 @@ class Pin(object):
     # api
     # pin
     # value
-    # _arduino
+    # arduino
     # _format
     # _invert
     # _cooldown
@@ -34,41 +34,31 @@ class Pin(object):
     def __init__(self, arduino, name, api, pin, options=None):
         """Initialize pin with parameters"""
         # Set core attributes
-        self._arduino = arduino
+        self.arduino = arduino
         self.name = name
         self.api = api
         self.pin = pin
 
         # Pre-set extra attributes
-        self._cooldown = 500
-        self._invert = False
-        self._format = "value"
-        self._max = 1024
-        self._deadzone = 0
-        self._initial = 0
+        self.cooldown = 500
+        self.invert = False
+        self.format = "value"
+        self.max = 1024
+        self.deadzone = 0
+        self.key = ""
 
         # Override defaults with passed values
         if options:
             for key in options:
                 setattr(self, "_" + key, options[key])
 
-        # Initialize the hardware
-        self.init()
-
         # Set ephemeral values
-        self.value = self._initial
+        self.value = 0
         self._lastvalue = self.value
         self._lastupdate = datetime.now()
 
-        # Run initial update
-        self.update()
-
     @abstractmethod
-    def init(self):
-        log.critical("Abstract method init() called for " + self.name + "!")
-
-    @abstractmethod
-    def act(self, value=None):
+    def _action(self, value=None):
         log.critical("Abstract method act() called for " + self.name + "!")
 
     def get(self):
@@ -97,13 +87,13 @@ class Pin(object):
         """Check cooldown timer and act"""
         # Check if cooldown has expired
         delta = self._lastupdate - datetime.now()
-        if (delta.total_seconds() * 1000) > self._cooldown:
+        if (delta.total_seconds() * 1000) > self.cooldown:
             log.debug("Cooldown not reached")
             return
         # Update counter
         self._lastupdate = datetime.now()
         # Perform action described in individual class
-        self.act(value)
+        self._action(value)
 
     def changed(self):
         """Check if value has changed since last check"""
@@ -124,73 +114,45 @@ class Pin(object):
             "false": lambda x: ("", "False")[x],
             "zero": lambda x: ("0", "")[x],
             "one": lambda x: ("1", "")[x],
-            "floatpoint": lambda x: str(float(x) / self._max),
-            "percent": lambda x: str(float(x) / self._max * 100),
-            "key": lambda x: pyautogui.press(self._key) if x == 1 else False
+            "floatpoint": lambda x: str(float(x) / self.max),
+            "percent": lambda x: str(float(x) / self.max * 100),
+            "key": lambda x: pyautogui.press(self.key) if x == 1 else False
         }
 
         # Try to run the lambda specified by _format
-        f = displays.get(self._format)
+        f = displays.get(self.format)
         if f is not None:
             return f(self.value)
         else:
-            log.warn('Format not found "{0}"'.format(self._format))
+            log.warn('Format not found "{0}"'.format(self.format))
             return ""
 
 
-class _Input(Pin):
-    __metaclass__ = ABCMeta
+class AnalogIn(_Pin):
+    def __init__(self, arduino, name, api, pin, options=None):
+        super(AnalogIn, self).__init__(arduino, name, api, pin, options)
+        self.arduino.pin_mode(self.pin, "INPUT_PULLUP")
 
-    def __init__(self, **kwargs):
-        super(_Input, self).__init__(**kwargs)
-
-    def init(self):
-        self._arduino.pin_mode(self.pin, "INPUT_PULLUP")
-
-    def act(self, value=None):
+    def _action(self, value=None):
         """If no value is passed, read"""
-        if value is None:
-            return self.read()
+        if value is not None:
+            log.warn("Value sent while updating an AnalogIn object")
+            return None
 
-
-class _Output(Pin):
-    __metaclass__ = ABCMeta
-
-    def __init__(self, **kwargs):
-        super(_Output, self).__init__(**kwargs)
-
-    def init(self):
-        """Set the hardware and local value"""
-        self._arduino.pin_mode(self.pin, "OUTPUT")
-        self._cooldown = 0
-
-    def act(self, value=None):
-        """Write the value"""
-        if value is None:
-            log.warn("No value sent!")
-            return
-
-        self.write(value)
-
-
-class _Analog():
-    __metaclass__ = ABCMeta
-
-    def __init__(self):
-        log.critical("_Analog.__init__() method called for " + self.name + "!")
+        return self.read()
 
     def set_max(self, new):
         """Set the maximum value"""
-        self._max = new
+        self.max = new
 
     def get_float(self):
         """Update the hardware and return latest value"""
         self.update()
-        return float(self.value) / self._max
+        return float(self.value) / self.max
 
     def changed(self):
         """Check if value has changed significantly since last check"""
-        changed = float(self._lastvalue - self.value) / self._max * 100
+        changed = float(self._lastvalue - self.value) / self.max * 100
 
         if abs(changed) > 1:
             self._lastvalue = self.value
@@ -200,48 +162,104 @@ class _Analog():
 
     def read(self):
         """Read from hardware"""
-        self.value = int(self._arduino.analog_read(self.pin))
+        self.value = int(self.arduino.analog_read(self.pin))
 
-        if self._invert:
-            self.value = self._max - self.value
+        if self.invert:
+            self.value = self.max - self.value
 
-        if self.value < self._max * self._deadzone:
+        if self.value < self.max * self.deadzone:
             self.value = 0
-        elif self.value > self._max * (1 - self._deadzone):
-            self.value = self._max
+        elif self.value > self.max * (1 - self.deadzone):
+            self.value = self.max
 
         return self.value
+
+
+class AnalogOut(_Pin):
+    def __init__(self, arduino, name, api, pin, options=None):
+        super(AnalogOut, self).__init__(arduino, name, api, pin, options)
+        self.arduino.pin_mode(self.pin, "OUTPUT")
+        self.cooldown = 0
+
+    def _action(self, value=None):
+        """Write the value"""
+        if value is None:
+            log.warn("No value sent while updating an AnalogOut object")
+            return
+
+        self.write(value)
+
+    def set_max(self, new):
+        """Set the maximum value"""
+        self.max = new
+
+    def get_float(self):
+        """Update the hardware and return latest value"""
+        self.update()
+        return float(self.value) / self.max
+
+    def changed(self):
+        """Check if value has changed significantly since last check"""
+        changed = float(self._lastvalue - self.value) / self.max * 100
+
+        if abs(changed) > 1:
+            self._lastvalue = self.value
+            return True
+        else:
+            return False
 
     def write(self, value):
         """Write to hardware"""
         if value:
             self.value = int(value)
 
-            if self._invert:
-                self.value = self._max - self.value
+            if self.invert:
+                self.value = self.max - self.value
 
-            self._arduino.analog_write(self.pin, self.value)
+            self.arduino.analog_write(self.pin, self.value)
 
 
-class _Digital():
-    __metaclass__ = ABCMeta
+class DigitalIn(_Pin):
+    def __init__(self, arduino, name, api, pin, options=None):
+        super(DigitalIn, self).__init__(arduino, name, api, pin, options)
+        self.arduino.pin_mode(self.pin, "INPUT_PULLUP")
 
-    def __init__(self):
-        log.critical("_Digital.__init__() method called for " + self.name + "!")
+    def _action(self, value=None):
+        """If no value is passed, read"""
+        if value is not None:
+            log.warn("Value sent while updating an DigitalIn object")
+            return None
+
+        return self.read()
 
     def read(self):
         """Read from hardware"""
-        self.value = int(self._arduino.digital_read(self.pin))
+        self.value = int(self.arduino.digital_read(self.pin))
 
-        if self._invert:
+        if self.invert:
             if self.value == 0:
                 self.value = 1
             elif self.value == 1:
                 self.value = 0
             else:
-                print "Unexpected value"
+                log.error("Unexpected value")
 
         return self.value
+
+
+class DigitalOut(_Pin):
+    def __init__(self, arduino, name, api, pin, options=None):
+        super(DigitalOut, self).__init__(arduino, name, api, pin, options)
+        self.arduino.pin_mode(self.pin, "OUTPUT")
+        self.cooldown = 0
+
+    def _action(self, value=None):
+        """Write the value"""
+        if value is None:
+            log.warn("No value sent while updating an DigitalOut object")
+            return
+
+        self.write(value)
 
     def write(self, value):
         """Write to hardware"""
@@ -252,31 +270,15 @@ class _Digital():
             except ValueError:
                 print "Unparsable value: " + value
 
-            if self._invert:
+            if self.invert:
                 if self.value == 0:
                     self.value = 1
                 elif self.value == 1:
                     self.value = 0
                 else:
-                    print "Unexpected value: " + value
+                    log.error("Unexpected value: " + value)
 
-            self._arduino.digital_write(self.pin, self.value)
-
-
-class AnalogIn(_Input, _Analog):
-    log.debug("Creating AnalogIn class")
-
-
-class AnalogOut(_Output, _Analog):
-    log.debug("Creating AnalogOut class")
-
-
-class DigitalIn(_Input, _Digital):
-    log.debug("Creating DigitalIn class")
-
-
-class DigitalOut(_Output, _Digital):
-    log.debug("Creating DigitalOut class")
+            self.arduino.digital_write(self.pin, self.value)
 
 
 # #####################################
@@ -294,6 +296,11 @@ def main():
     ao = AnalogOut(a, "Dimmer", "dimmer", 0x08)
     di = DigitalIn(a, "SAS", "sas", 0x0A)
     do = DigitalOut(a, "SAS Status", "sas_status", 0x0B)
+
+    ai.update()
+    ao.update(256)
+    di.update()
+    do.update(1)
 
     breakpoint()
 

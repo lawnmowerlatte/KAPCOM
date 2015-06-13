@@ -19,37 +19,43 @@ class SevenSegment(object):
         """Initialize pin with parameters"""
         # Set core attributes
         self.device = None
-        self._arduino = None
+        self.arduino = None
 
         self.name = name
         self.api = api
 
         # Pre-set extra attributes
-        self._type = "default"
-        self._length = 8
-        self._offset = 0
-        self._decimals = 3
-        self._pad = " "
+        self.type = "default"
+        self.length = 8
+        self.offset = 0
+        self.decimals = 3
+        self.pad = " "
 
         # Override defaults with passed values
         if options:
             for key in options:
-                setattr(self, "_" + key, options[key])
+                setattr(self, key, options[key])
 
         # Set ephemeral values
-        self.value = "-" * self._length
-        self._lastvalue = "-" * self._length
+        self.value = "-" * self.length
+        self._lastvalue = "-" * self.length
 
         # Run initial update
         self.update()
 
     def attach(self, arduino, device):
-        self._arduino = arduino
+        self.arduino = arduino
         self.device = device
 
     def detatch(self):
-        self._arduino = None
+        self.arduino = None
         self.device = None
+
+    def is_attached(self):
+        if self.arduino is not None and self.device is not None:
+            return True
+        else:
+            return False
 
     def set(self, value):
         log.debug("Setting seven-segment " + self.name + " " + str(value))
@@ -85,7 +91,7 @@ class SevenSegment(object):
         integer = value[:value.index('.')]
         decimal = value[value.index('.') + 1:]
 
-        if len(integer) > self._length:
+        if len(integer) > self.length:
             significant = len(integer)
 
             # print "Value:       " + str(self.value)
@@ -94,7 +100,7 @@ class SevenSegment(object):
             # print "Significant: " + str(significant)
             # print "Calculating..."
 
-            while significant + len(str(exponent)) + 1 > self._length:
+            while significant + len(str(exponent)) + 1 > self.length:
                 exponent += 3
                 significant = len(integer) - exponent
 
@@ -104,23 +110,23 @@ class SevenSegment(object):
             formatted = value[:significant] + "E" + str(exponent)
 
             # print "Formatted:   " + formatted
-            decimals = self._length - len(formatted)
+            decimals = self.length - len(formatted)
             # print "Decimals:    " + str(decimals)
             if decimals > 0:
                 formatted = value[:significant] + "." + value[significant:significant + decimals] + "E" + str(exponent)
 
                 # print "Reformatted: " + formatted
 
-        elif len(integer) < self._length:
+        elif len(integer) < self.length:
             # Fewer integers than can be displayed
             # Attempt to fill with decimals
 
             # Truncate the decimals to fit on the display
-            decimal = decimal[:self._length - len(integer)]
+            decimal = decimal[:self.length - len(integer)]
 
             # Truncate the decimals according to maximum decimal length
-            if len(decimal) > self._decimals:
-                decimal = decimal[:self._decimals]
+            if len(decimal) > self.decimals:
+                decimal = decimal[:self.decimals]
 
             # Create formatted string
             formatted = integer + "." + decimal
@@ -130,24 +136,53 @@ class SevenSegment(object):
             formatted = integer + "."
 
         # Pad string if it's too short
-        if len(formatted.replace(".", "")) < self._length:
-            for i in range(0, self._length - len(formatted.replace(".", ""))):
-                formatted = self._pad + formatted
+        if len(formatted.replace(".", "")) < self.length:
+            for i in range(0, self.length - len(formatted.replace(".", ""))):
+                formatted = "{}{}".format(self.pad, formatted)
 
         # Final check for string length
-        if len(formatted.replace(".", "")) != self._length:
+        if len(formatted.replace(".", "")) != self.length:
             # Print a debug message
             log.warn("Something went wrong while formatting: " + str(self.value) + " >> " + formatted)
 
             # Set the display to dashes
-            formatted = "-" * self._length
+            formatted = "-" * self.length
 
         self.value = formatted
 
     def write(self):
         if self.value != self._lastvalue:
-            self._arduino.display_write(self.device, self.value)
+            self.arduino.display_write(self.device, self.value)
 
+    def get_data(self):
+        if self.is_attached():
+            data = {
+                "Name": self.name,
+                "API": self.api,
+                "Type": "SevenSegment",
+                "Format": self.type,
+                "Value": self.value,
+                "Arduino": self.arduino.name,
+                "Device": self.device,
+                "Length": self.length,
+                "Decimals": self.decimals,
+                "Pad": self.pad
+            }
+        else:
+            data = {
+                "Name": self.name,
+                "API": self.api,
+                "Type": "SevenSegment",
+                "Format": self.type,
+                "Value": self.value,
+                "Arduino": "None",
+                "Device": "None",
+                "Length": self.length,
+                "Decimals": self.decimals,
+                "Pad": self.pad
+            }
+
+        return data
 
 # #####################################
 # ########## Testing Methods ##########

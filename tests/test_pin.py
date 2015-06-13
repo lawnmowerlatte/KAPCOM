@@ -8,6 +8,7 @@ sys.path.append(os.getcwd() + "/libraries")
 from arduino import Arduino
 from pin import DigitalIn, DigitalOut, AnalogIn, AnalogOut
 
+
 def test_analogin_init():
     a = Arduino("Test Arduino")
 
@@ -16,6 +17,7 @@ def test_analogin_init():
     assert pin.name == "Test Pin"
     assert pin.api == "Test api"
     assert pin.arduino.name == "Test Arduino"
+
 
 def test_analogout_init():
     a = Arduino("Test Arduino")
@@ -26,6 +28,7 @@ def test_analogout_init():
     assert pin.api == "Test api"
     assert pin.arduino.name == "Test Arduino"
 
+
 def test_digitalin_init():
     a = Arduino("Test Arduino")
 
@@ -35,6 +38,7 @@ def test_digitalin_init():
     assert pin.api == "Test api"
     assert pin.arduino.name == "Test Arduino"
 
+
 def test_digitalout_init():
     a = Arduino("Test Arduino")
 
@@ -43,6 +47,7 @@ def test_digitalout_init():
     assert pin.name == "Test Pin"
     assert pin.api == "Test api"
     assert pin.arduino.name == "Test Arduino"
+
 
 def test_analogin_get():
     a = Arduino("Test Arduino")

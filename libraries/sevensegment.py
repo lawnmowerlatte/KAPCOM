@@ -1,4 +1,3 @@
-import sys
 import logging
 
 from tools import KAPCOMLog

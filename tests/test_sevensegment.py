@@ -14,7 +14,7 @@ def test_init():
     sev = SevenSegment("Test SevenSegment", "Test api")
     assert sev.name == "Test SevenSegment"
     assert sev.api == "Test api"
-    assert sev.arduino == None
+    assert sev.arduino is None
 
     sev.attach(a, 0)
     assert sev.arduino is not None

@@ -2,6 +2,7 @@
 pyserial
 pyautogui
 flask
+pip
 
 # Testing
 pytest

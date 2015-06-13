@@ -8,6 +8,7 @@ sys.path.append(os.getcwd() + "/libraries")
 from arduino import Arduino
 from mod import Mod
 
+
 def test_init():
     a = Arduino("Test Arduino")
 

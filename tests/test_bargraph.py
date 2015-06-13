@@ -14,7 +14,7 @@ def test_init():
     bar = Bargraph("Test Bargraph", "Test api")
     assert bar.name == "Test Bargraph"
     assert bar.api == "Test api"
-    assert bar.arduino == None
+    assert bar.arduino is None
 
     bar.attach(a, 0)
     assert bar.arduino is not None
@@ -24,6 +24,7 @@ def test_init():
 def test_set():
     a = Arduino("Test Arduino")
     bar = Bargraph("Test Bargraph", "Test api")
+    bar.attach(a, 0)
 
     bar.set(100, 100)
     assert bar.value == 100
@@ -33,6 +34,7 @@ def test_set():
 def test_str(capsys):
     a = Arduino("Test Arduino")
     bar = Bargraph("Test Bargraph", "Test api", {"type": "green"})
+    bar.attach(a, 0)
 
     bar.set(24, 24)
     print str(bar)

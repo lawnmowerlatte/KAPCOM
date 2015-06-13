@@ -304,7 +304,7 @@ def configure_set_api(action):
         key = request.args.get("key")
         name = request.args.get("name")
         object_type = request.args.get("type")
-        api = request.args.get("api")
+        api_token = request.args.get("api")
         max_api = request.args.get("max_api")
         max_value = request.args.get("max_value")
 
@@ -319,8 +319,8 @@ def configure_set_api(action):
         if object_type is not None:
             display['type'] = object_type
 
-        if api is not None:
-            display['api'] = api
+        if api_token is not None:
+            display['api'] = api_token
 
         if object_type == "Bargraph":
             if max_api is not None:
@@ -350,7 +350,7 @@ def configure_set_api(action):
         key = request.args.get("key")
         name = request.args.get("name")
         object_type = request.args.get("type")
-        api = request.args.get("api")
+        api_token = request.args.get("api")
         pin = request.args.get("pin")
         x = request.args.get("x")
         y = request.args.get("y")
@@ -370,8 +370,8 @@ def configure_set_api(action):
         if object_type is not None:
             device['type'] = object_type
 
-        if api is not None:
-            device['api'] = api
+        if api_token is not None:
+            device['api'] = api_token
 
         for x in ["x", "y", "z", "modifier", "indicator", "button", "pin"]:
             try:

@@ -39,7 +39,7 @@ try:
     log.info("OK")
 except ImportError:
     log.error("Failed.")
-    log.error("Setup will continue, but will not be able to install packages automatically. Setup will fail if packages are missing.")
+    log.error("Setup will continue, but will not be able to install packages automatically.")
 
 # Check for PySerial
 log.info("Checking for PySerial")

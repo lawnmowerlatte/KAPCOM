@@ -1,4 +1,3 @@
-import sys
 import logging
 from datetime import datetime
 from tools import KAPCOMLog

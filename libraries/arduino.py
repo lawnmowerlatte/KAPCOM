@@ -1,5 +1,3 @@
-#!/usr/bin/python
-
 import platform
 import logging
 import serial
@@ -67,6 +65,11 @@ class Arduino(object):
                 self.s.flush()
         else:
             self.s = s
+
+        if self.s is None:
+            self.connected = False
+        else:
+            self.connected = True
 
     def _find_port(self, baud, timeout):
         """Find the first port that is connected to an Arduino with a compatible sketch installed."""

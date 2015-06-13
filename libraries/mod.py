@@ -1,5 +1,3 @@
-#!/usr/bin/python
-
 import sys
 import logging
 import pyautogui
@@ -16,6 +14,9 @@ log = _log.log
 class Mod(object):
     def __init__(self, arduino, name, api, modifier, indicator, button, options=None):
         """Initialize modifier with parameters"""
+
+        if options is None:
+            options = {}
 
         # Set core attributes
         self.mod = DigitalIn(arduino, name + " Modifier", "", modifier, options.get('modifier'))
@@ -87,39 +88,3 @@ class Mod(object):
         self.mod.printout()
         self.indicator.printout()
         self.button.printout()
-
-
-# #####################################
-# ########## Testing Methods ##########
-# #####################################
-
-
-def main():
-    import time
-    from arduino import Arduino
-    from tools import breakpoint
-
-    a = Arduino("Test")
-
-    abort = Mod(a, "Abort", "abort", 0xA9, 0xAB, 0xAA)
-    stage = Mod(a, "Stage", "stage", 0xAC, 0xAE, 0xAD)
-
-    while False:
-        abort.update()
-        stage.update()
-        abort.printout()
-        abort.printout()
-
-        time.sleep(1)
-
-    breakpoint()
-
-if __name__ == "__main__":
-    try:
-        main()
-    except KeyboardInterrupt:
-        sys.exit(0)
-    except EOFError:
-        sys.exit(0)
-        # except:
-        # sys.exit(0)

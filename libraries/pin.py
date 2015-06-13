@@ -1,5 +1,3 @@
-#!/usr/bin/python
-
 from abc import ABCMeta, abstractmethod
 from datetime import datetime
 import sys
@@ -93,7 +91,8 @@ class _Pin(object):
         # Update counter
         self._lastupdate = datetime.now()
         # Perform action described in individual class
-        self._action(value)
+        if self.arduino is not None and self.arduino.connected:
+            self._action(value)
 
     def changed(self):
         """Check if value has changed since last check"""
@@ -279,37 +278,3 @@ class DigitalOut(_Pin):
                     log.error("Unexpected value: " + value)
 
             self.arduino.digital_write(self.pin, self.value)
-
-
-# #####################################
-# ########## Testing Methods ##########
-# #####################################
-
-
-def main():
-    from arduino import Arduino
-    from tools import breakpoint
-
-    a = Arduino("Test")
-
-    ai = AnalogIn(a, "Throttle", "throttle", 0xA8)
-    ao = AnalogOut(a, "Dimmer", "dimmer", 0x08)
-    di = DigitalIn(a, "SAS", "sas", 0x0A)
-    do = DigitalOut(a, "SAS Status", "sas_status", 0x0B)
-
-    ai.update()
-    ao.update(256)
-    di.update()
-    do.update(1)
-
-    breakpoint()
-
-if __name__ == "__main__":
-    try:
-        main()
-    except KeyboardInterrupt:
-        sys.exit(0)
-    except EOFError:
-        sys.exit(0)
-        # except:
-        # sys.exit(0)

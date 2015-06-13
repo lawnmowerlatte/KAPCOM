@@ -1,5 +1,3 @@
-#!/usr/bin/python
-
 import sys
 import logging
 from datetime import datetime
@@ -187,7 +185,6 @@ class Bargraph(object):
         clear()
         
         if self.value < 0 or self.max <= 0:
-            self.arduino.bargraph_write(self.device, self.red, self.green)
             return
         
         f = locals().get(self.type)
@@ -203,7 +200,7 @@ class Bargraph(object):
     def write(self):
         if cmp(self.red, self._lastred) == 0 and cmp(self.green, self._lastgreen) == 0:
             log.debug("No change in display, skipping update")
-        else:
+        elif self.arduino is not None and self.arduino.connected:
             self.arduino.bargraph_write(self.device, self.red, self.green)
 
     def get_data(self):
@@ -231,46 +228,3 @@ class Bargraph(object):
             }
 
         return data
-
-
-# #####################################
-# ########## Testing Methods ##########
-# #####################################
-
-
-def main():
-    from arduino import Arduino
-    from tools import breakpoint
-    a = Arduino("Test")
-    
-    bar = Bargraph(a, "Test", "test")
-    
-    bar.update()
-    
-    bar.printout()
-    
-    import time
-    
-    for i in range(0, 101):
-        bar.set(i)
-        print str(bar)
-        time.sleep(.25)
-        
-    for i in range(101, -1, -1):
-        bar.set(i)
-        
-        print str(bar)
-        time.sleep(.25)
-
-    breakpoint()
-        
-
-if __name__ == "__main__":    
-    try:
-        main()
-    except KeyboardInterrupt:
-        sys.exit(0)
-    except EOFError:
-        sys.exit(0)
-    # except:
-    #     sys.exit(0)

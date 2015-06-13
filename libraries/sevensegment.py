@@ -1,5 +1,3 @@
-#!/usr/bin/python
-
 import sys
 import logging
 
@@ -34,6 +32,7 @@ class SevenSegment(object):
         # Override defaults with passed values
         if options:
             for key in options:
+                print "'" + key + "'"
                 setattr(self, key, options[key])
 
         # Set ephemeral values
@@ -151,7 +150,7 @@ class SevenSegment(object):
         self.value = formatted
 
     def write(self):
-        if self.value != self._lastvalue:
+        if self.value != self._lastvalue and self.arduino is not None and self.arduino.connected:
             self.arduino.display_write(self.device, self.value)
 
     def get_data(self):
@@ -183,40 +182,3 @@ class SevenSegment(object):
             }
 
         return data
-
-# #####################################
-# ########## Testing Methods ##########
-# #####################################
-
-
-def main():
-    from arduino import Arduino
-    from tools import breakpoint
-
-    a = Arduino("Test")
-    d = SevenSegment(a, "Test", "test")
-
-    import time
-
-    value = .00000012345678
-
-    for i in range(0, 20):
-        d.set(value)
-
-        print str(d)
-
-        value *= 10
-        time.sleep(1)
-
-        breakpoint()
-
-
-if __name__ == "__main__":
-    try:
-        main()
-    except KeyboardInterrupt:
-        sys.exit(0)
-    except EOFError:
-        sys.exit(0)
-        # except:
-        # sys.exit(0)

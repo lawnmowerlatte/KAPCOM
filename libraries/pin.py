@@ -23,14 +23,14 @@ class _Pin(object):
     # pin
     # value
     # arduino
-    # _format
-    # _invert
-    # _cooldown
+    # format
+    # invert
+    # cooldown
     # _lastupdate
     # _lastvalue
 
     # Optional Class Members
-    # _max
+    # max
 
     def __init__(self, arduino, name, api, pin, options=None):
         """Initialize pin with parameters"""
@@ -146,10 +146,6 @@ class AnalogIn(_Pin):
 
         return self.read()
 
-    def set_max(self, new):
-        """Set the maximum value"""
-        self.max = new
-
     def get_float(self):
         """Update the hardware and return latest value"""
         self.update()
@@ -193,10 +189,6 @@ class AnalogOut(_Pin):
             return
 
         self.write(value)
-
-    def set_max(self, new):
-        """Set the maximum value"""
-        self.max = new
 
     def get_float(self):
         """Update the hardware and return latest value"""

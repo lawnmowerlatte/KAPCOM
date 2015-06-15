@@ -136,7 +136,7 @@ class SevenSegment(object):
         # Pad string if it's too short
         if len(formatted.replace(".", "")) < self.length:
             for i in range(0, self.length - len(formatted.replace(".", ""))):
-                formatted = "{}{}".format(self.pad, formatted)
+                formatted = "{0}{1}".format(self.pad, formatted)
 
         # Final check for string length
         if len(formatted.replace(".", "")) != self.length:

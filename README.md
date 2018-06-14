@@ -42,3 +42,4 @@ Thanks to [Louis Goessling](https://github.com/602p) for the [PyKSP API](https:/
 Thanks to [KK4TEE](https://github.com/KK4TEE) for the foundation of this script. Although I rewrote enough of it to make forking unrealistic, the idea and core are based on their [Control Panel](https://github.com/KK4TEE/Control-Panel) project.
 
 Finally, thanks to Squad for [Kerbal Space Program](https://kerbalspaceprogram.com)!
+
